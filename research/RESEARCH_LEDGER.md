@@ -391,6 +391,16 @@ clock stability, and not retroactive calibration of sessions 10–18 or the open
 diagnostic. The first post-change session and next candle chunk must be checked
 for actual persisted probes before using this as operational evidence.
 
+A separate 20-second, BTC-only public integration smoke at 19:51 UTC verified
+that recorder path without touching any earlier journal: run
+`965a8ff1a0da4835ab3b8306ff68ee49` has a clean manifest at Git commit
+`8a2551a`, verified journal chain, 719 messages, one reconciled completion,
+zero source or clock-probe failures, and `START_END_OBSERVED` clock coverage.
+The start/end public server-minus-local-receipt observations were 963/964 ms
+with 287/280 ms wall-clock request durations. All 647 book events had negative
+uncorrected cross-clock lag (minimum -967 ms). This confirms the instrumentation
+and timing limitation; it is **not** a latency estimate, search, or forward fold.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
