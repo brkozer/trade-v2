@@ -54,11 +54,16 @@ def test_recorder_normalizes_reopens_and_preserves_sequence(tmp_path) -> None:
         journal.append(EvidenceEnvelope(event_id=str(index), run_id="recorder-test",
                                      kind="microstructure", recorded_ms=recorded_ms,
                                      source_ms=source_ms, source="public_fixture", payload=payload))
+    journal.append(EvidenceEnvelope(event_id="complete", run_id="recorder-test",
+        kind="recorder_complete", recorded_ms=140, source="fixture",
+        payload={"messages": 2, "books": 1, "trades": 1}))
     journal.close()
     audit = inspect_recording(path, "recorder-test")
     assert audit["journal_reopened"] is True
     assert audit["journal_integrity"] == "VERIFIED"
     assert audit["provenance_clean"] is True
+    assert audit["completion_events"] == 1
+    assert audit["source_failure_events"] == 0
     assert (audit["books"], audit["trades"], audit["messages"]) == (1, 1, 2)
     assert audit["last_book_sequence"]["BTCUSDT"] == 2
     regressed = {**snapshot, "type": "delta", "data": {**snapshot["data"], "u": 2, "seq": 1}}
@@ -78,4 +83,42 @@ def test_readback_rejects_event_outside_manifest_universe(tmp_path) -> None:
                  "best_bid": "100", "best_ask": "101"}))
     journal.close()
     with pytest.raises(ValueError, match="outside manifest universe"):
+        inspect_recording(path, "recorder-test")
+
+
+@pytest.mark.parametrize("completion_count", [0, 2])
+def test_readback_requires_exactly_one_completion(tmp_path, completion_count: int) -> None:
+    path = tmp_path / "completion.sqlite"
+    journal = Journal(path)
+    journal.register(_manifest())
+    journal.append(EvidenceEnvelope(event_id="book", run_id="recorder-test",
+        kind="microstructure", recorded_ms=120, source_ms=100, source="fixture",
+        payload={"schema_version": 1, "ingested_ms": 120,
+                 "exchange_event_ms": 100, "symbol": "BTCUSDT",
+                 "kind": "orderbook", "update_id": 1, "seq": 2, "cts": 99,
+                 "best_bid": "100", "best_ask": "101"}))
+    for index in range(completion_count):
+        journal.append(EvidenceEnvelope(event_id=f"complete-{index}", run_id="recorder-test",
+            kind="recorder_complete", recorded_ms=140 + index, source="fixture",
+            payload={"messages": 1, "books": 1, "trades": 0}))
+    journal.close()
+    with pytest.raises(ValueError, match="exactly one completion"):
+        inspect_recording(path, "recorder-test")
+
+
+def test_readback_rejects_false_completion_counts(tmp_path) -> None:
+    path = tmp_path / "false-count.sqlite"
+    journal = Journal(path)
+    journal.register(_manifest())
+    journal.append(EvidenceEnvelope(event_id="book", run_id="recorder-test",
+        kind="microstructure", recorded_ms=120, source_ms=100, source="fixture",
+        payload={"schema_version": 1, "ingested_ms": 120,
+                 "exchange_event_ms": 100, "symbol": "BTCUSDT",
+                 "kind": "orderbook", "update_id": 1, "seq": 2, "cts": 99,
+                 "best_bid": "100", "best_ask": "101"}))
+    journal.append(EvidenceEnvelope(event_id="complete", run_id="recorder-test",
+        kind="recorder_complete", recorded_ms=140, source="fixture",
+        payload={"messages": 2, "books": 1, "trades": 0}))
+    journal.close()
+    with pytest.raises(ValueError, match="completion counts disagree"):
         inspect_recording(path, "recorder-test")

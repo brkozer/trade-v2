@@ -193,6 +193,10 @@ Recorder read-back now rejects inconsistent manifest universe/config hashes,
 events outside the declared universe, and missing declared-symbol observations;
 it reports the manifest's dirty flag separately. This gate is prospective only:
 it does not repair or retroactively validate any earlier immutable journal.
+The closed-run gate also requires exactly one `recorder_complete` event,
+reconciles its message/book/trade totals against independent read-back, and
+reports `source_failure` event count separately. A source failure is a coverage
+warning even if the recorder later reconnects and closes successfully.
 
 ## New hypothesis queue — not a frozen search
 

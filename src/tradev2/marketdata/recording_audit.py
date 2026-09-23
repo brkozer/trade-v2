@@ -71,10 +71,23 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
             counts["messages"] += 1
         if observed_symbols != expected_symbols:
             raise ValueError("recording did not observe every manifest symbol")
+        completion_rows = connection.execute(
+            "SELECT body FROM events WHERE run_id=? AND kind='recorder_complete'", (run_id,)
+        ).fetchall()
+        if len(completion_rows) != 1:
+            raise ValueError("recording needs exactly one completion event")
+        completed = json.loads(completion_rows[0][0])["payload"]
+        if any(completed.get(key) != counts[key] for key in ("messages", "books", "trades")):
+            raise ValueError("recording completion counts disagree with read-back")
+        source_failures = connection.execute(
+            "SELECT count(*) FROM events WHERE run_id=? AND kind='source_failure'", (run_id,)
+        ).fetchone()[0]
         return {"run_id": run_id, "journal_reopened": True,
                 "journal_integrity": "VERIFIED", "manifest_sha256": hashlib.sha256(
                     manifest[0].encode()).hexdigest(), "schema_version": 1,
                 "manifest_dirty": run.dirty, "provenance_clean": not run.dirty,
+                "completion_events": 1, "source_failure_events": source_failures,
+                "uninterrupted_feed": source_failures == 0,
                 "first_ingested_ms": first_ms, "last_ingested_ms": last_ms,
                 "last_book_sequence": last_seq, **counts}
     except sqlite3.Error as exc:
