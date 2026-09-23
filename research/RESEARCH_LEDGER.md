@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 20:20 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 20:22 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -471,8 +471,12 @@ positive finite total and single-side quantities, source receipt times before
 The next required timestamp is 20:15 UTC; it was **not** silently backfilled.
 The collection-time server-minus-local receipt observation was 996 ms with
 281 ms wall request duration. This chunk is raw forward context, not a fold
-or a trading result. A finite OI continuation helper has been implemented,
-but must be observed live before it is called active.
+or a trading result. A finite OI continuation helper, PID 23844, was
+confirmed live at 20:21 UTC under
+`runtime/recorder/oi-continuation-20260923T202123Z/status.json` with status
+`WAITING_FOR_INTERVAL`, zero rounds, a 100 GiB disk floor, 1,344 half-hour
+rounds maximum, and a stop after three consecutive failures. Its next chunk
+is not yet present. This plan does not establish 28 days of data or alpha.
 
 ## New hypothesis queue — not a frozen search
 
@@ -497,6 +501,13 @@ evaluated or promoted from the current recorder sample.
    fill probability must be bounded conservatively rather than inferred from a
    touched quote. Fails if lower modeled fees are offset by missed fills or
    adverse marks. This is execution-policy research, not a promoted strategy.
+4. **OI inventory-state conditioning.** A decline in both-sides OI alongside
+   a price shock may distinguish position unwinds from new-risk build-up;
+   whether either state predicts continuation or reversal remains unknown.
+   This needs synchronized, point-in-time OI and price, contract-unit
+   normalization, settled funding and cost-aware next-available execution.
+   OI alone cannot identify whether longs or shorts were liquidated. Reject
+   the mechanism if it is explained by price beta, sparse events, or fees.
 
 Before any new search: capture enough **post-registration, independently dated**
 days for training, chronological validation, and at least 28 forward days;
