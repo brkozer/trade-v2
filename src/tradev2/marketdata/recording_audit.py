@@ -108,12 +108,35 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
         source_failures = connection.execute(
             "SELECT count(*) FROM events WHERE run_id=? AND kind='source_failure'", (run_id,)
         ).fetchone()[0]
+        clock_probes: list[dict[str, Any]] = []
+        for row in connection.execute(
+            "SELECT body FROM events WHERE run_id=? AND kind='clock_probe' ORDER BY sequence", (run_id,)
+        ):
+            probe_event = json.loads(row[0])
+            probe = probe_event["payload"]
+            if (probe.get("phase") not in {"start", "end"}
+                    or probe.get("server_ms") != probe_event["source_ms"]
+                    or probe.get("local_after_ms") != probe_event["recorded_ms"]
+                    or probe.get("server_minus_local_after_ms")
+                       != probe["server_ms"] - probe["local_after_ms"]
+                    or probe.get("server_minus_local_before_ms")
+                       != probe["server_ms"] - probe["local_before_ms"]):
+                raise ValueError("clock probe provenance mismatch")
+            clock_probes.append(probe)
+        clock_probe_failures = connection.execute(
+            "SELECT count(*) FROM events WHERE run_id=? AND kind='clock_probe_failure'", (run_id,)
+        ).fetchone()[0]
         return {"run_id": run_id, "journal_reopened": True,
                 "journal_integrity": "VERIFIED", "manifest_sha256": hashlib.sha256(
                     manifest[0].encode()).hexdigest(), "schema_version": 1,
                 "manifest_dirty": run.dirty, "provenance_clean": not run.dirty,
                 "completion_events": 1, "source_failure_events": source_failures,
                 "uninterrupted_feed": source_failures == 0,
+                "clock_probes": clock_probes, "clock_probe_failures": clock_probe_failures,
+                "clock_coverage": "START_END_OBSERVED" if [p["phase"] for p in clock_probes]
+                                  == ["start", "end"] and clock_probe_failures == 0
+                                  and all(p.get("status") == "WALL_CLOCK_STABLE" for p in clock_probes)
+                                  else "INCOMPLETE",
                 "first_ingested_ms": first_ms, "last_ingested_ms": last_ms,
                 "last_book_sequence": last_seq, "book_quality": book_quality,
                 **counts}

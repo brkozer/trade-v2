@@ -7,11 +7,11 @@ an untouched holdout merely because it has not yet been scored.
 import argparse
 import hashlib
 import json
-import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from tradev2.marketdata.clock import observe_public_clock
 from tradev2.research.datasets import BAR_MS
 from tradev2.venues.bybit_linear.public import PublicBybit
 
@@ -80,25 +80,8 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
     # Preserve a target-local bracket around the public server timestamp.
     # Cross-clock event lag cannot be interpreted without a contemporaneous
     # offset bound; the host wall clock may not be synchronized.
-    local_before_ms = time.time_ns() // 1_000_000
-    monotonic_before_ms = time.monotonic_ns() // 1_000_000
-    server_ms = client.server_time()
-    monotonic_after_ms = time.monotonic_ns() // 1_000_000
-    local_after_ms = time.time_ns() // 1_000_000
-    wall_elapsed_ms = local_after_ms - local_before_ms
-    monotonic_elapsed_ms = monotonic_after_ms - monotonic_before_ms
-    clock_probe = {
-        "local_before_ms": local_before_ms,
-        "server_ms": server_ms,
-        "local_after_ms": local_after_ms,
-        "wall_elapsed_ms": wall_elapsed_ms,
-        "monotonic_elapsed_ms": monotonic_elapsed_ms,
-        "server_minus_local_after_ms": server_ms - local_after_ms,
-        "server_minus_local_before_ms": server_ms - local_before_ms,
-        "status": "WALL_CLOCK_STABLE" if wall_elapsed_ms >= 0
-                  and abs(wall_elapsed_ms - monotonic_elapsed_ms) <= 50
-                  else "WALL_CLOCK_UNSTABLE",
-    }
+    clock_probe = observe_public_clock(client)
+    server_ms = int(clock_probe["server_ms"])
     last_open_ms = ((server_ms - SAFETY_LAG_MS) // BAR_MS - 1) * BAR_MS
     if last_open_ms < first_open_ms:
         raise ValueError("no safety-lagged, confirmed prospective bars yet")

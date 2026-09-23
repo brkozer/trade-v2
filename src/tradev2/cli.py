@@ -3,8 +3,10 @@
 import argparse
 import json
 import time
+import uuid
 from pathlib import Path
 
+import httpx
 import uvicorn
 
 from tradev2.config.loader import load_config
@@ -13,6 +15,7 @@ from tradev2.config.privilege import require_runtime_mode
 from tradev2.domain.evidence import EvidenceEnvelope, RunManifest
 from tradev2.evidence.journal import Journal
 from tradev2.evidence.manifests import create_manifest
+from tradev2.marketdata.clock import observe_public_clock
 from tradev2.marketdata.recorder import record_public
 from tradev2.marketdata.recording_audit import inspect_recording
 from tradev2.runtime.coordinator import SimulationRuntime
@@ -29,6 +32,26 @@ def _public_recorder_manifest(root: Path, symbols: tuple[str, ...]) -> RunManife
         "fee_provenance": "public market data only; no authenticated fee schedule",
         "initial_equity_source": None,
     })
+
+
+def _record_public_clock_probe(journal: Journal, run_id: str, phase: str) -> None:
+    if phase not in {"start", "end"}:
+        raise ValueError("clock probe phase must be start or end")
+    try:
+        client = PublicBybit(timeout=2)
+        try:
+            probe = observe_public_clock(client)
+        finally:
+            client.close()
+    except (httpx.HTTPError, ValueError, KeyError) as exc:
+        journal.append(EvidenceEnvelope(event_id=uuid.uuid4().hex, run_id=run_id,
+            kind="clock_probe_failure", recorded_ms=time.time_ns() // 1_000_000,
+            source="bybit_public_rest", payload={"phase": phase, "reason": type(exc).__name__}))
+        return
+    journal.append(EvidenceEnvelope(event_id=uuid.uuid4().hex, run_id=run_id,
+        kind="clock_probe", recorded_ms=int(probe["local_after_ms"]),
+        source_ms=int(probe["server_ms"]), source="bybit_public_rest",
+        payload={"phase": phase, **probe}))
 
 
 def main() -> None:
@@ -190,7 +213,9 @@ def main() -> None:
         journal = Journal(journal_path)
         try:
             journal.register(manifest)
+            _record_public_clock_probe(journal, manifest.run_id, "start")
             counts = record_public(journal, manifest.run_id, symbols, args.seconds)
+            _record_public_clock_probe(journal, manifest.run_id, "end")
             journal.append(EvidenceEnvelope(event_id=manifest.run_id+"-complete",
                 run_id=manifest.run_id, kind="recorder_complete", recorded_ms=time.time_ns()//1_000_000,
                 source="recorder", payload=counts))

@@ -380,6 +380,17 @@ server-time call. This is a clock-offset observation, **not** a retroactive
 timestamp correction or proof that the host remained synchronized between
 half-hour probes. It leaves the fixed bar universe and availability rule intact.
 
+The public recorder now attempts the same **GET-only, two-second-timeout**
+server/local clock bracket before and after each *future* bounded session.
+Successful observations are hash-chained `clock_probe` events in that run;
+public time-request failures are distinct `clock_probe_failure` events and do
+not masquerade as WebSocket feed failures or zero offset. Closed-run read-back
+reports whether both stable start/end observations exist. This is limited
+clock-offset provenance, not measured order latency, not a claim of continuous
+clock stability, and not retroactive calibration of sessions 10–18 or the open
+diagnostic. The first post-change session and next candle chunk must be checked
+for actual persisted probes before using this as operational evidence.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective

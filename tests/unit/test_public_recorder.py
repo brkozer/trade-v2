@@ -51,11 +51,24 @@ def test_recorder_normalizes_reopens_and_preserves_sequence(tmp_path) -> None:
     path = tmp_path / "public.sqlite"
     journal = Journal(path)
     journal.register(_manifest())
+    start_probe = {"phase": "start", "local_before_ms": 90, "server_ms": 105,
+                   "local_after_ms": 100, "wall_elapsed_ms": 10,
+                   "monotonic_elapsed_ms": 10, "server_minus_local_after_ms": 5,
+                   "server_minus_local_before_ms": 15, "status": "WALL_CLOCK_STABLE"}
+    journal.append(EvidenceEnvelope(event_id="clock-start", run_id="recorder-test",
+        kind="clock_probe", recorded_ms=100, source_ms=105,
+        source="bybit_public_rest", payload=start_probe))
     for index, (payload, source_ms, recorded_ms) in enumerate(
             ((first, source_first, 120), (second, source_second, 130))):
         journal.append(EvidenceEnvelope(event_id=str(index), run_id="recorder-test",
                                      kind="microstructure", recorded_ms=recorded_ms,
                                      source_ms=source_ms, source="public_fixture", payload=payload))
+    end_probe = {**start_probe, "phase": "end", "local_before_ms": 130,
+                 "local_after_ms": 135, "server_ms": 140, "wall_elapsed_ms": 5,
+                 "monotonic_elapsed_ms": 5, "server_minus_local_before_ms": 10}
+    journal.append(EvidenceEnvelope(event_id="clock-end", run_id="recorder-test",
+        kind="clock_probe", recorded_ms=135, source_ms=140,
+        source="bybit_public_rest", payload=end_probe))
     journal.append(EvidenceEnvelope(event_id="complete", run_id="recorder-test",
         kind="recorder_complete", recorded_ms=140, source="fixture",
         payload={"messages": 2, "books": 1, "trades": 1}))
@@ -66,6 +79,9 @@ def test_recorder_normalizes_reopens_and_preserves_sequence(tmp_path) -> None:
     assert audit["provenance_clean"] is True
     assert audit["completion_events"] == 1
     assert audit["source_failure_events"] == 0
+    assert audit["clock_coverage"] == "START_END_OBSERVED"
+    assert len(audit["clock_probes"]) == 2
+    assert audit["clock_probe_failures"] == 0
     assert (audit["books"], audit["trades"], audit["messages"]) == (1, 1, 2)
     assert audit["last_book_sequence"]["BTCUSDT"] == 2
     assert audit["book_quality"]["BTCUSDT"] == {
