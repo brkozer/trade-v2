@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 15:14 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 19:37 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -338,6 +338,17 @@ Its purpose is to distinguish a transient close from a repeatable
 eight-symbol collection limitation. It is not a search or an alpha result.
 The 20-symbol candle chain independently hash-verified through the 18:45 UTC
 bar, with 19:00 UTC the next expected open (19 immutable chunks).
+
+The first eight **clean-manifest** BTC/ETH continuation sessions, 10–17 in
+`continuation-20260923T101132Z`, all have one reconciled completion and zero
+source failures: 1,475,035 messages, 1,151,625 books and 1,190,003 individual
+trades. Sessions 10 and 11 were independently re-audited under the current
+per-symbol quality reader; sessions 12–17 have the same closed-run receipts.
+Together they report five within-symbol book gaps over one second (four in
+session 12, one in session 17), none over five seconds, and no books with more
+than five seconds of exchange lag. These intervals require event-time masks,
+and the inter-session boundaries also remain gaps. Eight half-hour sessions
+are not independent forward days or evidence of net alpha.
 
 ## New hypothesis queue — not a frozen search
 
