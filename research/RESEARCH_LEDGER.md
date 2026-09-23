@@ -202,6 +202,15 @@ recordings, so diagnostics cannot accidentally score the known provenance-defect
 sessions. This does not establish that any later clean session has sufficient
 sample size or independent forward-day coverage for alpha acceptance.
 
+Capacity checkpoint at 14:45 UTC: the open eight-symbol journal was 835,358,720
+bytes after about 19 minutes, with about 412.7 GiB free on the target drive.
+The breadth supervisor's 250 GiB floor leaves only about 163 GiB of usable
+headroom. A rough linear extrapolation of this *single volatile interval* is
+about 60 GiB/day uncompressed, so the present disk cannot be assumed to retain
+28 days of eight-symbol L2. Collection must stop safely at the floor; future
+research needs verified compact archival or more capacity, not a shortened
+forward gate. The small 20-symbol candle chain has a different storage profile.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
