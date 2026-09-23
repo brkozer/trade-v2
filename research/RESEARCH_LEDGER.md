@@ -197,6 +197,10 @@ The closed-run gate also requires exactly one `recorder_complete` event,
 reconciles its message/book/trade totals against independent read-back, and
 reports `source_failure` event count separately. A source failure is a coverage
 warning even if the recorder later reconnects and closes successfully.
+The microstructure analysis command now refuses dirty-manifest or interrupted
+recordings, so diagnostics cannot accidentally score the known provenance-defective
+sessions. This does not establish that any later clean session has sufficient
+sample size or independent forward-day coverage for alpha acceptance.
 
 ## New hypothesis queue — not a frozen search
 

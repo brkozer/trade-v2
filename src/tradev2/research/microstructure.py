@@ -37,6 +37,8 @@ def analyze(path: Path, run_id: str, *, horizon_ms: int = 2000,
     if not 100 <= horizon_ms <= 60_000:
         raise ValueError("smoke horizon must be bounded")
     audit = inspect_recording(path, run_id)
+    if not audit["provenance_clean"] or not audit["uninterrupted_feed"]:
+        raise ValueError("microstructure analysis requires clean provenance and uninterrupted feed")
     books: dict[str, list[dict[str, Any]]] = defaultdict(list)
     trades: dict[str, list[dict[str, Any]]] = defaultdict(list)
     connection = open_reader(path)
