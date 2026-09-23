@@ -491,6 +491,23 @@ The first chunk predates this overlap check; its saved collector hash and raw
 values remain unchanged. The first supervised extension will be the first
 operational test of the new anchor gate.
 
+### Cross-source point-in-time gate (23 September, 20:31 UTC)
+
+The 19:45 UTC OI and candle rows share the same exchange timestamp, fixed
+20-symbol universe and source-universe hash, but their receipt bounds differ:
+the candle was safe at 20:04:16.225 UTC and OI only at 20:19:25.934 UTC.
+The earliest **eligible** 15-minute execution-bar open is therefore 20:30 UTC,
+strictly after both source receipts and the candle close. That is not a fill
+claim: the future execution bar and realistic spread, fees, slippage and
+latency still have to be observed and modeled. The OI row timestamped 20:00
+UTC has no matching collected candle yet and is excluded, rather than joined
+to an unavailable price bar. A small typed availability rule now rejects
+mismatched timestamps and premature source availability, including an exact
+bar-boundary case. Six adversarial/unit checks passed. The check was prompted
+by underlying data-quality risk (late-arriving OI and a potentially leaking
+cross-source join), not evidence of predictive value. Search/trial counts,
+candidate status and the need for 28 independent forward days are unchanged.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
