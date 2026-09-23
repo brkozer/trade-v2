@@ -69,7 +69,15 @@ $metadata | ConvertTo-Json | Set-Content -LiteralPath $statusPath -Encoding utf8
 
 Push-Location -LiteralPath $root
 try {
-    Wait-Process -Id $waitTargetPid -Timeout $(if ($isCampaignHandoff) { 43200 } else { 2700 }) -ErrorAction Stop
+    $waitMilliseconds = if ($isCampaignHandoff) { 43200000 } else { 2700000 }
+    $waitHandle = [System.Diagnostics.Process]::GetProcessById($waitTargetPid)
+    try {
+        if (-not $waitHandle.WaitForExit($waitMilliseconds)) {
+            throw 'Prior public collection did not exit within its bounded wait'
+        }
+    } finally {
+        $waitHandle.Dispose()
+    }
     if ($isCampaignHandoff) {
         $priorFinal = Get-Content -LiteralPath $resolvedPriorStatus -Raw | ConvertFrom-Json
         if ($priorFinal.status -ne 'COMPLETE' -or
