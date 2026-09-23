@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 20:07 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 20:16 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -436,6 +436,30 @@ closed-run read-back and end probes before acceptance. The BTC/ETH supervisor
 had completed 19 sessions and the candle supervisor 20 successful rounds,
 zero failures; the 1,344-round candle extension remained waiting on the first
 campaign. No candidate is under evaluation or promoted.
+
+### New public OI evidence source — feasibility, not Search 005
+
+The previous searches rejected funding-crowding and funding-price-disagreement
+rules; they did **not** test changes in position inventory. A possible new
+mechanism is an open-interest unwind or build-up *condition* on subsequent
+price behavior, not a retune of the failed OHLCV/funding thresholds. This is
+only a hypothesis source, with no fixed search ID, parameters, trial budget or
+outcome estimate yet. It cannot be called alpha without new chronological and
+prospective evidence.
+
+Bybit's [public open-interest endpoint](https://bybit-exchange.github.io/docs/v5/market/open-interest)
+supports 15-minute history; its documented total is the sum of both sides in
+the contract base unit, and the endpoint warns of delayed delivery. Read-only
+probes found both historical (at the 004 consumed-panel cutoff) and current
+15-minute rows for **all 20 fixed 004 symbols**, each with timestamp, total
+and single-side quantity. Historical OI fetched now would be discovery-only,
+never an untouched validation set. The newly added independent forward OI
+collector requires exact symbol/time coverage, positive finite quantities,
+a stable public clock probe, an extra full interval plus two-minute safety
+lag, and a local/exchange receipt availability bound; it writes hashed,
+create-only chunks without changing the candle chain. Its real first-run
+behavior and long-horizon continuity still require verification. No OI signal
+has been evaluated, so completed-search and trial counts remain unchanged.
 
 ## New hypothesis queue — not a frozen search
 
