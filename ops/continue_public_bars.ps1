@@ -6,6 +6,7 @@ in target-local logs; repeated failure stops the helper for human review.
 param(
     [int]$WaitPid = 0,
     [int]$WaitCampaignPid = 0,
+    [switch]$ResumeExistingChain,
     [string]$PriorStatusPath,
     [ValidateRange(1, 1344)][int]$Rounds = 24,
     [ValidateRange(300, 3600)][int]$IntervalSeconds = 1800,
@@ -22,12 +23,17 @@ if (-not (Test-Path -LiteralPath $python -PathType Leaf) -or
     throw 'Target-local public candle collector is missing'
 }
 $isCampaignHandoff = $WaitCampaignPid -gt 0
-if (($WaitPid -gt 0) -eq $isCampaignHandoff) {
-    throw 'Specify exactly one active recorder WaitPid or bar-campaign WaitCampaignPid'
+$modeCount = [int]($WaitPid -gt 0) + [int]$isCampaignHandoff +
+    [int]($ResumeExistingChain.IsPresent)
+if ($modeCount -ne 1) {
+    throw 'Specify exactly one active-recorder WaitPid, bar-campaign WaitCampaignPid, or ResumeExistingChain'
 }
 $waitTargetPid = if ($isCampaignHandoff) { $WaitCampaignPid } else { $WaitPid }
-$prior = Get-CimInstance Win32_Process -Filter "ProcessId=$waitTargetPid"
-if ($null -eq $prior) { throw 'Wait target process is not active' }
+$prior = $null
+if (-not $ResumeExistingChain) {
+    $prior = Get-CimInstance Win32_Process -Filter "ProcessId=$waitTargetPid"
+    if ($null -eq $prior) { throw 'Wait target process is not active' }
+}
 $resolvedPriorStatus = $null
 if ($isCampaignHandoff) {
     if ([string]::IsNullOrWhiteSpace($PriorStatusPath)) {
@@ -47,7 +53,8 @@ if ($isCampaignHandoff) {
         $priorMetadata.status -ne 'COLLECTING') {
         throw 'WaitCampaignPid or prior bar-campaign status does not match active collection'
     }
-} elseif ($prior.CommandLine -notmatch 'tradev2\.cli record-public --symbols BTCUSDT ETHUSDT') {
+} elseif (-not $ResumeExistingChain -and
+          $prior.CommandLine -notmatch 'tradev2\.cli record-public --symbols BTCUSDT ETHUSDT') {
     throw 'WaitPid is not the expected active public recorder'
 }
 $campaign = Join-Path $root ('runtime\recorder\bars-continuation-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))
@@ -56,11 +63,12 @@ $statusPath = Join-Path $campaign 'status.json'
 $metadata = [ordered]@{
     prior_pid = $waitTargetPid
     prior_status_path = $resolvedPriorStatus
+    resume_existing_chain = $ResumeExistingChain.IsPresent
     started_utc = [DateTime]::UtcNow.ToString('o')
     requested_rounds = $Rounds
     interval_seconds = $IntervalSeconds
     min_free_gb = $MinFreeGB
-    status = 'WAITING_FOR_PRIOR_RUN'
+    status = if ($ResumeExistingChain) { 'COLLECTING' } else { 'WAITING_FOR_PRIOR_RUN' }
     successful_rounds = 0
     failed_rounds = 0
     consecutive_failures = 0
@@ -69,24 +77,26 @@ $metadata | ConvertTo-Json | Set-Content -LiteralPath $statusPath -Encoding utf8
 
 Push-Location -LiteralPath $root
 try {
-    $waitMilliseconds = if ($isCampaignHandoff) { 43200000 } else { 2700000 }
-    $waitHandle = [System.Diagnostics.Process]::GetProcessById($waitTargetPid)
-    try {
-        if (-not $waitHandle.WaitForExit($waitMilliseconds)) {
-            throw 'Prior public collection did not exit within its bounded wait'
+    if (-not $ResumeExistingChain) {
+        $waitMilliseconds = if ($isCampaignHandoff) { 43200000 } else { 2700000 }
+        $waitHandle = [System.Diagnostics.Process]::GetProcessById($waitTargetPid)
+        try {
+            if (-not $waitHandle.WaitForExit($waitMilliseconds)) {
+                throw 'Prior public collection did not exit within its bounded wait'
+            }
+        } finally {
+            $waitHandle.Dispose()
         }
-    } finally {
-        $waitHandle.Dispose()
-    }
-    if ($isCampaignHandoff) {
-        $priorFinal = Get-Content -LiteralPath $resolvedPriorStatus -Raw | ConvertFrom-Json
-        if ($priorFinal.status -ne 'COMPLETE' -or
-            $priorFinal.successful_rounds -lt 1 -or
-            $priorFinal.consecutive_failures -ne 0) {
-            throw 'Prior bar campaign did not complete cleanly'
+        if ($isCampaignHandoff) {
+            $priorFinal = Get-Content -LiteralPath $resolvedPriorStatus -Raw | ConvertFrom-Json
+            if ($priorFinal.status -ne 'COMPLETE' -or
+                $priorFinal.successful_rounds -lt 1 -or
+                $priorFinal.consecutive_failures -ne 0) {
+                throw 'Prior bar campaign did not complete cleanly'
+            }
         }
+        $metadata.status = 'COLLECTING'
     }
-    $metadata.status = 'COLLECTING'
     for ($index = 1; $index -le $Rounds; $index++) {
         if ($index -gt 1) { Start-Sleep -Seconds $IntervalSeconds }
         if (Test-Path -LiteralPath (Join-Path $campaign 'stop.request')) {
@@ -98,8 +108,17 @@ try {
             throw "Free disk below $MinFreeGB GB before round $index"
         }
         $log = Join-Path $campaign ('round-{0:D2}.log' -f $index)
-        & $python $collector *> $log
-        if ($LASTEXITCODE -eq 0) {
+        $savedErrorActionPreference = $ErrorActionPreference
+        try {
+            # Windows PowerShell surfaces native stderr as ErrorRecord objects.
+            # A normal nonzero collector exit must reach the bounded retry logic.
+            $ErrorActionPreference = 'Continue'
+            & $python $collector *> $log
+            $collectorExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $savedErrorActionPreference
+        }
+        if ($collectorExitCode -eq 0) {
             $metadata.successful_rounds++
             $metadata.consecutive_failures = 0
         } else {
