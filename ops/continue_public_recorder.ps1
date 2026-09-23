@@ -63,8 +63,17 @@ try {
             throw "Free disk below $MinFreeGB GB before session $index"
         }
         $log = Join-Path $campaign ('session-{0:D2}.log' -f $index)
-        & $python -m tradev2.cli record-public --symbols @symbols --seconds $Seconds *> $log
-        if ($LASTEXITCODE -ne 0) {
+        # Windows PowerShell promotes native stderr to an ErrorRecord under Stop,
+        # which previously aborted on the first traceback line and lost the cause.
+        $previousErrorActionPreference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            & $python -m tradev2.cli record-public --symbols @symbols --seconds $Seconds *> $log
+            $recorderExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $previousErrorActionPreference
+        }
+        if ($recorderExitCode -ne 0) {
             throw "Public recorder failed in session $index; see $log"
         }
         $metadata.completed_sessions = $index

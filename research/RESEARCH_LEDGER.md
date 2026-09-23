@@ -295,6 +295,40 @@ after the current 24-round supervisor exits, a 100 GiB disk floor, and a stop
 after three consecutive collection failures. This is a collection plan and
 live waiting process, **not** 28 days of data or proof of unattended success.
 
+## Eight-symbol feed audit and interruption — 2026-09-23 19:30 UTC
+
+The first clean eight-symbol session, `9cb5571d711948a69332b889502120b9`,
+closed with a verified journal chain, exact manifest universe, one reconciled
+completion, zero source-failure events, 604,069 messages, 548,322 book messages
+and 232,576 individual trades. Its 17,651 book messages with exchange lag over
+five seconds (maximum 12,297 ms) are confined to the first two one-minute
+buckets measured from the first ingestion timestamp. All eight symbols were
+affected. No within-symbol book ingestion gap exceeded one second. The opening
+two minutes are censored for short-horizon research; the remaining segment is
+not thereby a forward fold or a trading result.
+
+The second clean session, `482521f3c323464982de79f2cd80f939`, also passed
+full read-back: 590,177 messages, 531,757 books, 273,620 trades, one completion,
+zero source failures, and all eight symbols. Every symbol had zero book gaps
+over one second, zero books over five seconds behind exchange time, and zero
+books more than one second in the future. Maximum book lag was 893 ms; maximum
+within-symbol ingestion gap was 891 ms. This is roughly 30 minutes of usable
+market observation, not enough independent days to train or validate alpha.
+
+The third session, `09fa8524f410459bb136b0eda250d0e8`, has a valid journal
+hash chain and clean manifest but **no completion event**. It persisted 376,576
+market messages and three `ConnectionClosedError` source-failure events at
+16:06:17, 16:07:38 and 16:09:19 UTC, then exhausted the fixed retry budget.
+The eight-symbol supervisor stopped `FAILED` after two completed sessions;
+the third is interrupted evidence and cannot be scored as continuous. The
+supervisor's PowerShell stderr handling retained only the first traceback
+line in its status; a narrow logging correction preserved the full traceback
+and nonzero exit in a synthetic native-process failure probe for future runs.
+The independent BTC/ETH and 20-symbol candle collectors remained active
+at 19:30 UTC (17 completed half-hour BTC/ETH sessions and 18 successful candle
+rounds, respectively), with 407 GiB free. No new search ID or alpha candidate
+was created from these recorder observations.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
