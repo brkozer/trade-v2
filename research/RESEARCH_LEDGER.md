@@ -75,6 +75,10 @@ SHA-256 (`2d8e76db71022aaa8345a7319d9aed76978f6155bc4197d8b95fe0c3950cb1f8`).
 Its raw normalized bars and manifest are under ignored target-local
 `data/public/prospective_bars_1790157600000_1790157600000/`. This is **one bar per
 symbol**, not a validation fold, a sealed holdout, or evidence of net edge.
+Subsequent collection is constrained to the exact next 15-minute open; the
+collector rechecks every prior chunk's universe, interval, range and bars hash
+before accepting an extension. Overlapping or skipped intervals are a hard
+error, not quietly counted as new independent observations.
 
 ## New hypothesis queue — not a frozen search
 

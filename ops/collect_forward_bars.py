@@ -23,22 +23,42 @@ def _write_new(path: Path, value: dict[str, Any]) -> None:
         handle.write("\n")
 
 
+def _next_open(root: Path, earliest: int, symbols: list[str], source_hash: str) -> int:
+    next_open = earliest
+    for path in sorted((root / "data/public").glob("prospective_bars_*")):
+        manifest = json.loads((path / "manifest.json").read_text(encoding="utf-8"))
+        first = manifest["first_open_ms"]
+        last = manifest["last_open_ms"]
+        if (path.name != f"prospective_bars_{first}_{last}"
+                or manifest["dataset_id"] != f"BYBIT_PUBLIC_FORWARD_{first}_{last}"
+                or manifest["interval_ms"] != BAR_MS
+                or manifest["symbols"] != symbols
+                or manifest["source_universe_manifest_sha256"] != source_hash
+                or first != next_open or last < first or (last - first) % BAR_MS):
+            raise ValueError(f"prior prospective candle chain is inconsistent: {path.name}")
+        if hashlib.sha256((path / "bars.json").read_bytes()).hexdigest() != manifest["bars_sha256"]:
+            raise ValueError(f"prior prospective candle hash drift: {path.name}")
+        next_open = last + BAR_MS
+    return next_open
+
+
 def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str, Any]:
     source_path = root / "data/public/alpha_search_004/manifest.json"
     source = json.loads(source_path.read_text(encoding="utf-8"))
     result = json.loads((root / "research/results/ALPHA_SEARCH_004.json").read_text(encoding="utf-8"))
     finished_ms = int(datetime.fromisoformat(result["finished_at"]).timestamp() * 1000)
     earliest = (finished_ms // BAR_MS + 1) * BAR_MS
-    if first_open_ms % BAR_MS or first_open_ms < earliest:
-        raise ValueError("first bar must open strictly after Search 004 finished")
+    symbols: list[str] = source["symbols"]
+    if len(symbols) != 20 or len(set(symbols)) != 20:
+        raise ValueError("Search 004 fixed universe is missing or duplicated")
+    source_hash = hashlib.sha256(source_path.read_bytes()).hexdigest()
+    if first_open_ms % BAR_MS or first_open_ms != _next_open(root, earliest, symbols, source_hash):
+        raise ValueError("first bar must be the next nonoverlapping post-004 interval")
     server_ms = client.server_time()
     last_open_ms = ((server_ms - SAFETY_LAG_MS) // BAR_MS - 1) * BAR_MS
     if last_open_ms < first_open_ms:
         raise ValueError("no safety-lagged, confirmed prospective bars yet")
     expected = list(range(first_open_ms, last_open_ms + BAR_MS, BAR_MS))
-    symbols = source["symbols"]
-    if len(symbols) != 20 or len(set(symbols)) != 20:
-        raise ValueError("Search 004 fixed universe is missing or duplicated")
     bars: dict[str, Any] = {}
     for symbol in symbols:
         by_start: dict[int, list[str | int]] = {}
@@ -82,7 +102,7 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
         "dataset_id": f"BYBIT_PUBLIC_FORWARD_{first_open_ms}_{last_open_ms}",
         "evidence_role": "PROSPECTIVE_POST004_UNSCORED",
         "source": "Bybit public V5 REST /v5/market/kline",
-        "source_universe_manifest_sha256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
+        "source_universe_manifest_sha256": source_hash,
         "selection": "fixed 20-symbol Search 004 universe; no post-outcome reranking",
         "first_open_ms": first_open_ms,
         "last_open_ms": last_open_ms,
