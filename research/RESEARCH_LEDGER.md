@@ -557,6 +557,16 @@ not begun. The [Bybit OI contract](https://bybit-exchange.github.io/docs/v5/mark
 allows 200 rows per page, labels total versus single-side units and warns of
 delivery delay; collection-time availability must still control every join.
 
+As a *hurdle illustration*, the 004 collection-time symbol economics imply
+13.01–17.68 bps (median 13.98) of base taker/taker round-trip fee, observed
+spread and 1 bp/side slippage across the fixed 20 symbols. Under the already
+declared severe multipliers (2× fee, 3× spread, 5 bp/side slippage), the same
+arithmetic is 32.03–46.03 bps (median 34.95), **before** funding, latency,
+missed/partial fills or risk limits. These Decimal calculations are not
+historical spread paths or a frozen Search 005 cost model; they show why a
+delayed OI condition must clear a material net hurdle. No historical OI/price
+outcome was queried or optimized in this feasibility check.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
