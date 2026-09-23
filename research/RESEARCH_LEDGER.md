@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 14:52 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 14:57 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -227,6 +227,18 @@ eight subscribed symbols, `PUBLIC_RECORDER`, `dirty=false`, and Git SHA
 `3a121d5`. It is still open and unaccepted. A targeted recorder fix now catches
 the documented `ConnectionClosed` class, logs the source failure and applies
 the existing three-retry budget; it cannot retroactively repair either run.
+
+A non-destructive storage probe of that closed engineering-only journal made a
+consistent SQLite backup of 1,048,678,400 bytes and 594,128 events. The backup
+passed SQLite integrity and event hash-chain checks; zstd-restored bytes had
+the same SHA-256 as the backup (`b4f5a4f499902a70c5906e2b371c19e72149a60e4dc74276b1d3e7fc324a4e31`).
+Fast level-3 compression produced 156,430,330 bytes (14.92%); level 12 produced
+143,466,630 bytes (13.68%). Only generated probe copies were removed afterward;
+the original immutable journal was untouched. This single-run ratio does not
+solve the 28-day capacity constraint: at the indicative 60 GiB/day raw rate,
+even 13.68% is roughly 8 GiB/day before BTC/ETH or other storage. Verified
+archival, available space and the 250 GiB stop floor must all be accounted for
+before promising a 28-day L2 dataset.
 
 ## New hypothesis queue — not a frozen search
 
