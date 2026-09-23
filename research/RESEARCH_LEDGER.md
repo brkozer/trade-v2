@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 15:04 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 15:09 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -260,6 +260,29 @@ BTCUSDT/ETHUSDT universe, `PUBLIC_RECORDER`, and Git SHA `b066cb5`; it is
 open and not yet accepted. A tiny early prefix had both book/trade streams
 and no book message over five seconds late, but cannot establish whole-run
 quality. The WebSocket-closure fix at `25dd584` is included in that Git SHA.
+
+## Candle forward-horizon continuation — 2026-09-23 15:09 UTC
+
+The current 20-symbol candle supervisor was still live at 15:09 UTC, with ten
+successful half-hour rounds and zero failures; its verified chain comprised
+11 chunks and 20 consecutive bars per symbol from the 10:00 through 14:45 UTC
+opens. That is only five hours of bars, not a forward fold. Its 24-round limit
+would stop collection well before the fixed independent-day gate.
+
+`ops/continue_public_bars.ps1` now supports a second finite campaign that
+waits on the current supervisor PID, requires its terminal `COMPLETE` status,
+then extends the same hash-checked contiguous chain. An initial attempted
+long-horizon helper at 15:07:52 UTC failed before collecting any rounds:
+Windows PowerShell rejected `Wait-Process -Timeout 43200` (maximum 32767).
+The failed operational status is preserved under
+`runtime/recorder/bars-continuation-20260923T150752Z/`. Commit `2fe4b0d`
+uses a tested bounded process-handle wait instead. Its replacement, PID 1660,
+is confirmed live and **WAITING**, with zero collected rounds, under
+`runtime/recorder/bars-continuation-20260923T150902Z/status.json`. It is
+configured for at most 1,344 half-hour public-only rounds (about 28 days)
+after the current 24-round supervisor exits, a 100 GiB disk floor, and a stop
+after three consecutive collection failures. This is a collection plan and
+live waiting process, **not** 28 days of data or proof of unattended success.
 
 ## New hypothesis queue — not a frozen search
 
