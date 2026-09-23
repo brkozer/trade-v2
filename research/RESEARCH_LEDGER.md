@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 14:27 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 14:33 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -90,7 +90,7 @@ was **waiting**, with zero successful rounds; no future candle coverage is
 claimed from this plan alone. REST backfills retain actual ingestion times and
 must not be treated as contemporaneously observed order-book or shadow fills.
 
-## Closed prospective evidence audit — 2026-09-23 14:12 UTC
+## Closed raw-data integrity audit — 2026-09-23 14:12 UTC
 
 The initial run and seven sequential continuation runs have closed. Independent
 read-back of **all eight** target-local journals verified their hash chains,
@@ -160,6 +160,35 @@ not a scored search or an independent 28-day validation set. Broad coverage is
 needed before freezing concentration gates for an economically distinct
 microstructure search; BTC/ETH-only outcomes cannot answer whether an apparent
 edge is one-symbol dependent.
+
+## Immutable provenance correction — 2026-09-23 14:33 UTC
+
+The `record-public` CLI used to construct its `RunManifest` from
+`configs/shadow.json`, whose default universe is BTCUSDT/ETHUSDT/SOLUSDT,
+regardless of the actual `--symbols` subscription. Thus the eight closed
+BTC/ETH journals audited above, the active eighth continuation run, and the
+open eight-symbol breadth run have a **manifest universe/config mismatch**.
+Their hash chains, raw public events, CLI receipts and timestamps remain useful
+for engineering/feasibility diagnostics, but they are **not accepted as clean
+prospective alpha/forward evidence**. None was scored for alpha. Their immutable
+journals are not edited or relabeled. This caveat supersedes any earlier
+"accepted" implication based solely on successful recorder read-back.
+
+Commit `f16d1d5` changes only future recorder creation: the manifest's universe,
+config hash/profile and recorder identity now derive from the exact subscribed
+symbols, with no account-fee or equity claim. A new continuation supervisor is
+waiting for the current breadth run to finish, then is bounded to 24 sequential
+30-minute public eight-symbol sessions with a 250 GiB disk floor; ignored status
+is `runtime/recorder/continuation-20260923T143237Z/status.json`. Its first new
+run must be independently inspected for an exact manifest/event-symbol match
+before any data are eligible for a future Search 005 design. The existing
+20-symbol candle manifests are unaffected by this recorder defect.
+
+The first fixed-code BTC/ETH run, `c68083a797cf44239795821a08e45f3b`,
+records the correct BTCUSDT/ETHUSDT universe and `PUBLIC_RECORDER` identity at
+commit `f16d1d5`, but its manifest has `dirty=true` because this ledger change
+was uncommitted at launch. It too is engineering-only, not clean forward alpha
+evidence. Later runs require both exact universe matching and a clean manifest.
 
 ## New hypothesis queue — not a frozen search
 
