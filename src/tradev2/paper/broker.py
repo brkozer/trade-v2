@@ -28,11 +28,17 @@ class PaperBroker:
     """
 
     def __init__(self, equity: Decimal, maker_fee: Decimal = Decimal("0.0004"),
-                 taker_fee: Decimal = Decimal("0.0011")) -> None:
+                 taker_fee: Decimal = Decimal("0.0011"), *,
+                 target_r: Decimal = Decimal(str(REFERENCE_PARAMS.target_r)),
+                 maker_wait_ms: int = REFERENCE_PARAMS.maker_wait_ms) -> None:
+        if target_r <= 0 or maker_wait_ms <= 0:
+            raise ValueError("invalid simulated target or wait")
         self.initial_equity = equity
         self.cash = equity
         self.maker_fee = maker_fee
         self.taker_fee = taker_fee
+        self.target_r = target_r
+        self.maker_wait_ms = maker_wait_ms
         self.orders: dict[str, OrderLifecycle] = {}
         self.rules: dict[str, InstrumentRules] = {}
         self.positions: dict[str, SimPosition] = {}
@@ -100,7 +106,7 @@ class PaperBroker:
                 order.confirm_cancel(order.filled)
                 self._order_event(order)
                 continue
-            if now_ms - intent.available_ms > REFERENCE_PARAMS.maker_wait_ms:
+            if now_ms - intent.available_ms > self.maker_wait_ms:
                 order.request_cancel()
                 order.confirm_cancel(order.filled)
                 self._order_event(order)
@@ -132,7 +138,7 @@ class PaperBroker:
                                 symbol=book.symbol, side=intent.side, quantity=total,
                                 entry_price=intent.reference_price, protected_quantity=total)
             target = intent.reference_price + (
-                intent.reference_price - intent.stop_price) * Decimal(str(REFERENCE_PARAMS.target_r))
+                intent.reference_price - intent.stop_price) * self.target_r
             self.positions[book.symbol] = SimPosition(position, intent.stop_price, target,
                 existing.opened_ms if existing else event_ms,
                 (existing.entry_fee if existing else Decimal(0)) + fee,
@@ -250,6 +256,7 @@ class PaperBroker:
     def checkpoint(self) -> dict[str, Any]:
         return {"schema_version": 1, "initial_equity": str(self.initial_equity),
             "cash": str(self.cash), "maker_fee": str(self.maker_fee), "taker_fee": str(self.taker_fee),
+            "target_r": str(self.target_r), "maker_wait_ms": self.maker_wait_ms,
             "realized": str(self.realized), "fees": str(self.fees), "funding": str(self.funding),
             "funding_seen": sorted(self.funding_seen), "last_book_ms": self.last_book_ms,
             "rules": {s: r.model_dump(mode="json") for s, r in self.rules.items()},
@@ -266,7 +273,9 @@ class PaperBroker:
         if state["schema_version"] != 1:
             raise ValueError("unsupported simulation checkpoint schema")
         result = cls(Decimal(state["initial_equity"]), Decimal(state["maker_fee"]),
-                     Decimal(state["taker_fee"]))
+                     Decimal(state["taker_fee"]),
+                     target_r=Decimal(state.get("target_r", str(REFERENCE_PARAMS.target_r))),
+                     maker_wait_ms=int(state.get("maker_wait_ms", REFERENCE_PARAMS.maker_wait_ms)))
         for field in ("cash", "realized", "fees", "funding"):
             setattr(result, field, Decimal(state[field]))
         result.funding_seen = {(str(s), int(t)) for s, t in state["funding_seen"]}

@@ -38,26 +38,57 @@ either read-only source repository.
 
 ## Operator commands
 
+Start the whole local workstation in one PowerShell command (dependencies installed
+as above):
+
+```powershell
+.\scripts\start_trade_v2.ps1
+.\scripts\status_trade_v2.ps1
+```
+
+Open `http://127.0.0.1:5173/` for the six-page workstation or
+`http://127.0.0.1:8000/docs` for the read-only API. Add `-OpenBrowser` to the
+start command to open the UI automatically. When finished:
+
+```powershell
+.\scripts\stop_trade_v2.ps1
+```
+
+Start and stop are idempotent; the launcher records process identities in ignored
+`runtime/operator/` and stops only its own API and UI processes. This does not
+start a trading simulation or connect an account. The UI distinguishes a stopped
+last run from a current account and shows sealed historical research while idle.
+
+Run finite public-data simulations and inspect their evidence separately:
+
 ```powershell
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search final
 .\.venv\Scripts\python.exe -m tradev2.cli replay-parity
 .\.venv\Scripts\python.exe -m tradev2.cli run --config configs/paper.json --cycles 1
 .\.venv\Scripts\python.exe -m tradev2.cli run --config configs/shadow.json --cycles 1
+.\.venv\Scripts\python.exe -m tradev2.cli run --config configs/factor_fixture.paper.json --cycles 1
+.\.venv\Scripts\python.exe -m tradev2.cli run --config configs/factor_fixture.shadow.json --cycles 1
 .\.venv\Scripts\python.exe -m tradev2.cli record-public --symbols BTCUSDT ETHUSDT --seconds 30
 .\.venv\Scripts\python.exe -m tradev2.cli testnet-preflight
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-runtime --mode paper
-.\.venv\Scripts\python.exe -m tradev2.cli serve
 ```
 
-In a second terminal, `cd frontend; npm run dev`, then visit the local Vite URL.
-The API is a loopback, read-only service; do not expose it publicly. `paper.json`
-selects simulated paper operation. Simulations can be resumed with `--resume <run-id>`.
+The non-RSI factor configs are explicitly labeled `TEST_FIXTURE`; their historical
+result was **rejected**, so they demonstrate architecture, not alpha approval.
+Without fixture mode, a registered factor must have a sealed promotion and be
+approved for the requested paper or shadow stage. Unknown/rejected/unapproved
+candidates fail closed. `REFERENCE_CANDIDATE_001` is also a regression fixture.
+The API is loopback and read-only; do not expose it publicly. `paper.json` selects
+simulated paper operation. Simulations can be resumed with `--resume <run-id>`.
 Stop a running finite simulation with `stop-runtime --mode paper --run-id <id>`.
 `record-public` captures prospective public observations without trading authority;
 use `analyze-microstructure --run-id <id>` for paired smoke research. The final
 historical `research --search final` command is intentionally one-shot and now refuses
 a repeat because its preregistered evidence was consumed. A new search needs a new
-identity, frozen manifest and explicit accounting for earlier attempts.
+identity, frozen manifest, independently dated data and explicit accounting for
+earlier attempts; do not change the consumed final manifest or rerun it under a new
+name. The historical command is `python -m tradev2.cli research --search final`
+only for an unconsumed checkout; here, inspect its sealed result instead.
 The CLI records events and checkpoints in ignored `runtime/`; it does not place orders.
 
 ## Evidence and design

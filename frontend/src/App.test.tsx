@@ -14,6 +14,8 @@ const fixture: Snapshot = {
     mode: "paper",
     run_id: null,
     status: "UNKNOWN",
+    candidate_id: null,
+    candidate_stage: null,
     freshness: "UNKNOWN",
     source_freshness: "UNKNOWN",
     engine: "ENGINE_UNKNOWN",
@@ -93,8 +95,8 @@ describe("truthful workstation", () => {
     fireEvent.change(screen.getByLabelText("Filter families"), {
       target: { value: "rsi" },
     });
-    expect(screen.getByText("rsi_reversion")).toBeTruthy();
-    expect(screen.queryByText("volume_shock")).toBeNull();
+    expect(screen.getByRole("row", { name: /rsi_reversion/ })).toBeTruthy();
+    expect(screen.queryByRole("row", { name: /volume_shock/ })).toBeNull();
   });
   it("shows final forward evidence, paired stress and unknown attribution honestly", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
@@ -126,7 +128,7 @@ describe("truthful workstation", () => {
     render(<App />);
     await screen.findByText("No positions recorded for this run.");
     fireEvent.click(screen.getByRole("button", { name: "Alpha Lab" }));
-    expect(screen.getByText("ridge_ohlcv")).toBeTruthy();
+    expect(screen.getByRole("row", { name: /ridge_ohlcv/ })).toBeTruthy();
     expect(screen.getByText(/454 trades/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Experiments" }));
     expect(screen.getByText("Paired execution-cost stress")).toBeTruthy();

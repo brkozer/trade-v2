@@ -321,6 +321,10 @@ main {
   color: #e2b576;
   font-size: 1.1rem;
 }
+.metric .long-value {
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
 .panel {
   border: 1px solid #2d3b49;
   background: #141d27;
@@ -348,6 +352,20 @@ main {
 }
 .panel-title input {
   margin-left: 8px;
+}
+.filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.filters label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filters input {
+  margin-left: 0;
 }
 .section-tabs {
   display: flex;
@@ -567,6 +585,15 @@ footer {
   .panel-title input {
     margin: 8px 0;
     display: block;
+  }
+  .filters,
+  .filters label {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .filters :is(input, select) {
+    max-width: 100%;
   }
   pre {
     max-width: 85vw;

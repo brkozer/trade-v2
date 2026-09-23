@@ -16,6 +16,8 @@ export type Snapshot = {
     mode: string | null;
     run_id: string | null;
     status: string;
+    candidate_id: string | null;
+    candidate_stage: string | null;
     freshness: string;
     source_freshness: string;
     engine: string;
@@ -87,7 +89,7 @@ function Metrics({ values }: { values: [string, unknown][] }) {
       {values.map(([label, value]) => (
         <div className="metric" key={label}>
           <span>{label}</span>
-          <strong className={value == null ? "unknown" : ""}>
+          <strong className={value == null ? "unknown" : String(value).length > 20 ? "long-value" : ""}>
             {display(value)}
           </strong>
         </div>
@@ -166,6 +168,7 @@ function Ledger({ title, events }: { title: string; events: Event[] }) {
 }
 function Campaign({ campaign, searches }: { campaign: RecordData | null; searches: RecordData[] }) {
   const [filter, setFilter] = useState("");
+  const [selectedFamily, setSelectedFamily] = useState("");
   const families = (
     Array.isArray(campaign?.families) ? campaign.families : []
   ) as RecordData[];
@@ -177,6 +180,8 @@ function Campaign({ campaign, searches }: { campaign: RecordData | null; searche
       .toLowerCase()
       .includes(query),
   );
+  const detail = families.find((family) => family.family === selectedFamily);
+  const rejected = families.filter((family) => family.status === "REJECTED").length;
   return (
     <>
       <div className="notice">
@@ -190,15 +195,17 @@ function Campaign({ campaign, searches }: { campaign: RecordData | null; searche
         values={[
           ["Completed searches", searches.length],
           ["Search", campaign?.search_id],
+          ["Families evaluated · HISTORICAL", families.length],
+          ["Rejected · HISTORICAL", rejected],
           [
             "Configurations tested",
             (campaign?.search_budget as RecordData | undefined)?.configurations,
           ],
           ["Total replays", (campaign?.search_budget as RecordData | undefined)?.total_replays],
           ["Inner trials", (campaign?.search_budget as RecordData | undefined)?.selection_evaluations],
-          ["Final holdout", campaign?.final_holdout_state],
+          ["Final holdout", campaign?.final_holdout_state ? "NOT ACQUIRED" : null],
           [
-            "Next-stage queue",
+            "Promoted · HISTORICAL",
             Array.isArray(campaign?.promoted_candidates)
               ? campaign.promoted_candidates.length
               : null,
@@ -208,14 +215,17 @@ function Campaign({ campaign, searches }: { campaign: RecordData | null; searche
       <section className="panel">
         <div className="panel-title">
           <h2>Candidate families</h2>
-          <label>
-            Filter families{" "}
-            <input
-              value={filter}
+          <div className="filters">
+            <label>Filter families{" "}<input value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Family, status, reason"
-            />
-          </label>
+              placeholder="Family, status, reason" /></label>
+            <label>Candidate detail{" "}<select value={selectedFamily}
+              onChange={(e) => setSelectedFamily(e.target.value)}>
+              <option value="">Select a family</option>
+              {families.map((family) => <option key={String(family.family)}
+                value={String(family.family)}>{String(family.family)}</option>)}
+            </select></label>
+          </div>
         </div>
         {selected.length ? (
           <div className="table-scroll">
@@ -284,6 +294,17 @@ function Campaign({ campaign, searches }: { campaign: RecordData | null; searche
           </p>
         )}
       </section>
+      {detail ? <section className="panel" aria-label="Selected candidate detail">
+        <div className="panel-title"><h2>{display(detail.family)}</h2>
+          <Badge value={detail.status} /></div>
+        <p>{display(detail.mechanism)}</p>
+        <Metrics values={[["Forward net R · HISTORICAL", (detail.forward as RecordData | undefined)?.mean_net_r],
+          ["Forward trades", (detail.forward as RecordData | undefined)?.trades],
+          ["Adjusted p", detail.adjusted_pvalue],
+          ["Positive neighbor folds", (detail.parameter_stability as RecordData | undefined)?.neighbor_positive_folds]]} />
+        <p>Decision: {Array.isArray(detail.reasons) ? detail.reasons.join("; ") : "Unknown"}</p>
+        <Details value={detail} />
+      </section> : null}
       <section className="panel">
         <h2>Research protocol & cost sensitivity</h2>
         <Details
@@ -328,6 +349,7 @@ function Performance({ data }: { data: Snapshot }) {
       <section className="panel">
         <h2>Simulated equity · observed snapshots</h2>
         {points.length > 1 ? (
+          <>
           <figure>
             <svg
               className="chart"
@@ -352,6 +374,16 @@ function Performance({ data }: { data: Snapshot }) {
               below; no interpolated missing balances.
             </figcaption>
           </figure>
+          <div className="table-scroll">
+            <table>
+              <caption>Observed simulated equity snapshots</caption>
+              <thead><tr><th scope="col">Recorded UTC</th><th scope="col">Equity · USDT</th></tr></thead>
+              <tbody>{curve.filter((event) => event.payload.equity != null).map((event) =>
+                <tr key={event.event_id}><td>{new Date(event.recorded_ms).toISOString()}</td>
+                  <td>{display(event.payload.equity)}</td></tr>)}</tbody>
+            </table>
+          </div>
+          </>
         ) : (
           <p className="empty">
             Insufficient equity observations to draw a curve.
@@ -381,6 +413,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
   const [filter, setFilter] = useState("");
+  const [experimentFilter, setExperimentFilter] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const initialPage = useRef(true);
   const [tab, setTab] = useState("position");
@@ -540,7 +573,7 @@ export function App() {
                   <div className="notice">
                     <Badge value={runtime?.status} />
                     <span>
-                      {mode.toUpperCase()} simulation · record age{" "}
+                      {mode.toUpperCase()} simulation · {runtime?.status === "STOPPED" ? "last run, not current account" : "CURRENT runtime"} · record age{" "}
                       {runtime?.age_ms === null
                         ? "unknown"
                         : `${Math.round((runtime?.age_ms ?? 0) / 1000)}s`}{" "}
@@ -550,6 +583,9 @@ export function App() {
                   </div>
                   <Metrics
                     values={[
+                      ["Selected candidate", runtime?.candidate_id],
+                      ["Candidate stage", runtime?.candidate_stage],
+                      ["Public market", data.system.public_market],
                       ["Equity · USDT", account?.equity],
                       ["Start equity", account?.start_equity],
                       ["Equity delta", account?.equity_delta],
@@ -653,13 +689,14 @@ export function App() {
               ) : null}
               {page === "Experiments" ? (
                 <>
+                  <div className="notice">HISTORICAL / IMMUTABLE · consumed search and paired stress evidence</div>
                   <Metrics
                     values={[
                       ["Search ID", data.campaign?.search_id],
                       ["Completed searches", data.searches?.length],
                       ["Paired stress records", data.experiments?.length],
                       ["Complete", data.campaign?.complete],
-                      ["Holdout state", data.campaign?.final_holdout_state],
+                      ["Holdout state", data.campaign?.final_holdout_state ? "NOT ACQUIRED" : null],
                     ]}
                   />
                   <section className="panel">
@@ -670,13 +707,17 @@ export function App() {
                     <p>All research periods reuse historical data. No experiment here is fresh final holdout evidence.</p>
                   </section>
                   <section className="panel">
-                    <h2>Paired execution-cost stress</h2>
+                    <div className="panel-title"><h2>Paired execution-cost stress</h2>
+                      <label>Filter experiments{" "}<input value={experimentFilter}
+                        onChange={(e) => setExperimentFilter(e.target.value)}
+                        placeholder="Family or treatment" /></label></div>
                     {(data.experiments ?? []).length ? (
                       <div className="table-scroll"><table>
                         <caption className="sr-only">Common-opportunity paired stress comparisons</caption>
                         <thead><tr>{["Family", "Fold", "Treatment", "Common n", "Mean paired Δ · USDT", "CI", "Status"].map((name) =>
                           <th scope="col" key={name}>{name}</th>)}</tr></thead>
-                        <tbody>{(data.experiments ?? []).map((row, index) =>
+                        <tbody>{(data.experiments ?? []).filter((row) =>
+                          `${row.hypothesis} ${row.treatment}`.toLowerCase().includes(experimentFilter.toLowerCase())).map((row, index) =>
                           <tr key={`${row.hypothesis}-${row.checkpoint}-${row.treatment}-${index}`}>
                             <th scope="row">{display(row.hypothesis)}</th><td>{display(row.checkpoint)}</td>
                             <td>{display(row.treatment)}</td><td>{display(row.n)}</td>
@@ -708,12 +749,17 @@ export function App() {
                       ["Authority", data.system.authority],
                       ["Journal integrity", data.evidence.integrity],
                       ["Runtime", runtime?.status],
+                      ["Candidate", runtime?.candidate_id],
+                      ["Candidate stage", runtime?.candidate_stage],
+                      ["Public Bybit", data.system.public_market],
+                      ["Software Git SHA", typeof data.system.git_sha === "string" ? data.system.git_sha.slice(0, 12) : null],
+                      ["Frontend", "RENDERED_LOCAL"],
                       ["Source freshness", runtime?.source_freshness],
                       ["Engine observation", runtime?.engine],
                       ["Safety", runtime?.safety],
                       ["Reconciliation", data.system.reconciliation],
                       ["Protection", data.system.protection],
-                      ["Testnet", data.system.testnet],
+                      ["Testnet", data.system.testnet === "DEDICATED_AUTHORIZATION_REQUIRED" ? "AUTHORIZATION REQUIRED" : data.system.testnet],
                       ["Public recorder", (data.system.public_recorder as RecordData | undefined)?.status],
                       ["Live barrier", data.system.live],
                     ]}

@@ -1,6 +1,7 @@
 import hashlib
 import json
 import sqlite3
+import subprocess
 import time
 from collections import defaultdict
 from decimal import Decimal, InvalidOperation
@@ -18,7 +19,9 @@ from tradev2.marketdata.recording_audit import inspect_recording
 class RuntimeView(BaseModel):
     mode: str | None = None
     run_id: str | None = None
-    status: str = "UNKNOWN"
+    status: str = "NOT_RUNNING"
+    candidate_id: str | None = None
+    candidate_stage: str | None = None
     freshness: Literal["FRESH", "STALE", "UNKNOWN"] = "UNKNOWN"
     age_ms: int | None = None
     source_ms: int | None = None
@@ -208,7 +211,7 @@ def snapshot(root: Path, mode: str, run_id: str | None = None) -> Workstation:
                 events[kind] = [EvidenceEnvelope.model_validate(row) for row in read_events(path, kind)]
         except (sqlite3.Error, ValueError, OSError):
             errors.append("JOURNAL_UNAVAILABLE")
-    runtime = RuntimeView(mode=mode)
+    runtime = RuntimeView(mode=mode, status="UNKNOWN" if errors else "NOT_RUNNING")
     if events["runtime"]:
         latest = events["runtime"][0]
         age = now - latest.recorded_ms
@@ -216,11 +219,28 @@ def snapshot(root: Path, mode: str, run_id: str | None = None) -> Workstation:
         reported = str(latest.payload.get("status", "UNKNOWN"))
         runtime = RuntimeView(mode=mode, run_id=latest.run_id,
                               status="RUNNING_UNVERIFIED" if reported == "RUNNING" else reported,
+                              candidate_id=latest.payload.get("candidate_id"),
+                              candidate_stage=latest.payload.get("candidate_stage"),
                               freshness="FRESH" if 0 <= age <= 30_000 else "STALE",
                               age_ms=age, source_ms=latest.source_ms,
                               source_freshness="UNKNOWN" if source_age is None else "FRESH"
                               if 0 <= source_age <= 30_000 else "STALE")
     campaign, searches = _campaigns(root, errors)
+    latest_market = events["market"][0] if events["market"] else None
+    if latest_market is None or latest_market.source_ms is None:
+        public_market = "UNKNOWN"
+    elif runtime.status not in {"RUNNING", "RUNNING_UNVERIFIED"}:
+        public_market = "RECORDED_NOT_CONNECTED"
+    elif 0 <= now - latest_market.source_ms <= 30_000:
+        public_market = "PUBLIC_OBSERVED_FRESH"
+    else:
+        public_market = "PUBLIC_STALE"
+    try:
+        software_sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=root, text=True,
+            stderr=subprocess.DEVNULL).strip()
+    except (OSError, subprocess.CalledProcessError):
+        software_sha = None
     return Workstation(generated_ms=now, runtime=runtime,
                        account=events["account"][0].payload if events["account"] else None,
                        events=events, manifests=manifests, campaign=campaign,
@@ -229,6 +249,8 @@ def snapshot(root: Path, mode: str, run_id: str | None = None) -> Workstation:
                        evidence=EvidenceView(integrity="FAILED" if errors else "VERIFIED" if paths else "UNKNOWN",
                                              errors=errors, journals=len(paths)),
                        system={"api": "AVAILABLE", "authority": "READ_ONLY", "live": "LIVE_DISABLED",
+                               "git_sha": software_sha,
+                               "public_market": public_market,
                                "reconciliation": None, "protection": None,
                                "testnet": "DEDICATED_AUTHORIZATION_REQUIRED",
                                "public_recorder": _recording_status(root)})
@@ -237,6 +259,10 @@ def snapshot(root: Path, mode: str, run_id: str | None = None) -> Workstation:
 def create_app(root: Path | None = None) -> FastAPI:
     project = root or Path(__file__).resolve().parents[3]
     app = FastAPI(title="Trade v2 read-only evidence API", version="1.0")
+
+    @app.get("/api/v1/health")
+    def health() -> dict[str, str]:
+        return {"status": "AVAILABLE", "live": "LIVE_DISABLED"}
 
     @app.get("/api/v1/workstation", response_model=Workstation)
     def workstation(mode: Literal["paper", "shadow"] = "paper",
@@ -256,17 +282,36 @@ def create_app(root: Path | None = None) -> FastAPI:
             result = [event.model_dump(mode="json") for event in view.events[aliases[resource]]]
         elif resource == "symbols":
             result = view.symbols
-        elif resource in {"runtime", "account", "system-health", "evidence-health", "run-manifests"}:
-            key = {"system-health": "system", "evidence-health": "evidence", "run-manifests": "manifests"}.get(resource, resource)
-            result = view.model_dump(mode="json")[key]
-        elif resource in {"candidates", "searches", "experiments"}:
+        elif resource in {"runtime", "account", "system-health", "evidence-health", "run-manifests",
+                          "system-info", "reconciliation", "recorder-status", "accounting"}:
+            key = {"system-health": "system", "system-info": "system",
+                   "evidence-health": "evidence", "run-manifests": "manifests",
+                   "accounting": "account"}.get(resource, resource)
+            if resource == "reconciliation":
+                result = view.system["reconciliation"]
+            elif resource == "recorder-status":
+                result = view.system["public_recorder"]
+            else:
+                result = view.model_dump(mode="json")[key]
+        elif resource in {"candidates", "searches", "search-runs", "experiments", "research-results"}:
             result = (view.campaign or {}).get("families", []) if resource == "candidates" else (
-                view.searches if resource == "searches" else view.experiments)
+                view.searches if resource in {"searches", "search-runs"} else
+                view.campaign if resource == "research-results" else view.experiments)
         elif resource == "performance":
             result = {"account": view.account, "curve": [event.model_dump(mode="json") for event in reversed(view.events["account"])], **view.performance}
         else:
             raise HTTPException(404, "Unknown evidence resource")
         return {"schema_version": 1, "generated_ms": view.generated_ms, "data": result}
+
+    @app.get("/api/v1/candidates/{family}")
+    def candidate_detail(family: str) -> dict[str, Any]:
+        from fastapi import HTTPException
+        view = snapshot(project, "paper")
+        candidate = next((row for row in (view.campaign or {}).get("families", [])
+                          if row.get("family") == family), None)
+        if candidate is None:
+            raise HTTPException(404, "Candidate family not present in sealed research")
+        return {"schema_version": 1, "generated_ms": view.generated_ms, "data": candidate}
 
     return app
 

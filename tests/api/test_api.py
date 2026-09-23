@@ -23,6 +23,8 @@ def test_unknown_does_not_become_zero(tmp_path: Path) -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["account"] is None
+    assert body["runtime"]["status"] == "NOT_RUNNING"
+    assert body["system"]["public_market"] == "UNKNOWN"
     assert body["runtime"]["freshness"] == "UNKNOWN"
     assert body["runtime"]["live"] == "LIVE_DISABLED"
     assert client.post("/api/v1/orders", json={}).status_code == 405
@@ -59,10 +61,15 @@ def test_corrupt_evidence_fails_closed(tmp_path: Path) -> None:
 
 def test_read_routes(tmp_path: Path) -> None:
     client = TestClient(create_app(tmp_path))
+    assert client.get("/api/v1/health").json() == {
+        "status": "AVAILABLE", "live": "LIVE_DISABLED"}
     for route in ("runtime", "account", "positions", "orders", "fills", "trades", "symbols",
                   "opportunities", "decisions", "rejections", "experiments", "searches",
-                  "candidates", "performance", "evidence-health", "system-health", "run-manifests"):
+                  "candidates", "performance", "evidence-health", "system-health", "run-manifests",
+                  "system-info", "reconciliation", "recorder-status", "accounting",
+                  "search-runs", "research-results"):
         assert client.get("/api/v1/" + route).status_code == 200
+    assert client.get("/api/v1/candidates/missing").status_code == 404
     assert client.get("/api/v1/not-a-route").status_code == 404
 
 
@@ -72,10 +79,18 @@ def test_completed_research_and_paired_stress_are_read_only() -> None:
     body = client.get("/api/v1/workstation").json()
     assert body["campaign"]["search_id"] == "TRADEV2_FINAL_ALPHA_003"
     assert len(body["campaign"]["families"]) == 14
+    assert body["campaign"]["search_budget"]["configurations"] == 28
+    assert body["campaign"]["search_budget"]["selection_evaluations"] == 112
+    assert body["campaign"]["search_budget"]["total_replays"] == 336
+    assert sum(row["status"] == "REJECTED" for row in body["campaign"]["families"]) == 14
+    assert body["campaign"]["promoted_candidates"] == []
     assert len(body["searches"]) == 2
     assert len(body["experiments"]) == 112
     assert all(row["ci"] is None and row["status"] == "DESCRIPTIVE_ONLY"
                for row in body["experiments"])
     assert len(client.get("/api/v1/candidates").json()["data"]) == 14
     assert len(client.get("/api/v1/experiments").json()["data"]) == 112
+    detail = client.get("/api/v1/candidates/trend_persistence")
+    assert detail.status_code == 200
+    assert detail.json()["data"]["status"] == "REJECTED"
     assert client.post("/api/v1/experiments", json={}).status_code == 405

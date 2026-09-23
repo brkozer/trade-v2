@@ -1,0 +1,10 @@
+{
+  "mode": "paper",
+  "profile": "factor-fixture-paper",
+  "symbols": ["BTCUSDT", "ETHUSDT"],
+  "initial_equity": "1000",
+  "risk_fraction": "0.005",
+  "max_open_risk_fraction": "0.02",
+  "candidate_id": "FINAL_trend_persistence_96_0.025",
+  "fixture_mode": true
+}

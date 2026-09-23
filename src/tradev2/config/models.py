@@ -27,5 +27,5 @@ class RuntimeConfig(FrozenModel):
     source_max_age_ms: int = Field(default=15000, gt=0)
     heartbeat_max_age_ms: int = Field(default=30000, gt=0)
     candidate_id: str = "REFERENCE_CANDIDATE_001"
+    fixture_mode: bool = False
     testnet_authorized: bool = False
-

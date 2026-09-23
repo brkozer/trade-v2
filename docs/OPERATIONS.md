@@ -20,20 +20,43 @@ rerun it under the same identity. New research needs a new frozen preregistratio
 explicit prior-search count and independently dated results. No current candidate
 is approved for prospective shadow.
 
+## Start and stop the workstation
+
+After the README setup, from the Trade v2 directory:
+
+```powershell
+.\scripts\start_trade_v2.ps1
+.\scripts\status_trade_v2.ps1
+.\scripts\stop_trade_v2.ps1
+```
+
+`start_trade_v2.ps1 -OpenBrowser` also opens the browser. The UI is at
+`http://127.0.0.1:5173/`; API documentation is at `http://127.0.0.1:8000/docs`.
+Both services bind to loopback. The launcher stores owned PID/start-time pairs and
+logs under ignored `runtime/operator/`. A repeat start or stop is safe. A partial
+or unhealthy launch fails clearly rather than killing other Python/Node processes.
+The six pages remain useful when no simulation runs: the final campaign is sealed
+historical evidence, whereas account and runtime readings are current/last-run
+evidence and may correctly be unknown.
+
 ## Simulate and observe
 
 ```powershell
 .\.venv\Scripts\python.exe -m tradev2.cli run --config configs/paper.json --cycles 1
 .\.venv\Scripts\python.exe -m tradev2.cli run --config configs/shadow.json --cycles 1
+.\.venv\Scripts\python.exe -m tradev2.cli run --config configs/factor_fixture.paper.json --cycles 1
+.\.venv\Scripts\python.exe -m tradev2.cli run --config configs/factor_fixture.shadow.json --cycles 1
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-runtime --mode paper
 .\.venv\Scripts\python.exe -m tradev2.cli record-public --symbols BTCUSDT ETHUSDT --seconds 30
 .\.venv\Scripts\python.exe -m tradev2.cli analyze-microstructure --run-id <32-character-run-id>
-.\.venv\Scripts\python.exe -m tradev2.cli serve
 ```
 
-Start UI separately with `cd frontend; npm ci; npm run dev`. API is loopback and
-read-only. Paper and shadow use the engineering reference strategy, not promoted
-alpha. Shadow consumes public Bybit data and simulates execution without an
+The reference RSI and non-RSI factor are both `TEST_FIXTURE` paths, not promoted
+alpha. The factor config requires explicit `fixture_mode`; without it the loader
+demands a sealed research promotion and the requested stage. `PROSPECTIVE_SHADOW`
+does not authorize paper, and `PAPER_EXECUTION_VALIDATED` additionally needs a
+sealed paper acceptance record. Unknown/rejected candidates fail closed. Shadow
+consumes public Bybit data and simulates execution without an
 authenticated transport. `run --cycles` is finite. Request a clean stop with
 `stop-runtime --mode paper --run-id <id>`; the loop checks the sentinel after a
 poll and checkpoints before closing. The venue/profile authority lock is local,
@@ -43,6 +66,22 @@ The public recorder preserves raw and normalized L2/trade events in the journal.
 The read-back audit checks sequence and timing after reopening. A short acceptance
 session proves the pipeline, not stable economics or queue fills. Long-horizon
 microstructure evidence is `PROSPECTIVE_DATA_COLLECTION_ACTIVE`.
+
+## Historical and new research
+
+```powershell
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search initial
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search final
+.\.venv\Scripts\python.exe -m tradev2.cli replay-parity
+```
+
+`research --search final` is the historical one-shot command, but this checkout's
+identity and completion record are consumed. A genuinely new search requires a
+new preregistered search ID and manifest, fresh independently dated holdout,
+explicit search-count accounting and a separate runner/result identity. Do not
+rename, delete or overwrite the consumed final artifacts. Until those inputs
+exist, inspection is the valid reproducible operation; no new campaign is
+implicitly authorized by a UI click.
 
 ## Testnet and incidents
 

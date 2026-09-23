@@ -1,30 +1,27 @@
 import json
 import time
 import uuid
-from dataclasses import asdict
-from decimal import ROUND_DOWN, Decimal
+from decimal import ROUND_DOWN, ROUND_UP, Decimal
 from pathlib import Path
 from typing import Any
+
+import numpy as np
 
 from tradev2.config.models import Mode, RuntimeConfig
 from tradev2.config.privilege import require_runtime_mode
 from tradev2.domain.account import PortfolioRisk
 from tradev2.domain.evidence import EvidenceEnvelope, RunManifest
 from tradev2.domain.instruments import InstrumentRules
-from tradev2.domain.market import Candle, OrderBookSnapshot
+from tradev2.domain.market import Candle, FundingSnapshot, OrderBookSnapshot
 from tradev2.domain.orders import OrderIntent
 from tradev2.evidence.journal import Journal
 from tradev2.evidence.manifests import create_manifest, digest
 from tradev2.marketdata.integrity import confirmed_window
 from tradev2.paper.broker import PaperBroker
+from tradev2.research.costs import SymbolEconomics
 from tradev2.risk.engine import RiskLimits, assess
 from tradev2.runtime.authority import AccountAuthority
-from tradev2.strategies.reference import (
-    REFERENCE_PARAMS,
-    reference_entry,
-    reference_exit,
-    wilder_rsi,
-)
+from tradev2.runtime.candidates import CandidateSignal, load_candidate
 from tradev2.venues.bybit_linear.public import PublicBybit
 
 
@@ -33,8 +30,8 @@ class SimulationRuntime:
         require_runtime_mode(config.mode)
         if config.mode not in {Mode.PAPER, Mode.SHADOW}:
             raise ValueError("simulation runtime requires paper or shadow")
-        if config.candidate_id != REFERENCE_PARAMS.candidate_id:
-            raise ValueError("runtime candidate not implemented; cannot substitute reference")
+        self.candidate = load_candidate(root, config)
+        params = self.candidate.parameters()
         self.root, self.config = root.resolve(), config
         self.authority = AccountAuthority(self.root, f"simulation:{config.mode}:bybit", config.profile)
         self.authority.acquire()
@@ -44,11 +41,11 @@ class SimulationRuntime:
         self.journal: Journal
         try:
             if resume is None:
-                self.manifest = create_manifest(self.root, config, asdict(REFERENCE_PARAMS))
+                self.manifest = create_manifest(self.root, config, params)
                 directory = self.root / "runtime" / config.mode / self.manifest.run_id
                 self.journal = Journal(directory / "journal.sqlite")
                 self.journal.register(self.manifest)
-                self.broker = PaperBroker(config.initial_equity)
+                self.broker = PaperBroker(config.initial_equity, target_r=self.candidate.target_r)
             else:
                 if len(resume) != 32 or any(c not in "0123456789abcdef" for c in resume):
                     raise ValueError("invalid run identity")
@@ -64,7 +61,7 @@ class SimulationRuntime:
                     raise ValueError("resume manifest missing")
                 self.manifest = RunManifest.model_validate_json(row[0])
                 if (self.manifest.config_hash != digest(config.model_dump(mode="json"))
-                        or self.manifest.parameter_hash != digest(asdict(REFERENCE_PARAMS))):
+                        or self.manifest.parameter_hash != digest(params)):
                     raise ValueError("resume configuration/parameter mismatch")
                 latest = self.journal.connection.execute(
                     "SELECT body FROM checkpoints WHERE run_id=? ORDER BY recorded_ms DESC LIMIT 1",
@@ -87,6 +84,9 @@ class SimulationRuntime:
         if kind == "runtime":
             payload = {"mode": self.config.mode.value, "simulated": True,
                 "live_disabled": True, "run_id": self.manifest.run_id,
+                "candidate_id": self.candidate.candidate_id,
+                "candidate_stage": self.candidate.stage,
+                "candidate_family": self.candidate.family,
                 "heartbeat_ms": now, "source_ms": source_ms,
                 "pending_halt": self.pending_halt, **payload}
         self.journal.append(EvidenceEnvelope(event_id=uuid.uuid4().hex,
@@ -94,7 +94,8 @@ class SimulationRuntime:
             source="public_shadow_simulation", source_ms=source_ms, payload=payload))
 
     def evaluate(self, candles: list[Candle], book: OrderBookSnapshot,
-                 rules: InstrumentRules, now_ms: int) -> None:
+                 rules: InstrumentRules, now_ms: int, candidate_signal: CandidateSignal,
+                 candidate_rank: int | None = None) -> None:
         self.broker.observe(book, now_ms)
         if book.bids:
             position_item = self.broker.positions.get(book.symbol)
@@ -114,11 +115,18 @@ class SimulationRuntime:
         self.last_bars[book.symbol] = current.start_ms
         closes = [float(c.close) for c in window]
         opportunity = digest([self.manifest.run_id, book.symbol, current.start_ms])[:32]
-        signal = reference_entry(closes, current.start_ms)
+        if not np.isfinite(candidate_signal.strength):
+            self.emit("rejection", {"symbol": book.symbol, "reason": "CANDIDATE_SIGNAL_UNKNOWN"})
+            return
+        signal, side = candidate_signal.active, candidate_signal.side
+        features = candidate_signal.features
         spread = book.spread_bps
         payload: dict[str, Any] = {"opportunity_id": opportunity, "symbol": book.symbol,
-            "candidate_id": REFERENCE_PARAMS.candidate_id, "signal": signal,
-            "features": {"rsi": wilder_rsi(closes, REFERENCE_PARAMS.entry_period)},
+            "candidate_id": self.config.candidate_id, "signal": signal,
+            "features": features, "side": side,
+            "candidate_rank": candidate_rank,
+            "candidate_family": self.candidate.family, "candidate_stage": self.candidate.stage,
+            "candidate_evidence": self.candidate.evidence,
             "decision_ms": now_ms, "candle_close_ms": current.close_ms,
             "spread_bps": str(spread) if spread is not None else None,
             "fee_state": "EXPLICIT_CONSERVATIVE_SIMULATION_ESTIMATE",
@@ -128,7 +136,7 @@ class SimulationRuntime:
         item = self.broker.positions.get(book.symbol)
         if item is not None:
             held = max(0, (current.close_ms-item.opened_ms)//current.interval_ms)
-            exit_reason = reference_exit(closes, held)
+            exit_reason = self.candidate.exit_reason(closes, held)
             if exit_reason:
                 self.broker.exit(book, now_ms, exit_reason)
         reason = "NO_SIGNAL"
@@ -144,11 +152,16 @@ class SimulationRuntime:
                 elif book.exchange_event_ms > now_ms or now_ms-book.exchange_event_ms > self.config.source_max_age_ms:
                     reason = "SOURCE_STALE"
                 else:
-                    price = (book.bids[0][0]/rules.tick_size).to_integral_value(rounding=ROUND_DOWN)*rules.tick_size
-                    stop = (price * (1-Decimal(str(REFERENCE_PARAMS.stop_pct))) / rules.tick_size
-                            ).to_integral_value(rounding=ROUND_DOWN)*rules.tick_size
+                    if side is None:
+                        raise ValueError("active candidate has no direction")
+                    stop_pct = self.candidate.stop_pct
+                    raw_price = book.bids[0][0] if side == "Buy" else book.asks[0][0]
+                    rounding = ROUND_DOWN if side == "Buy" else ROUND_UP
+                    price = (raw_price/rules.tick_size).to_integral_value(rounding=rounding)*rules.tick_size
+                    stop = (price * (1-stop_pct if side == "Buy" else 1+stop_pct) / rules.tick_size
+                            ).to_integral_value(rounding=rounding)*rules.tick_size
                     intent = OrderIntent(owner_id=self.manifest.run_id, decision_id=opportunity,
-                        symbol=book.symbol, side="Buy", quantity=self.config.initial_equity / price,
+                        symbol=book.symbol, side=side, quantity=self.config.initial_equity / price,
                         reference_price=price, stop_price=stop, available_ms=now_ms)
                     allocation = self._risk(intent, rules)
                     payload["risk"] = allocation
@@ -196,20 +209,57 @@ class SimulationRuntime:
 
     def poll(self, client: PublicBybit) -> None:
         latest: int | None = None
+        candidate_inputs: dict[str, list[Candle]] = {}
+        books: dict[str, OrderBookSnapshot] = {}
+        instruments: dict[str, InstrumentRules] = {}
+        funding_inputs: dict[str, list[FundingSnapshot]] = {}
         for symbol in self.config.symbols:
             rules = client.instruments(symbol).get(symbol)
             if rules is None:
                 raise ValueError(f"instrument unavailable: {symbol}")
-            candles = client.candles(symbol, limit=65)
+            candles = client.candles(symbol, limit=self.candidate.required_bars + 1)
             book = client.orderbook(symbol)
             now = time.time_ns() // 1_000_000
             self.emit("market", {"symbol": symbol, "spread_bps": str(book.spread_bps)
                 if book.spread_bps is not None else None,
                 "instrument": rules.model_dump(mode="json"), "tracked": True}, book.exchange_event_ms)
-            for funding in client.funding_history(symbol):
+            funding_history = client.funding_history(symbol)
+            for funding in funding_history:
                 self.broker.apply_funding(funding)
-            self.evaluate(candles, book, rules, now)
+            candidate_inputs[symbol] = confirmed_window(
+                candles, now, minimum=self.candidate.required_bars)
+            books[symbol], instruments[symbol] = book, rules
+            funding_inputs[symbol] = funding_history
             latest = min(latest, book.exchange_event_ms) if latest is not None and book.exchange_event_ms is not None else book.exchange_event_ms
+        economics: dict[str, SymbolEconomics] = {}
+        if self.candidate.requires_funding:
+            for symbol in self.config.symbols:
+                    settled: set[tuple[int, Decimal]] = set()
+                    for funding in funding_inputs[symbol]:
+                        rate, funding_ms = funding.rate, funding.funding_ms
+                        if rate is not None and funding_ms is not None and funding.status in {
+                            "KNOWN", "KNOWN_ZERO"
+                        }:
+                            settled.add((funding_ms, rate))
+                    observations = sorted(settled)
+                    if len(observations) < 2:
+                        raise ValueError("settled funding coverage insufficient for live factor")
+                    book, rules = books[symbol], instruments[symbol]
+                    spread = book.spread_bps
+                    if spread is None or rules.max_qty is None:
+                        raise ValueError("factor spread or exchange maximum unknown")
+                    maximum_qty = rules.max_qty
+                    economics[symbol] = SymbolEconomics(float(self.broker.maker_fee),
+                        float(self.broker.taker_fee), float(spread), float(rules.qty_step),
+                        float(rules.min_qty), float(rules.min_notional), float(maximum_qty),
+                        np.asarray([[float(t), float(rate)] for t, rate in observations],
+                                   dtype=np.float64), "public_settled_funding_simulation_fee_proxy")
+        signals = self.candidate.signals(candidate_inputs, economics)
+        ranked = sorted(self.config.symbols,
+                        key=lambda symbol: (-abs(signals[symbol].strength), symbol))
+        for rank, symbol in enumerate(ranked, start=1):
+            self.evaluate(candidate_inputs[symbol], books[symbol], instruments[symbol],
+                          time.time_ns() // 1_000_000, signals[symbol], rank)
         for kind, payload in self.broker.drain():
             self.emit(kind, payload)
         self.emit("account", self.broker.account(self.marks))
