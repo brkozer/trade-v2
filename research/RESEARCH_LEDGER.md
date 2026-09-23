@@ -508,6 +508,28 @@ by underlying data-quality risk (late-arriving OI and a potentially leaking
 cross-source join), not evidence of predictive value. Search/trial counts,
 candidate status and the need for 28 independent forward days are unchanged.
 
+At 20:34 UTC the next prospective candle chunk arrived for 20:00/20:15 UTC.
+Its saved hash, contiguous timestamps and all 20 symbols passed independent
+read-back. The 20:00 OI row is now joinable only as of the candle's later
+20:34:21.770 UTC safe receipt, making 20:45 UTC its first eligible execution
+bar open. Neither eligible bar is a fill or scored outcome.
+
+The 20:05–20:35 UTC BTC/ETH session `c04ad2216b824b27b46fb08095e0d30c`
+closed with a clean manifest, verified journal, one reconciled completion,
+zero source or clock-probe failures, stable start/end clock probes, 120,246
+messages, 108,322 books and 41,750 trades. Its within-symbol book ingestion
+had zero gaps over one second. The concurrent eight-symbol breadth session
+`51d3051605994cd8916593dec02dbaab` likewise closed with clean provenance,
+verified journal, one completion, zero source/clock-probe failures, 394,275
+messages, 373,599 books and 91,769 trades. It had 24 within-symbol book
+gaps over one second, none over five seconds. All books in both sessions had
+exchange timestamps ahead of host ingestion timestamps; public clock probes
+put server time about 0.98–1.01 seconds ahead of local receipt. Thus raw
+cross-clock negative lag is a clock-quality observation, not negative market
+latency. The records remain unscored and do not constitute continuous L2
+coverage or an alpha result. The first supervised OI extension is still
+pending its next safe interval and requires separate real-world audit.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
