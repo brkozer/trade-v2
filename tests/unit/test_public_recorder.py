@@ -72,7 +72,8 @@ def test_recorder_normalizes_reopens_and_preserves_sequence(tmp_path) -> None:
         "books": 1, "max_ingestion_gap_ms": 0,
         "gaps_over_1s": 0, "gaps_over_5s": 0,
         "exchange_lag_over_5s": 0, "exchange_future_over_1s": 0,
-        "max_exchange_lag_ms": 20,
+        "exchange_ahead_of_local": 0,
+        "min_exchange_lag_ms": 20, "max_exchange_lag_ms": 20,
     }
     regressed = {**snapshot, "type": "delta", "data": {**snapshot["data"], "u": 2, "seq": 1}}
     with pytest.raises(ValueError, match="out-of-order"):
@@ -114,7 +115,29 @@ def test_readback_reports_delayed_books_and_ingestion_gaps(tmp_path) -> None:
     assert quality["max_ingestion_gap_ms"] == 7_000
     assert quality["gaps_over_1s"] == quality["gaps_over_5s"] == 1
     assert quality["exchange_lag_over_5s"] == 1
+    assert quality["exchange_ahead_of_local"] == 0
+    assert quality["min_exchange_lag_ms"] == 20
     assert quality["max_exchange_lag_ms"] == 7_000
+
+
+def test_readback_exposes_subsecond_cross_clock_inversion(tmp_path) -> None:
+    path = tmp_path / "clock-skew.sqlite"
+    journal = Journal(path)
+    journal.register(_manifest())
+    journal.append(EvidenceEnvelope(event_id="ahead", run_id="recorder-test",
+        kind="microstructure", recorded_ms=120, source_ms=820, source="fixture",
+        payload={"schema_version": 1, "ingested_ms": 120,
+                 "exchange_event_ms": 820, "symbol": "BTCUSDT", "kind": "orderbook",
+                 "update_id": 1, "seq": 2, "cts": 819,
+                 "best_bid": "100", "best_ask": "101"}))
+    journal.append(EvidenceEnvelope(event_id="complete", run_id="recorder-test",
+        kind="recorder_complete", recorded_ms=140, source="fixture",
+        payload={"messages": 1, "books": 1, "trades": 0}))
+    journal.close()
+    quality = inspect_recording(path, "recorder-test")["book_quality"]["BTCUSDT"]
+    assert quality["exchange_ahead_of_local"] == 1
+    assert quality["exchange_future_over_1s"] == 0
+    assert quality["min_exchange_lag_ms"] == quality["max_exchange_lag_ms"] == -700
 
 
 @pytest.mark.parametrize("completion_count", [0, 2])

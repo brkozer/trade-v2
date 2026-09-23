@@ -65,6 +65,8 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
                     "books": 0, "max_ingestion_gap_ms": 0,
                     "gaps_over_1s": 0, "gaps_over_5s": 0,
                     "exchange_lag_over_5s": 0, "exchange_future_over_1s": 0,
+                    "exchange_ahead_of_local": 0,
+                    "min_exchange_lag_ms": 1_000_000_000,
                     "max_exchange_lag_ms": -1_000_000_000,
                 })
                 ingested_ms = int(event["recorded_ms"])
@@ -77,6 +79,8 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
                 lag = ingested_ms - source_ms
                 quality["exchange_lag_over_5s"] += lag > 5_000
                 quality["exchange_future_over_1s"] += lag < -1_000
+                quality["exchange_ahead_of_local"] += lag < 0
+                quality["min_exchange_lag_ms"] = min(quality["min_exchange_lag_ms"], lag)
                 quality["max_exchange_lag_ms"] = max(quality["max_exchange_lag_ms"], lag)
                 quality["books"] += 1
                 counts["books"] += 1

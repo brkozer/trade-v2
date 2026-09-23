@@ -56,6 +56,11 @@ def test_collects_immutable_fixed_universe(tmp_path: Path) -> None:
     assert manifest["bars_per_symbol"] == 1
     assert manifest["evidence_role"] == "PROSPECTIVE_POST004_UNSCORED"
     assert manifest["bar_row_fields"][-1] == "bybit_response_server_ms"
+    probe = manifest["clock_probe"]
+    assert probe["server_ms"] == manifest["server_time_ms"]
+    assert probe["server_minus_local_after_ms"] == probe["server_ms"] - probe["local_after_ms"]
+    assert probe["server_minus_local_before_ms"] == probe["server_ms"] - probe["local_before_ms"]
+    assert probe["monotonic_elapsed_ms"] >= 0
     assert safe_available_ms(manifest) == manifest["safe_available_ms"]
     assert safe_available_ms(manifest) >= FIRST + BAR_MS
     legacy = {key: value for key, value in manifest.items() if key != "safe_available_ms"}

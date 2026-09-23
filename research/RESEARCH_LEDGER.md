@@ -350,6 +350,36 @@ than five seconds of exchange lag. These intervals require event-time masks,
 and the inter-session boundaries also remain gaps. Eight half-hour sessions
 are not independent forward days or evidence of net alpha.
 
+### Cross-clock timing limitation — 2026-09-23 19:41 UTC
+
+An event-level recheck of those eight clean BTC/ETH journals found **1,144,866
+of 1,151,625 books (99.41%)** with exchange `ts` later than local ingestion
+wall-clock time, despite none being more than one second ahead.
+Per-run negative shares were 95.72–100%; the most inverted observation was
+916 ms. The live eight-symbol diagnostic prefix likewise had 94,164 of 95,735
+books (98.36%) with this sign inversion. These are intact, ordered raw events,
+but their uncorrected cross-clock differences are **not** valid network latency
+measurements or precise availability times. Event sequence and local receipt
+order remain evidence; millisecond execution claims are withheld.
+
+Five public `/v5/market/time` calls bracketed the server response timestamp
+between local request/response wall-clock reads: round trips were 192–286 ms,
+and server timestamp minus local receipt was 948–950 ms. The Windows Time
+service reported **not started**; this is consistent with local clock skew but
+does not prove which clock is correct or establish historical offsets. Bybit's
+[server-time documentation](https://bybit-exchange.github.io/docs/v5/market/time)
+defines the response `time` in milliseconds and warns of possible delayed
+delivery; its [order-book documentation](https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook)
+defines `ts` as the system generation time. No host clock setting was changed.
+Future read-back now reports every negative cross-clock lag and the minimum
+lag, in addition to the prior `below -1s` threshold, so this uncertainty is
+visible rather than passing as zero. No past journal was rewritten or scored.
+Future 20-symbol candle chunks will also preserve the local-before/server/
+local-after bracket and monotonic versus wall elapsed time around their public
+server-time call. This is a clock-offset observation, **not** a retroactive
+timestamp correction or proof that the host remained synchronized between
+half-hour probes. It leaves the fixed bar universe and availability rule intact.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
