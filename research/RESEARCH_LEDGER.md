@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 20:16 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 20:20 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -460,6 +460,19 @@ lag, and a local/exchange receipt availability bound; it writes hashed,
 create-only chunks without changing the candle chain. Its real first-run
 behavior and long-horizon continuity still require verification. No OI signal
 has been evaluated, so completed-search and trial counts remain unchanged.
+
+The first actual prospective OI chunk is
+`BYBIT_PUBLIC_OI_FORWARD_1790192700000_1790193600000`, sampled at 20:19 UTC:
+the 19:45 and 20:00 UTC exchange timestamps for all 20 fixed symbols (40
+symbol-points). Independent read-back found exact timestamp/symbol coverage,
+positive finite total and single-side quantities, source receipt times before
+`safe_available_ms=1790194765934`, and matching OI SHA-256
+`131d8f4f5ddae6d8422dc10721636ba2dd5ecb012c69cfec19ba7734ecb16b0b`.
+The next required timestamp is 20:15 UTC; it was **not** silently backfilled.
+The collection-time server-minus-local receipt observation was 996 ms with
+281 ms wall request duration. This chunk is raw forward context, not a fold
+or a trading result. A finite OI continuation helper has been implemented,
+but must be observed live before it is called active.
 
 ## New hypothesis queue — not a frozen search
 
