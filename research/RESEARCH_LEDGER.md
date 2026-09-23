@@ -55,6 +55,17 @@ live process/session must be checked before treating collection as ongoing. Do
 not delete, truncate, backfill or reinterpret this journal. Recorded seconds and
 the 004 smokes are insufficient for a multi-day validation fold.
 
+Because the recorder has a 30-minute bound, a target-local continuation supervisor
+started at 10:11 UTC and is waiting on that recorder's actual Python PID 2144.
+After it exits, the supervisor is configured for at most 24 sequential 30-minute
+BTC/ETH **public-only** sessions, stopping on any failed closed-run read-back or
+when available disk falls below 100 GiB. Its ignored operational status is under
+`runtime/recorder/continuation-20260923T101132Z/status.json`. This is a bounded
+12-hour collection plan, not a claim that those sessions have happened or that
+their data passed research-quality acceptance. No authenticated transport is
+instantiated by this workflow. Other symbols and the 28-day independent-forward
+requirement remain uncovered.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
