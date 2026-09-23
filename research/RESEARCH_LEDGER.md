@@ -80,6 +80,16 @@ collector rechecks every prior chunk's universe, interval, range and bars hash
 before accepting an extension. Overlapping or skipped intervals are a hard
 error, not quietly counted as new independent observations.
 
+A second target-local supervisor began waiting on the same confirmed recorder
+PID at 10:22 UTC. After that process exits, it is configured for at most 24
+half-hour rounds of 20-symbol public candle collection, deriving the exact next
+open from the verified chain each time. It stops after three consecutive fetch
+failures or below 100 GiB free disk. Operational status is under ignored
+`runtime/recorder/bars-continuation-20260923T102243Z/status.json`. At launch it
+was **waiting**, with zero successful rounds; no future candle coverage is
+claimed from this plan alone. REST backfills retain actual ingestion times and
+must not be treated as contemporaneously observed order-book or shadow fills.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective

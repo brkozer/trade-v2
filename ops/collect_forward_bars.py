@@ -42,6 +42,16 @@ def _next_open(root: Path, earliest: int, symbols: list[str], source_hash: str) 
     return next_open
 
 
+def next_open(root: Path) -> int:
+    source_path = root / "data/public/alpha_search_004/manifest.json"
+    source = json.loads(source_path.read_text(encoding="utf-8"))
+    result = json.loads((root / "research/results/ALPHA_SEARCH_004.json").read_text(encoding="utf-8"))
+    finished_ms = int(datetime.fromisoformat(result["finished_at"]).timestamp() * 1000)
+    earliest = (finished_ms // BAR_MS + 1) * BAR_MS
+    return _next_open(root, earliest, source["symbols"],
+                      hashlib.sha256(source_path.read_bytes()).hexdigest())
+
+
 def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str, Any]:
     source_path = root / "data/public/alpha_search_004/manifest.json"
     source = json.loads(source_path.read_text(encoding="utf-8"))
@@ -124,12 +134,13 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--first-open-ms", type=int, required=True)
+    parser.add_argument("--first-open-ms", type=int)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
+    first_open_ms = args.first_open_ms if args.first_open_ms is not None else next_open(root)
     client = PublicBybit()
     try:
-        print(json.dumps(collect(root, client, first_open_ms=args.first_open_ms), indent=2))
+        print(json.dumps(collect(root, client, first_open_ms=first_open_ms), indent=2))
     finally:
         client.close()
 

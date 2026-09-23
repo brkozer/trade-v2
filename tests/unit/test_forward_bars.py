@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from ops.collect_forward_bars import collect
+from ops.collect_forward_bars import collect, next_open
 from tradev2.domain.market import Candle
 from tradev2.research.datasets import BAR_MS
 from tradev2.venues.bybit_linear.public import PublicBybit
@@ -49,12 +49,14 @@ def _client(*, missing: str | None = None, confirmed: bool = True,
 def test_collects_immutable_fixed_universe(tmp_path: Path) -> None:
     root, symbols = _root(tmp_path)
     client = _client()
+    assert next_open(root) == FIRST
     manifest = collect(root, client, first_open_ms=FIRST)
     target = root / "data/public" / f"prospective_bars_{FIRST}_{FIRST}"
     assert manifest["symbols"] == symbols
     assert manifest["bars_per_symbol"] == 1
     assert manifest["evidence_role"] == "PROSPECTIVE_POST004_UNSCORED"
     assert hashlib.sha256((target / "bars.json").read_bytes()).hexdigest() == manifest["bars_sha256"]
+    assert next_open(root) == FIRST + BAR_MS
     with pytest.raises(ValueError, match="nonoverlapping"):
         collect(root, client, first_open_ms=FIRST)
     with pytest.raises(ValueError, match="nonoverlapping"):
@@ -62,6 +64,7 @@ def test_collects_immutable_fixed_universe(tmp_path: Path) -> None:
     next_manifest = collect(root, _client(opened=FIRST + BAR_MS),
                             first_open_ms=FIRST + BAR_MS)
     assert next_manifest["first_open_ms"] == FIRST + BAR_MS
+    assert next_open(root) == FIRST + 2 * BAR_MS
 
 
 def test_rejects_prior_hash_drift(tmp_path: Path) -> None:
