@@ -7,7 +7,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from tradev2.domain.evidence import RunManifest
 from tradev2.evidence.journal import open_reader, verify_connection
+from tradev2.evidence.manifests import digest
 
 
 def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
@@ -20,6 +22,13 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
         manifest = connection.execute("SELECT manifest FROM runs WHERE run_id=?", (run_id,)).fetchone()
         if manifest is None:
             raise ValueError("recorder run manifest missing")
+        run = RunManifest.model_validate_json(manifest[0])
+        if (not run.universe or list(run.universe) != run.config.get("symbols")
+                or run.universe_hash != digest(run.universe)
+                or run.config_hash != digest(run.config)):
+            raise ValueError("recorder manifest universe or config provenance mismatch")
+        expected_symbols = set(run.universe)
+        observed_symbols: set[str] = set()
         counts: dict[str, int] = defaultdict(int)
         last_seq: dict[str, int] = {}
         first_ms: int | None = None
@@ -33,8 +42,9 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
             if source_ms != event["source_ms"]:
                 raise ValueError("exchange timestamp not preserved")
             symbol = payload.get("symbol")
-            if not isinstance(symbol, str):
-                raise ValueError("recording symbol missing")
+            if not isinstance(symbol, str) or symbol not in expected_symbols:
+                raise ValueError("recording symbol outside manifest universe")
+            observed_symbols.add(symbol)
             first_ms = min(first_ms, event["recorded_ms"]) if first_ms is not None else event["recorded_ms"]
             last_ms = max(last_ms, event["recorded_ms"]) if last_ms is not None else event["recorded_ms"]
             kind = payload.get("kind")
@@ -59,9 +69,12 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
             else:
                 raise ValueError("unknown recorded event kind")
             counts["messages"] += 1
+        if observed_symbols != expected_symbols:
+            raise ValueError("recording did not observe every manifest symbol")
         return {"run_id": run_id, "journal_reopened": True,
                 "journal_integrity": "VERIFIED", "manifest_sha256": hashlib.sha256(
                     manifest[0].encode()).hexdigest(), "schema_version": 1,
+                "manifest_dirty": run.dirty, "provenance_clean": not run.dirty,
                 "first_ingested_ms": first_ms, "last_ingested_ms": last_ms,
                 "last_book_sequence": last_seq, **counts}
     except sqlite3.Error as exc:

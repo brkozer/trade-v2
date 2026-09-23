@@ -189,6 +189,10 @@ records the correct BTCUSDT/ETHUSDT universe and `PUBLIC_RECORDER` identity at
 commit `f16d1d5`, but its manifest has `dirty=true` because this ledger change
 was uncommitted at launch. It too is engineering-only, not clean forward alpha
 evidence. Later runs require both exact universe matching and a clean manifest.
+Recorder read-back now rejects inconsistent manifest universe/config hashes,
+events outside the declared universe, and missing declared-symbol observations;
+it reports the manifest's dirty flag separately. This gate is prospective only:
+it does not repair or retroactively validate any earlier immutable journal.
 
 ## New hypothesis queue — not a frozen search
 
