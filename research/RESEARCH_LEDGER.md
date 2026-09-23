@@ -66,6 +66,16 @@ their data passed research-quality acceptance. No authenticated transport is
 instantiated by this workflow. Other symbols and the 28-day independent-forward
 requirement remain uncovered.
 
+The first independently timestamped post-004 market-context snapshot is
+`BYBIT_PUBLIC_FORWARD_1790157600000_1790157600000`: one confirmed 10:00–10:15 UTC
+15-minute candle for each of the 20 fixed Search 004 symbols, fetched from public
+REST at 10:17:22 UTC with a two-minute close safety margin. The collector checked
+symbol identity, candle validity, exact per-symbol timestamp coverage and read-back
+SHA-256 (`2d8e76db71022aaa8345a7319d9aed76978f6155bc4197d8b95fe0c3950cb1f8`).
+Its raw normalized bars and manifest are under ignored target-local
+`data/public/prospective_bars_1790157600000_1790157600000/`. This is **one bar per
+symbol**, not a validation fold, a sealed holdout, or evidence of net edge.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
