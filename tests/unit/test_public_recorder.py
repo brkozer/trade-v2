@@ -1,11 +1,13 @@
 from pathlib import Path
 
 import pytest
+from websockets.exceptions import ConnectionClosed
 
 from tradev2.cli import _public_recorder_manifest
 from tradev2.domain.evidence import EvidenceEnvelope, RunManifest
 from tradev2.evidence.journal import Journal
 from tradev2.evidence.manifests import digest
+from tradev2.marketdata import recorder
 from tradev2.marketdata.integrity import OrderBook
 from tradev2.marketdata.recorder import normalize_message
 from tradev2.marketdata.recording_audit import inspect_recording
@@ -122,3 +124,23 @@ def test_readback_rejects_false_completion_counts(tmp_path) -> None:
     journal.close()
     with pytest.raises(ValueError, match="completion counts disagree"):
         inspect_recording(path, "recorder-test")
+
+
+def test_websocket_close_is_recorded_and_retry_bounded(
+    tmp_path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class ClosedConnection:
+        def __enter__(self):
+            raise ConnectionClosed(None, None)
+
+        def __exit__(self, *_args):
+            return False
+
+    monkeypatch.setattr(recorder, "connect", lambda *_args, **_kwargs: ClosedConnection())
+    journal = Journal(tmp_path / "closed.sqlite")
+    journal.register(_manifest())
+    with pytest.raises(RuntimeError, match="retry budget exhausted"):
+        recorder.record_public(journal, "recorder-test", ("BTCUSDT",), 1)
+    assert journal.connection.execute(
+        "SELECT count(*) FROM events WHERE kind='source_failure'").fetchone()[0] == 3
+    journal.close()

@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 14:33 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 14:52 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -210,6 +210,23 @@ about 60 GiB/day uncompressed, so the present disk cannot be assumed to retain
 28 days of eight-symbol L2. Collection must stop safely at the floor; future
 research needs verified compact archival or more capacity, not a shortened
 forward gate. The small 20-symbol candle chain has a different storage profile.
+
+## Breadth handoff incident — 2026-09-23 14:52 UTC
+
+The first eight-symbol feasibility process exited nonzero after **594,128**
+persisted microstructure messages, with **no `recorder_complete` event**. Its
+terminal exception was `websockets.exceptions.ConnectionClosedError` after a
+keepalive-ping timeout. The old recorder catch list did not include this
+WebSocket exception, so it could not log/reseed and continue. This is an
+incomplete, dirty, wrong-universe journal, **not prospective alpha evidence**;
+the zero `source_failure` event count is not evidence of a clean feed because
+the process crashed before logging one. The supervisor waited for the actual
+predecessor PID and then started a new eight-symbol run, ID
+`9cb5571d711948a69332b889502120b9`. Its immutable manifest has the exact
+eight subscribed symbols, `PUBLIC_RECORDER`, `dirty=false`, and Git SHA
+`3a121d5`. It is still open and unaccepted. A targeted recorder fix now catches
+the documented `ConnectionClosed` class, logs the source failure and applies
+the existing three-retry budget; it cannot retroactively repair either run.
 
 ## New hypothesis queue — not a frozen search
 
