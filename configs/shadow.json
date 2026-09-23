@@ -1,0 +1,8 @@
+{
+  "mode": "shadow",
+  "profile": "public-shadow",
+  "symbols": ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
+  "initial_equity": "1000",
+  "risk_fraction": "0.005",
+  "max_open_risk_fraction": "0.02"
+}

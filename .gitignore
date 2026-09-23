@@ -15,14 +15,19 @@
 /credentials/
 /secrets/
 /data/
+/research/results/*.checkpoint.json
 /.local/
 /.npm-cache/
+/.cache/
+/.playwright-cli/
+.hypothesis/
 /.venv/
 /venv/
 __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
+.pytest_tmp/
 .mypy_cache/
 .ruff_cache/
 .coverage
@@ -34,4 +39,3 @@ coverage/
 Thumbs.db
 .idea/
 .vscode/
-

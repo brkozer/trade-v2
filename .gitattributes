@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.npy binary
+*.npz binary
+# This consumed research artifact is checksum-bound to its original bytes.
+research/results/campaign.json binary

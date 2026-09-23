@@ -1,0 +1,323 @@
+{
+  "candidates": [
+    {
+      "candidate_id": "RSI_8",
+      "family": "rsi_reversion",
+      "holding_bars": 32,
+      "lookback": 4,
+      "reference": {
+        "bar_minutes": 15,
+        "candidate_id": "REFERENCE_CANDIDATE_001",
+        "entry_period": 4,
+        "entry_rsi_max": 8.0,
+        "exit_period": 5,
+        "exit_rsi_min": 65.0,
+        "maker_wait_ms": 60000,
+        "stop_pct": 0.02,
+        "target_r": 1.4,
+        "time_stop_bars": 32
+      },
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 8.0
+    },
+    {
+      "candidate_id": "REFERENCE_CANDIDATE_001",
+      "family": "rsi_reversion",
+      "holding_bars": 32,
+      "lookback": 4,
+      "reference": {
+        "bar_minutes": 15,
+        "candidate_id": "REFERENCE_CANDIDATE_001",
+        "entry_period": 4,
+        "entry_rsi_max": 15.0,
+        "exit_period": 5,
+        "exit_rsi_min": 65.0,
+        "maker_wait_ms": 60000,
+        "stop_pct": 0.02,
+        "target_r": 1.4,
+        "time_stop_bars": 32
+      },
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 15.0
+    },
+    {
+      "candidate_id": "RSI_23",
+      "family": "rsi_reversion",
+      "holding_bars": 32,
+      "lookback": 4,
+      "reference": {
+        "bar_minutes": 15,
+        "candidate_id": "REFERENCE_CANDIDATE_001",
+        "entry_period": 4,
+        "entry_rsi_max": 23.0,
+        "exit_period": 5,
+        "exit_rsi_min": 65.0,
+        "maker_wait_ms": 60000,
+        "stop_pct": 0.02,
+        "target_r": 1.4,
+        "time_stop_bars": 32
+      },
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 23.0
+    },
+    {
+      "candidate_id": "TSM_8",
+      "family": "time_series_momentum",
+      "holding_bars": 16,
+      "lookback": 8,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 0.005
+    },
+    {
+      "candidate_id": "TSM_24",
+      "family": "time_series_momentum",
+      "holding_bars": 16,
+      "lookback": 24,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 0.005
+    },
+    {
+      "candidate_id": "TSM_48",
+      "family": "time_series_momentum",
+      "holding_bars": 16,
+      "lookback": 48,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 0.005
+    },
+    {
+      "candidate_id": "BREAK_12",
+      "family": "compression_breakout",
+      "holding_bars": 24,
+      "lookback": 12,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 0.75
+    },
+    {
+      "candidate_id": "BREAK_24",
+      "family": "compression_breakout",
+      "holding_bars": 24,
+      "lookback": 24,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 0.75
+    },
+    {
+      "candidate_id": "BREAK_48",
+      "family": "compression_breakout",
+      "holding_bars": 24,
+      "lookback": 48,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 0.75
+    },
+    {
+      "candidate_id": "REL_16",
+      "family": "relative_strength",
+      "holding_bars": 16,
+      "lookback": 16,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 0.2
+    },
+    {
+      "candidate_id": "REL_48",
+      "family": "relative_strength",
+      "holding_bars": 16,
+      "lookback": 48,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 0.2
+    },
+    {
+      "candidate_id": "REL_96",
+      "family": "relative_strength",
+      "holding_bars": 16,
+      "lookback": 96,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 0.2
+    },
+    {
+      "candidate_id": "RESID_1.5",
+      "family": "basket_residual_reversion",
+      "holding_bars": 12,
+      "lookback": 96,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 1.5
+    },
+    {
+      "candidate_id": "RESID_2",
+      "family": "basket_residual_reversion",
+      "holding_bars": 12,
+      "lookback": 96,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 2.0
+    },
+    {
+      "candidate_id": "RESID_2.5",
+      "family": "basket_residual_reversion",
+      "holding_bars": 12,
+      "lookback": 96,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 2.5
+    },
+    {
+      "candidate_id": "VOLUME_1.5",
+      "family": "volume_shock",
+      "holding_bars": 8,
+      "lookback": 32,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 1.5
+    },
+    {
+      "candidate_id": "VOLUME_2",
+      "family": "volume_shock",
+      "holding_bars": 8,
+      "lookback": 32,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 2.0
+    },
+    {
+      "candidate_id": "VOLUME_3",
+      "family": "volume_shock",
+      "holding_bars": 8,
+      "lookback": 32,
+      "reference": null,
+      "stop_pct": 0.02,
+      "target_r": 1.4,
+      "threshold": 3.0
+    }
+  ],
+  "configuration_budget": 18,
+  "data_policy": "all37 available OHLCV symbols; exact complete 15m bins; complete UTC days inside common funding coverage; no interpolation",
+  "dataset_manifest_sha256": "1b6f633b3efeeccdd44f9b227795ae5221b36b84f27f9cb89cc80ca7f9160ce9",
+  "dataset_sha256": "4f3bb655187f1ef00baa57106acc3ebd615dbb108a850560eadf5d7bb7f2b49c",
+  "economics_sha256": "848dc4bf7c9b1b0dd5770f77cee4462196ac17011c3150bec876f4341722585d",
+  "evidence_role": "REUSED_HISTORICAL_DISCOVERY",
+  "families": {
+    "basket_residual_reversion": "Idiosyncratic dislocations relative to trailing market beta may converge.",
+    "compression_breakout": "A quiet range followed by a directional break may begin volatility expansion.",
+    "relative_strength": "Cross-sectional underreaction may reward prior leaders against prior laggards.",
+    "rsi_reversion": "Temporary short-horizon selling pressure may reverse after an oversold close.",
+    "time_series_momentum": "Persistent directional order flow may continue across several hours.",
+    "volume_shock": "Unusually large traded volume accompanying a move may reveal persistent information."
+  },
+  "final_holdout_state": "NOT_ACQUIRED_NOT_CONSUMED",
+  "folds": 4,
+  "frozen_at": "2026-09-22T06:56:51.417011+00:00",
+  "inference": {
+    "bootstrap_draws": 2000,
+    "circular_block_days": 7,
+    "multiplicity": "Holm across six family-level walk-forward paths; full 18-trial history retained"
+  },
+  "limitations": [
+    "fixed current survivor universe",
+    "OHLC intrabar ambiguity: stop first",
+    "maker fill quality not measured; all primary fills charged taker",
+    "current minimums and historical spread/fee snapshots are assumptions",
+    "all thresholds fixed before results; regimes descriptive only"
+  ],
+  "portfolio": {
+    "initial_equity": 10000,
+    "max_gross_fraction": 0.8,
+    "max_positions": 4,
+    "max_symbol_fraction": 0.2,
+    "risk_fraction": 0.0025
+  },
+  "prohibited": [
+    "reading sealed/final/prospective legacy payloads",
+    "post-outcome retuning",
+    "claiming this reused history is fresh final OOS",
+    "live trading"
+  ],
+  "promotion_gates": {
+    "bootstrap_lower_above": 0,
+    "both_stress_pnl_positive": true,
+    "holm_pvalue_max": 0.05,
+    "max_drawdown_pct": 10,
+    "max_symbol_absolute_contribution": 0.35,
+    "positive_folds_min": 3,
+    "required_fresh_independent_evidence": true,
+    "symbols_min": 10,
+    "validation_days_min": 90,
+    "validation_trades_min": 200
+  },
+  "scenarios": [
+    {
+      "fee_multiplier": 1.0,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "base_taker",
+      "slippage_bps_per_side": 1.0,
+      "spread_multiplier": 1.0
+    },
+    {
+      "fee_multiplier": 1.5,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "wide_costs",
+      "slippage_bps_per_side": 3.0,
+      "spread_multiplier": 2.0
+    },
+    {
+      "fee_multiplier": 1.0,
+      "fill_fraction": 0.5,
+      "latency_bars": 1,
+      "miss_every": 4,
+      "name": "delay_partial_missed",
+      "slippage_bps_per_side": 2.0,
+      "spread_multiplier": 1.5
+    }
+  ],
+  "schema_version": 1,
+  "search_id": "TRADEV2_INITIAL_ALPHA_001",
+  "seed": 20260922,
+  "selection_metric": "training mean daily net PnL minus 0.5 daily PnL standard deviation; at least 50 trades",
+  "software": {
+    "files": {
+      "src/tradev2/alpha/__init__.py": "c81f14a056d187a696eb6d9fb8b73159cfc7a934c26611991028e641d8a439bd",
+      "src/tradev2/alpha/campaign.py": "7e5f0c9901ed32ad2d744bfa9eed10171428dc7d5ab15c1102389fe7e3bb6574",
+      "src/tradev2/alpha/candidates.py": "44b8dbf91242f59c513daba595b476b39ff8ac176bc2613137561e5ae177979b",
+      "src/tradev2/research/__init__.py": "b9609d165a107f51c4fdc556dec4c2138517b2487657fff6a49a6a7956525241",
+      "src/tradev2/research/costs.py": "825cd7fb6444762dc153dfe87a8a9851ae1b5b21b5ff85bc0cded1bdd6b6af3c",
+      "src/tradev2/research/datasets.py": "8805f7f61257d2fc1cd391ed34a9aea9a409454c50d7d778ba681ad2d16c5948",
+      "src/tradev2/research/replay.py": "27a3e9a04a19393ddc28724d2bb8803167d628b491c5b136ba4713328b235298",
+      "src/tradev2/research/statistics.py": "d792df016c24c7728e206bf54bb8deaf91bd836a298f504bf293cae6cf40165f",
+      "src/tradev2/strategies/__init__.py": "e0abc310e177a23d6a55b6b754f7d71fa43e56177df02f3f368c0dbc6e709a72",
+      "src/tradev2/strategies/reference.py": "46d939b8c53c737e59bf7efb9f86cf168ffff0662ba40d26ab00bc40568922bf"
+    },
+    "git_sha": "9d796ba9ad2da8a239fed64e063561a5c21be1c7",
+    "research_code_sha256": "7abf7ebba9b1dfaf24428ce819775c8ffe3ee8d8d7dbc8828730bcd5b5c727b3"
+  },
+  "tie_break": "candidate_id ascending",
+  "validation_days_per_fold": 30,
+  "warmup_bars": 200
+}

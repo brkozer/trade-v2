@@ -1,0 +1,1 @@
+"""Canonical, immutable trading contracts."""

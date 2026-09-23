@@ -1,0 +1,21 @@
+{
+  "search_id": "TRADEV2_INITIAL_ALPHA_001",
+  "started_at": "2026-09-22T06:59:51.971598+00:00",
+  "preregistration_sha256": "6835f6e62c8380c507673274df35f54b24d1780830475a112d69e1edf2ff69c8",
+  "software": {
+    "git_sha": "c4f778d0255967f504429f295986593f8ead3ac7",
+    "research_code_sha256": "7abf7ebba9b1dfaf24428ce819775c8ffe3ee8d8d7dbc8828730bcd5b5c727b3",
+    "files": {
+      "src/tradev2/alpha/__init__.py": "c81f14a056d187a696eb6d9fb8b73159cfc7a934c26611991028e641d8a439bd",
+      "src/tradev2/alpha/campaign.py": "7e5f0c9901ed32ad2d744bfa9eed10171428dc7d5ab15c1102389fe7e3bb6574",
+      "src/tradev2/alpha/candidates.py": "44b8dbf91242f59c513daba595b476b39ff8ac176bc2613137561e5ae177979b",
+      "src/tradev2/research/__init__.py": "b9609d165a107f51c4fdc556dec4c2138517b2487657fff6a49a6a7956525241",
+      "src/tradev2/research/costs.py": "825cd7fb6444762dc153dfe87a8a9851ae1b5b21b5ff85bc0cded1bdd6b6af3c",
+      "src/tradev2/research/datasets.py": "8805f7f61257d2fc1cd391ed34a9aea9a409454c50d7d778ba681ad2d16c5948",
+      "src/tradev2/research/replay.py": "27a3e9a04a19393ddc28724d2bb8803167d628b491c5b136ba4713328b235298",
+      "src/tradev2/research/statistics.py": "d792df016c24c7728e206bf54bb8deaf91bd836a298f504bf293cae6cf40165f",
+      "src/tradev2/strategies/__init__.py": "e0abc310e177a23d6a55b6b754f7d71fa43e56177df02f3f368c0dbc6e709a72",
+      "src/tradev2/strategies/reference.py": "46d939b8c53c737e59bf7efb9f86cf168ffff0662ba40d26ab00bc40568922bf"
+    }
+  }
+}
