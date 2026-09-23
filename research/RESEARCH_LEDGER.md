@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 15:09 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 15:14 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -248,6 +248,11 @@ in the next five buckets inspected. Every symbol was affected. This interval
 cannot be used for short-horizon features or labels; a closed-run audit must
 locate and censor its exact boundaries and check for later recurrence. The
 prefix is not a score, a completed session or a general latency guarantee.
+At a later 21-minute prefix, the clean eight-symbol successor held 411,916
+messages. There were still zero books over five seconds late in the 19 minute
+buckets after its first two startup buckets, and no within-symbol book
+ingestion gap over one second across the inspected prefix. These are open-run
+observations only; source failures, completion and later lag remain unverified.
 
 At 15:03:40 UTC the BTC/ETH supervisor closed its ninth continuation session,
 `c68083a797cf44239795821a08e45f3b`. Independent read-back under the
@@ -260,6 +265,12 @@ BTCUSDT/ETHUSDT universe, `PUBLIC_RECORDER`, and Git SHA `b066cb5`; it is
 open and not yet accepted. A tiny early prefix had both book/trade streams
 and no book message over five seconds late, but cannot establish whole-run
 quality. The WebSocket-closure fix at `25dd584` is included in that Git SHA.
+Per-symbol closed-run read-back now reports book ingestion gaps and source-time
+lag without treating an intact journal as gap-free. Applying it to the dirty
+`c680` run found six book gaps over one second (none over five), plus 806 books
+over five seconds late across BTC/ETH (maximum 7,785 ms). Its engineering-only
+classification is unchanged; those intervals would require censorship even
+if provenance were clean.
 
 ## Candle forward-horizon continuation — 2026-09-23 15:09 UTC
 

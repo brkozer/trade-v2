@@ -31,6 +31,8 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
         observed_symbols: set[str] = set()
         counts: dict[str, int] = defaultdict(int)
         last_seq: dict[str, int] = {}
+        last_book_ingested: dict[str, int] = {}
+        book_quality: dict[str, dict[str, int]] = {}
         first_ms: int | None = None
         last_ms: int | None = None
         for row in connection.execute("SELECT body FROM events WHERE run_id=? AND kind='microstructure' ORDER BY sequence", (run_id,)):
@@ -49,6 +51,8 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
             last_ms = max(last_ms, event["recorded_ms"]) if last_ms is not None else event["recorded_ms"]
             kind = payload.get("kind")
             if kind == "orderbook":
+                if not isinstance(source_ms, int):
+                    raise ValueError("book exchange event timestamp missing")
                 if payload.get("update_id") is None or payload.get("seq") is None or payload.get("cts") is None:
                     raise ValueError("book update/sequence/matching time missing")
                 sequence = int(payload["seq"])
@@ -57,6 +61,24 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
                 last_seq[symbol] = sequence
                 if payload.get("best_bid") is None or payload.get("best_ask") is None:
                     raise ValueError("book top of book missing")
+                quality = book_quality.setdefault(symbol, {
+                    "books": 0, "max_ingestion_gap_ms": 0,
+                    "gaps_over_1s": 0, "gaps_over_5s": 0,
+                    "exchange_lag_over_5s": 0, "exchange_future_over_1s": 0,
+                    "max_exchange_lag_ms": -1_000_000_000,
+                })
+                ingested_ms = int(event["recorded_ms"])
+                if symbol in last_book_ingested:
+                    gap = ingested_ms - last_book_ingested[symbol]
+                    quality["max_ingestion_gap_ms"] = max(quality["max_ingestion_gap_ms"], gap)
+                    quality["gaps_over_1s"] += gap > 1_000
+                    quality["gaps_over_5s"] += gap > 5_000
+                last_book_ingested[symbol] = ingested_ms
+                lag = ingested_ms - source_ms
+                quality["exchange_lag_over_5s"] += lag > 5_000
+                quality["exchange_future_over_1s"] += lag < -1_000
+                quality["max_exchange_lag_ms"] = max(quality["max_exchange_lag_ms"], lag)
+                quality["books"] += 1
                 counts["books"] += 1
             elif kind == "public_trade":
                 trades = payload.get("trades")
@@ -89,7 +111,8 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
                 "completion_events": 1, "source_failure_events": source_failures,
                 "uninterrupted_feed": source_failures == 0,
                 "first_ingested_ms": first_ms, "last_ingested_ms": last_ms,
-                "last_book_sequence": last_seq, **counts}
+                "last_book_sequence": last_seq, "book_quality": book_quality,
+                **counts}
     except sqlite3.Error as exc:
         raise ValueError("recorder database unreadable") from exc
     finally:

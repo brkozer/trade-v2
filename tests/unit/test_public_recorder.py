@@ -68,6 +68,12 @@ def test_recorder_normalizes_reopens_and_preserves_sequence(tmp_path) -> None:
     assert audit["source_failure_events"] == 0
     assert (audit["books"], audit["trades"], audit["messages"]) == (1, 1, 2)
     assert audit["last_book_sequence"]["BTCUSDT"] == 2
+    assert audit["book_quality"]["BTCUSDT"] == {
+        "books": 1, "max_ingestion_gap_ms": 0,
+        "gaps_over_1s": 0, "gaps_over_5s": 0,
+        "exchange_lag_over_5s": 0, "exchange_future_over_1s": 0,
+        "max_exchange_lag_ms": 20,
+    }
     regressed = {**snapshot, "type": "delta", "data": {**snapshot["data"], "u": 2, "seq": 1}}
     with pytest.raises(ValueError, match="out-of-order"):
         normalize_message(regressed, books, 140)
@@ -86,6 +92,29 @@ def test_readback_rejects_event_outside_manifest_universe(tmp_path) -> None:
     journal.close()
     with pytest.raises(ValueError, match="outside manifest universe"):
         inspect_recording(path, "recorder-test")
+
+
+def test_readback_reports_delayed_books_and_ingestion_gaps(tmp_path) -> None:
+    path = tmp_path / "lag.sqlite"
+    journal = Journal(path)
+    journal.register(_manifest())
+    for index, (ingested, source) in enumerate(((120, 100), (7_120, 120))):
+        journal.append(EvidenceEnvelope(event_id=str(index), run_id="recorder-test",
+            kind="microstructure", recorded_ms=ingested, source_ms=source,
+            source="fixture", payload={"schema_version": 1, "ingested_ms": ingested,
+                "exchange_event_ms": source, "symbol": "BTCUSDT", "kind": "orderbook",
+                "update_id": index + 1, "seq": index + 2, "cts": source,
+                "best_bid": "100", "best_ask": "101"}))
+    journal.append(EvidenceEnvelope(event_id="complete", run_id="recorder-test",
+        kind="recorder_complete", recorded_ms=7_130, source="fixture",
+        payload={"messages": 2, "books": 2, "trades": 0}))
+    journal.close()
+    quality = inspect_recording(path, "recorder-test")["book_quality"]["BTCUSDT"]
+    assert quality["books"] == 2
+    assert quality["max_ingestion_gap_ms"] == 7_000
+    assert quality["gaps_over_1s"] == quality["gaps_over_5s"] == 1
+    assert quality["exchange_lag_over_5s"] == 1
+    assert quality["max_exchange_lag_ms"] == 7_000
 
 
 @pytest.mark.parametrize("completion_count", [0, 2])
