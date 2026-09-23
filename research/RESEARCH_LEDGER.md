@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 19:37 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 20:07 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -400,6 +400,42 @@ The start/end public server-minus-local-receipt observations were 963/964 ms
 with 287/280 ms wall-clock request durations. All 647 book events had negative
 uncorrected cross-clock lag (minimum -967 ms). This confirms the instrumentation
 and timing limitation; it is **not** a latency estimate, search, or forward fold.
+
+### Bounded breadth resumption — 2026-09-23 20:07 UTC
+
+The independent 30-minute eight-symbol diagnostic
+`fa5e1a439e7f49319e344b83f8638dee` closed successfully. Current-code
+read-back independently verified its journal hash chain, exact clean universe,
+one reconciled completion, zero source failures, 420,996 messages, 400,006
+books and 91,477 trades. Across eight symbols there were eight within-symbol
+book ingestion gaps over one second (UNI 1, SUI 3, ADA 4), none over five;
+no book had exchange lag over five seconds. However 398,435/400,006 books
+(99.61%) had exchange time later than uncorrected local ingestion time,
+minimum lag -979 ms. This run predates recorder clock-probe instrumentation,
+so its clock coverage is incomplete. It supports feed feasibility only, not
+millisecond execution inference, a forward fold, or an alpha result. Unlike
+the previous interrupted breadth run, its WebSocket retry count was zero.
+
+A new exact-universe public breadth run started at 20:04:55 UTC as PID 19936,
+run `51d3051605994cd8916593dec02dbaab`. Its open manifest is clean at
+Git SHA `ec3b13e`, and a stable start clock probe was present at first check;
+it is not yet accepted. Supervisor PID 14092 is confirmed live and waiting
+for that PID, status under
+`runtime/recorder/continuation-20260923T200525Z/status.json`. It is limited
+to 24 more 30-minute sessions, stops on a failed recorder, and retains the
+250 GiB free-disk floor. This is bounded collection, not a promised 28-day
+L2 dataset. At 20:06 UTC, C: had 406.35 GiB free.
+
+The 20-symbol candle chain hash-verified through the 19:45 UTC open (21
+chunks). The newest manifest contains an actual stable public clock bracket:
+server timestamp minus local receipt 977 ms, request duration 285 ms, with
+wall and monotonic elapsed times within 4 ms. The current BTC/ETH session 20,
+run `c04ad2216b824b27b46fb08095e0d30c`, also had a clean Git manifest
+and a stable start probe at first check. Both open runs require their own
+closed-run read-back and end probes before acceptance. The BTC/ETH supervisor
+had completed 19 sessions and the candle supervisor 20 successful rounds,
+zero failures; the 1,344-round candle extension remained waiting on the first
+campaign. No candidate is under evaluation or promoted.
 
 ## New hypothesis queue — not a frozen search
 
