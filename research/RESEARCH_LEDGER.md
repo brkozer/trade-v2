@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 14:12 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 14:17 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -118,10 +118,16 @@ acceptance alone does not certify gap-free market observation.
 The 20-symbol public candle chain now holds nine immutable chunks: **16
 consecutive confirmed 15-minute bars per symbol** (320 symbol-bars), from the
 10:00 through 13:45 UTC opens. Rechecking all chunk hashes found no duplicate or
-missing symbol/time keys. Ingestion lag after candle close had median 181,251 ms
-and maximum 1,085,875 ms because the half-hour loop backfills one interval in
-each round. These bars are suitable as later-observed market context, not proof
-that every close was available to a live 15-minute decision at that timestamp.
+missing symbol/time keys. The per-row timestamp is **Bybit response server time**,
+not a local ingestion timestamp: its lag after candle close had median 181,251 ms
+and maximum 1,085,875 ms. The manifest's local `collected_at`, plus a conservative
+five-second clock/receipt buffer, is the earliest permitted use time for the
+whole chunk (median bound 187,682 ms, maximum 1,090,290 ms after close). Future
+manifests explicitly record this `safe_available_ms`; the nine existing chunks
+remain immutable and use the same rule derived from `collected_at`. The half-hour
+loop backfills one interval in each round. These bars are suitable as
+later-observed market context, not proof that every close was available to a
+live 15-minute decision at that timestamp.
 Both public-only supervisors were still collecting at 14:12 UTC (seven completed
 L2 continuation sessions; eight successful candle rounds, zero failures), with
 414 GiB free. This is about four hours of observations, **not 28 independent

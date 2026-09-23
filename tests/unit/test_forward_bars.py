@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from ops.collect_forward_bars import collect, next_open
+from ops.collect_forward_bars import collect, next_open, safe_available_ms
 from tradev2.domain.market import Candle
 from tradev2.research.datasets import BAR_MS
 from tradev2.venues.bybit_linear.public import PublicBybit
@@ -55,6 +55,11 @@ def test_collects_immutable_fixed_universe(tmp_path: Path) -> None:
     assert manifest["symbols"] == symbols
     assert manifest["bars_per_symbol"] == 1
     assert manifest["evidence_role"] == "PROSPECTIVE_POST004_UNSCORED"
+    assert manifest["bar_row_fields"][-1] == "bybit_response_server_ms"
+    assert safe_available_ms(manifest) == manifest["safe_available_ms"]
+    assert safe_available_ms(manifest) >= FIRST + BAR_MS
+    legacy = {key: value for key, value in manifest.items() if key != "safe_available_ms"}
+    assert safe_available_ms(legacy) == manifest["safe_available_ms"]
     assert hashlib.sha256((target / "bars.json").read_bytes()).hexdigest() == manifest["bars_sha256"]
     assert next_open(root) == FIRST + BAR_MS
     with pytest.raises(ValueError, match="nonoverlapping"):

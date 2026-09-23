@@ -15,12 +15,23 @@ from tradev2.research.datasets import BAR_MS
 from tradev2.venues.bybit_linear.public import PublicBybit
 
 SAFETY_LAG_MS = 120_000
+AVAILABILITY_BUFFER_MS = 5_000
 
 
 def _write_new(path: Path, value: dict[str, Any]) -> None:
     with path.open("x", encoding="utf-8", newline="\n") as handle:
         json.dump(value, handle, indent=2, sort_keys=True, allow_nan=False)
         handle.write("\n")
+
+
+def safe_available_ms(manifest: dict[str, Any]) -> int:
+    """Conservative local availability bound, including pre-field v1 chunks."""
+    stored = manifest.get("safe_available_ms")
+    collected = int(datetime.fromisoformat(manifest["collected_at"]).timestamp() * 1000)
+    expected = collected + AVAILABILITY_BUFFER_MS
+    if stored is not None and int(stored) != expected:
+        raise ValueError("prospective candle availability timestamp mismatch")
+    return expected
 
 
 def _next_open(root: Path, earliest: int, symbols: list[str], source_hash: str) -> int:
@@ -34,7 +45,8 @@ def _next_open(root: Path, earliest: int, symbols: list[str], source_hash: str) 
                 or manifest["interval_ms"] != BAR_MS
                 or manifest["symbols"] != symbols
                 or manifest["source_universe_manifest_sha256"] != source_hash
-                or first != next_open or last < first or (last - first) % BAR_MS):
+                or first != next_open or last < first or (last - first) % BAR_MS
+                or safe_available_ms(manifest) < last + BAR_MS):
             raise ValueError(f"prior prospective candle chain is inconsistent: {path.name}")
         if hashlib.sha256((path / "bars.json").read_bytes()).hexdigest() != manifest["bars_sha256"]:
             raise ValueError(f"prior prospective candle hash drift: {path.name}")
@@ -107,6 +119,7 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
     target.mkdir(parents=True, exist_ok=False)
     _write_new(target / "bars.json", {"symbols": bars})
     bar_hash = hashlib.sha256((target / "bars.json").read_bytes()).hexdigest()
+    collected_at = datetime.now(UTC)
     manifest: dict[str, Any] = {
         "schema_version": 1,
         "dataset_id": f"BYBIT_PUBLIC_FORWARD_{first_open_ms}_{last_open_ms}",
@@ -117,14 +130,19 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
         "first_open_ms": first_open_ms,
         "last_open_ms": last_open_ms,
         "server_time_ms": server_ms,
-        "collected_at": datetime.now(UTC).isoformat(),
+        "collected_at": collected_at.isoformat(),
+        "safe_available_ms": int(collected_at.timestamp() * 1000) + AVAILABILITY_BUFFER_MS,
+        "availability_buffer_ms": AVAILABILITY_BUFFER_MS,
+        "bar_row_fields": ["open_ms", "open", "high", "low", "close", "volume",
+                           "bybit_response_server_ms"],
         "interval_ms": BAR_MS,
         "bars_per_symbol": len(expected),
         "symbols": symbols,
         "bars_sha256": bar_hash,
         "limitations": ["candles do not establish order-book or trade-flow history",
                         "fixed universe was chosen using turnover observed for Search 004",
-                        "this data is not a sealed holdout until a later preregistration says so"],
+                        "this data is not a sealed holdout until a later preregistration says so",
+                        "the bar row response time is not local ingestion; downstream decisions must not use this chunk before safe_available_ms"],
     }
     _write_new(target / "manifest.json", manifest)
     if hashlib.sha256((target / "bars.json").read_bytes()).hexdigest() != bar_hash:
