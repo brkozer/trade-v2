@@ -10,13 +10,25 @@ import uvicorn
 from tradev2.config.loader import load_config
 from tradev2.config.models import Mode
 from tradev2.config.privilege import require_runtime_mode
-from tradev2.domain.evidence import EvidenceEnvelope
+from tradev2.domain.evidence import EvidenceEnvelope, RunManifest
 from tradev2.evidence.journal import Journal
 from tradev2.evidence.manifests import create_manifest
 from tradev2.marketdata.recorder import record_public
 from tradev2.marketdata.recording_audit import inspect_recording
 from tradev2.runtime.coordinator import SimulationRuntime
 from tradev2.venues.bybit_linear.public import PublicBybit
+
+
+def _public_recorder_manifest(root: Path, symbols: tuple[str, ...]) -> RunManifest:
+    base = load_config(root / "configs/shadow.json")
+    config = base.model_copy(update={"symbols": symbols, "profile": "public-recorder",
+                                     "candidate_id": "PUBLIC_RECORDER"})
+    manifest = create_manifest(root, config, {"recorder": "public_orderbook_trade_v1",
+                                              "symbols": symbols})
+    return manifest.model_copy(update={
+        "fee_provenance": "public market data only; no authenticated fee schedule",
+        "initial_equity_source": None,
+    })
 
 
 def main() -> None:
@@ -173,9 +185,7 @@ def main() -> None:
         symbols = tuple(s.upper() for s in args.symbols)
         if any(not s.isalnum() or not s.endswith("USDT") for s in symbols):
             parser.error("only uppercase USDT linear symbols supported")
-        config = load_config(root / "configs/shadow.json")
-        manifest = create_manifest(root, config, {"recorder": "public_orderbook_trade_v1",
-                                                   "symbols": symbols})
+        manifest = _public_recorder_manifest(root, symbols)
         journal_path = root / "runtime" / "recorder" / manifest.run_id / "journal.sqlite"
         journal = Journal(journal_path)
         try:

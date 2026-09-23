@@ -1,10 +1,25 @@
+from pathlib import Path
+
 import pytest
 
+from tradev2.cli import _public_recorder_manifest
 from tradev2.domain.evidence import EvidenceEnvelope, RunManifest
 from tradev2.evidence.journal import Journal
 from tradev2.marketdata.integrity import OrderBook
 from tradev2.marketdata.recorder import normalize_message
 from tradev2.marketdata.recording_audit import inspect_recording
+
+
+def test_public_recorder_manifest_names_subscription_not_shadow_config() -> None:
+    root = Path(__file__).resolve().parents[2]
+    symbols = ("XRPUSDT", "SOLUSDT", "DOGEUSDT")
+    manifest = _public_recorder_manifest(root, symbols)
+    assert manifest.universe == symbols
+    assert manifest.config["symbols"] == list(symbols)
+    assert manifest.config["profile"] == "public-recorder"
+    assert manifest.candidate_id == "PUBLIC_RECORDER"
+    assert manifest.initial_equity_source is None
+    assert manifest.fee_provenance == "public market data only; no authenticated fee schedule"
 
 
 def _manifest() -> RunManifest:

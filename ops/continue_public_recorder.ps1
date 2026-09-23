@@ -5,6 +5,7 @@ All output remains under Trade v2/runtime; no authenticated transport is used.
 #>
 param(
     [Parameter(Mandatory = $true)][int]$WaitPid,
+    [string]$SymbolsCsv = 'BTCUSDT,ETHUSDT',
     [ValidateRange(1, 48)][int]$Sessions = 24,
     [ValidateRange(1, 3600)][int]$Seconds = 1800,
     [ValidateRange(20, 1000)][int]$MinFreeGB = 100
@@ -18,10 +19,17 @@ $python = Join-Path $root '.venv\Scripts\python.exe'
 if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
     throw 'Target-local Python environment is missing'
 }
+$symbols = @($SymbolsCsv.Split(','))
+if ($symbols.Count -lt 1 -or $symbols.Count -gt 10 -or
+    @($symbols | Select-Object -Unique).Count -ne $symbols.Count -or
+    @($symbols | Where-Object { $_ -cnotmatch '^[A-Z0-9]+USDT$' }).Count -gt 0) {
+    throw 'Expected 1..10 unique uppercase USDT symbols'
+}
 
 $prior = Get-CimInstance Win32_Process -Filter "ProcessId=$WaitPid"
-if ($null -eq $prior -or $prior.CommandLine -notmatch 'tradev2\.cli record-public --symbols BTCUSDT ETHUSDT') {
-    throw 'WaitPid is not the expected active BTCUSDT/ETHUSDT public recorder'
+$expected = 'tradev2.cli record-public --symbols ' + ($symbols -join ' ')
+if ($null -eq $prior -or -not $prior.CommandLine.Contains($expected)) {
+    throw 'WaitPid is not the expected active public recorder for these symbols'
 }
 
 $campaign = Join-Path $root ('runtime\recorder\continuation-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))
@@ -29,6 +37,7 @@ New-Item -ItemType Directory -Path $campaign -ErrorAction Stop | Out-Null
 $metadata = [ordered]@{
     prior_pid = $WaitPid
     prior_command = $prior.CommandLine
+    symbols = $symbols
     started_utc = [DateTime]::UtcNow.ToString('o')
     requested_sessions = $Sessions
     session_seconds = $Seconds
@@ -54,7 +63,7 @@ try {
             throw "Free disk below $MinFreeGB GB before session $index"
         }
         $log = Join-Path $campaign ('session-{0:D2}.log' -f $index)
-        & $python -m tradev2.cli record-public --symbols BTCUSDT ETHUSDT --seconds $Seconds *> $log
+        & $python -m tradev2.cli record-public --symbols @symbols --seconds $Seconds *> $log
         if ($LASTEXITCODE -ne 0) {
             throw "Public recorder failed in session $index; see $log"
         }
