@@ -34,9 +34,11 @@ def main() -> None:
     stop_runtime.add_argument("--mode", choices=["paper", "shadow"], required=True)
     stop_runtime.add_argument("--run-id", required=True)
     candidates = commands.add_parser("inspect-candidates", help="summarize immutable search results")
-    candidates.add_argument("--search", choices=["initial", "final"], default="final")
-    research = commands.add_parser("research", help="run the frozen final historical search once")
-    research.add_argument("--search", choices=["final"], required=True)
+    candidates.add_argument("--search", choices=["initial", "final", "004"], default="final")
+    research = commands.add_parser("research", help="run a frozen one-shot research identity")
+    research.add_argument("--search", choices=["final", "004"], required=True)
+    commands.add_parser("collect-search004", help="collect a new target-local public-only 004 dataset once")
+    commands.add_parser("preregister-search004", help="freeze 004 design and data hashes once")
     commands.add_parser("replay-parity", help="run deterministic replay/runtime parity tests")
     preflight = commands.add_parser("testnet-preflight", help="local fail-closed testnet readiness report; no connection")
     preflight.add_argument("--config", type=Path, default=Path("configs/testnet.example.json"))
@@ -70,19 +72,34 @@ def main() -> None:
         from tradev2.api.server import _campaigns
         issues: list[str] = []
         active, searches = _campaigns(root, issues)
-        name = "TRADEV2_INITIAL_ALPHA_001" if args.search == "initial" else "TRADEV2_FINAL_ALPHA_003"
+        name = {"initial": "TRADEV2_INITIAL_ALPHA_001", "final": "TRADEV2_FINAL_ALPHA_003",
+                "004": "TRADEV2_ALPHA_SEARCH_004"}[args.search]
         selected = next((s for s in searches if s["search_id"] == name), None)
         if selected is None or issues:
             raise ValueError(f"search unavailable or integrity failed: {name}; {issues}")
-        path = root / "research/results" / ("campaign.json" if args.search == "initial"
-                                              else "FINAL_ALPHA_SEARCH_003.json")
+        path = root / "research/results" / {"initial": "campaign.json",
+            "final": "FINAL_ALPHA_SEARCH_003.json", "004": "ALPHA_SEARCH_004.json"}[args.search]
         campaign = json.loads(path.read_text(encoding="utf-8"))
         print(json.dumps({"search": selected, "families": [
             {"family": row["family"], "status": row["status"],
-             "net_r": (row.get("forward") or row.get("oos") or {}).get("mean_net_r"),
-             "reasons": row.get("reasons")} for row in campaign["families"]]}, indent=2))
+             "net_r": row.get("forward_mean_net_r", (row.get("forward") or row.get("oos") or {}).get("mean_net_r")),
+             "reasons": row.get("reasons") or row.get("reason")} for row in campaign["families"]]}, indent=2))
+        return
+    if args.command == "collect-search004":
+        from tradev2.alpha.search004_data import collect
+        print(json.dumps(collect(root), indent=2))
+        return
+    if args.command == "preregister-search004":
+        from tradev2.alpha.search004 import preregister
+        print(preregister(root))
         return
     if args.command == "research":
+        if args.search == "004":
+            from tradev2.alpha.search004 import run as run_004
+            result_004 = run_004(root)
+            print(json.dumps({"search_id": result_004["search_id"],
+                              "promoted": result_004["promoted_candidates"]}, indent=2))
+            return
         from tradev2.alpha.completion import run as run_final
         result = run_final(root, root / "data/public/completion_campaign")
         print(json.dumps({"search_id": result["search_id"],

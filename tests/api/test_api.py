@@ -30,6 +30,7 @@ def test_unknown_does_not_become_zero(tmp_path: Path) -> None:
     assert client.post("/api/v1/orders", json={}).status_code == 405
     assert client.get("/api/v1/workstation?mode=live").status_code == 422
     assert client.get("/api/v1/workstation?run_id=../secret").status_code == 422
+    assert client.get("/api/v1/workstation?search_id=UNKNOWN").status_code == 404
 
 
 def test_stale_runtime_never_advertises_freshness(tmp_path: Path) -> None:
@@ -76,7 +77,7 @@ def test_read_routes(tmp_path: Path) -> None:
 def test_completed_research_and_paired_stress_are_read_only() -> None:
     root = Path(__file__).resolve().parents[2]
     client = TestClient(create_app(root))
-    body = client.get("/api/v1/workstation").json()
+    body = client.get("/api/v1/workstation?search_id=TRADEV2_FINAL_ALPHA_003").json()
     assert body["campaign"]["search_id"] == "TRADEV2_FINAL_ALPHA_003"
     assert len(body["campaign"]["families"]) == 14
     assert body["campaign"]["search_budget"]["configurations"] == 28
@@ -84,13 +85,27 @@ def test_completed_research_and_paired_stress_are_read_only() -> None:
     assert body["campaign"]["search_budget"]["total_replays"] == 336
     assert sum(row["status"] == "REJECTED" for row in body["campaign"]["families"]) == 14
     assert body["campaign"]["promoted_candidates"] == []
-    assert len(body["searches"]) == 2
+    assert len(body["searches"]) == 3
     assert len(body["experiments"]) == 112
     assert all(row["ci"] is None and row["status"] == "DESCRIPTIVE_ONLY"
                for row in body["experiments"])
-    assert len(client.get("/api/v1/candidates").json()["data"]) == 14
-    assert len(client.get("/api/v1/experiments").json()["data"]) == 112
-    detail = client.get("/api/v1/candidates/trend_persistence")
+    assert len(client.get("/api/v1/candidates?search_id=TRADEV2_FINAL_ALPHA_003").json()["data"]) == 14
+    assert len(client.get("/api/v1/experiments?search_id=TRADEV2_FINAL_ALPHA_003").json()["data"]) == 112
+    detail = client.get("/api/v1/candidates/trend_persistence?search_id=TRADEV2_FINAL_ALPHA_003")
     assert detail.status_code == 200
     assert detail.json()["data"]["status"] == "REJECTED"
     assert client.post("/api/v1/experiments", json={}).status_code == 405
+
+
+def test_search004_is_sealed_and_does_not_replace_003() -> None:
+    root = Path(__file__).resolve().parents[2]
+    client = TestClient(create_app(root))
+    latest = client.get("/api/v1/workstation").json()
+    assert latest["campaign"]["search_id"] == "TRADEV2_ALPHA_SEARCH_004"
+    assert latest["campaign"]["trial_count"] == 12
+    assert latest["campaign"]["evaluation_count"] == 108
+    assert len(latest["campaign"]["families"]) == 24
+    assert latest["campaign"]["promoted_candidates"] == []
+    assert len(client.get("/api/v1/experiments").json()["data"]) == 108
+    assert client.get("/api/v1/workstation?search_id=TRADEV2_FINAL_ALPHA_003").json()[
+        "campaign"]["search_id"] == "TRADEV2_FINAL_ALPHA_003"

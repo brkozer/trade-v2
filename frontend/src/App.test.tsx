@@ -138,4 +138,33 @@ describe("truthful workstation", () => {
     fireEvent.click(screen.getByRole("button", { name: "Performance" }));
     expect(screen.getByText(/Unrecorded strategy/)).toBeTruthy();
   });
+  it("shows Search 004 costs and keeps sealed earlier searches selectable", async () => {
+    const fetcher = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...fixture,
+        searches: [{ search_id: "TRADEV2_FINAL_ALPHA_003" },
+          { search_id: "TRADEV2_ALPHA_SEARCH_004" }],
+        campaign: { search_id: "TRADEV2_ALPHA_SEARCH_004", trial_count: 12,
+          evaluation_count: 108, promoted_candidates: [],
+          dataset: { dataset_id: "BYBIT_PUBLIC_POST003_004" },
+          families: [{ family: "dispersion_exhaustion", status: "REJECTED",
+            forward_mean_net_r: 0.069, forward_trades: 112,
+            positive_folds: 2, costs: { base_taker: 192.89,
+              wide_costs: 34.41, severe_plausible: -146.08 },
+            neighbor_positive_folds: 0, reason: "Cost failure" }] },
+      }),
+    } as Response);
+    render(<App />);
+    await screen.findByText("No positions recorded for this run.");
+    fireEvent.click(screen.getByRole("button", { name: "Alpha Lab" }));
+    expect(screen.getByRole("row", { name: /dispersion_exhaustion/ }).textContent)
+      .toContain("-146.08");
+    fireEvent.change(screen.getByLabelText("Research search"), {
+      target: { value: "TRADEV2_FINAL_ALPHA_003" },
+    });
+    await waitFor(() => expect(fetcher).toHaveBeenCalledWith(
+      expect.stringContaining("search_id=TRADEV2_FINAL_ALPHA_003"),
+      expect.anything(),
+    ));
+  });
 });

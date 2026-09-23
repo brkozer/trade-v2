@@ -1,0 +1,241 @@
+{
+  "candles_sha256": "1db34b03ef7c8a457e454be50c3e51cfdece39370dd510eda83fe0cd715153b6",
+  "costs": [
+    {
+      "fee_multiplier": 1.0,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "base_taker",
+      "slippage_bps_per_side": 1.0,
+      "spread_multiplier": 1.0
+    },
+    {
+      "fee_multiplier": 1.5,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "wide_costs",
+      "slippage_bps_per_side": 3.0,
+      "spread_multiplier": 2.0
+    },
+    {
+      "fee_multiplier": 2.0,
+      "fill_fraction": 0.5,
+      "latency_bars": 1,
+      "miss_every": 3,
+      "name": "severe_plausible",
+      "slippage_bps_per_side": 5.0,
+      "spread_multiplier": 3.0
+    }
+  ],
+  "dataset_id": "BYBIT_PUBLIC_POST003_004",
+  "dataset_manifest_sha256": "49be39451e466790c7a7f48c82e616b8b2ae144265de3db72ab188f96717f9b4",
+  "economics_sha256": "c91db44af170657e1d64d2dcfd367da9213d8586507e941f2ed0d6240df7d0fd",
+  "families": [
+    {
+      "execution": "next-bar taker",
+      "failure": "broad impulse immediately mean-reverts",
+      "family": "breadth_transition",
+      "holding_bars": 8,
+      "horizon": "2h",
+      "lookback": 48,
+      "mechanism": "A broad directional participation shock may persist across the next sessions.",
+      "observable": "closed 8-bar cross-sectional returns and breadth",
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "thresholds": [
+        0.65,
+        0.75
+      ]
+    },
+    {
+      "execution": "next-bar taker",
+      "failure": "new information makes dispersion persistent",
+      "family": "dispersion_exhaustion",
+      "holding_bars": 8,
+      "horizon": "2h",
+      "lookback": 48,
+      "mechanism": "Exceptional relative dispersion may represent temporary forced deleveraging.",
+      "observable": "closed 4-bar return dispersion versus lagged 48-bar baseline",
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "thresholds": [
+        1.4,
+        1.8
+      ]
+    },
+    {
+      "execution": "next-bar taker",
+      "failure": "jump is a one-bar liquidation wick",
+      "family": "volatility_term_release",
+      "holding_bars": 12,
+      "horizon": "3h",
+      "lookback": 48,
+      "mechanism": "Volatility compression followed by a jump may indicate a new information regime.",
+      "observable": "closed 8/48-bar realized absolute returns and current move",
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "thresholds": [
+        0.65,
+        0.85
+      ]
+    },
+    {
+      "execution": "next-bar taker",
+      "failure": "funding sign does not proxy positioning",
+      "family": "funding_price_disagreement",
+      "holding_bars": 8,
+      "horizon": "2h",
+      "lookback": 48,
+      "mechanism": "A newly settled crowded side with opposite price drift may unwind.",
+      "observable": "last settled funding and closed 4-bar return",
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "thresholds": [
+        0.00015,
+        0.0003
+      ]
+    },
+    {
+      "execution": "next-bar taker",
+      "failure": "volume is uninformed churn",
+      "family": "volume_breadth_confirmation",
+      "holding_bars": 8,
+      "horizon": "2h",
+      "lookback": 48,
+      "mechanism": "Broad directional flow with broad volume participation may underreact.",
+      "observable": "closed cross-sectional breadth and volume relative to lagged 48 bars",
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "thresholds": [
+        1.2,
+        1.6
+      ]
+    },
+    {
+      "execution": "next-bar taker",
+      "failure": "residual estimate is unstable or BTC beta dominates",
+      "family": "residual_trend_low_beta",
+      "holding_bars": 12,
+      "horizon": "3h",
+      "lookback": 48,
+      "mechanism": "Idiosyncratic drift with low market beta may persist independent of BTC.",
+      "observable": "closed BTC returns, lagged beta and residual momentum",
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "thresholds": [
+        0.008,
+        0.014
+      ]
+    }
+  ],
+  "first_open_ms": 1788904800000,
+  "folds": [
+    {
+      "fold": 1,
+      "forward_start": 384,
+      "forward_stop": 576,
+      "selection_start": 288,
+      "selection_stop": 384,
+      "train_start": 0,
+      "train_stop": 288
+    },
+    {
+      "fold": 2,
+      "forward_start": 672,
+      "forward_stop": 864,
+      "selection_start": 576,
+      "selection_stop": 672,
+      "train_start": 0,
+      "train_stop": 576
+    },
+    {
+      "fold": 3,
+      "forward_start": 960,
+      "forward_stop": 1152,
+      "selection_start": 864,
+      "selection_stop": 960,
+      "train_start": 0,
+      "train_stop": 864
+    }
+  ],
+  "frozen_at": "2026-09-23T09:44:50.459595+00:00",
+  "last_open_ms": 1790149500000,
+  "limitations": [
+    "Current spread, rules and fee schedule are not historical time series",
+    "REST book is a collection snapshot, not historical queue depth",
+    "OHLCV volume is not aggressor-signed trade flow",
+    "Funding uses settlement rates and entry-notional approximation",
+    "14-day fresh slice cannot satisfy 28 independent forward days",
+    "no calibrated historical queue/maker adverse selection"
+  ],
+  "multiple_testing": "six family paths; no inferential claim with fewer than 28 independent days",
+  "planned_evaluations": {
+    "forward": 18,
+    "neighbor": 18,
+    "selection": 36,
+    "severe": 18,
+    "wide": 18
+  },
+  "prior_searches": [
+    "TRADEV2_INITIAL_ALPHA",
+    "TRADEV2_FINAL_ALPHA_002_ABORTED",
+    "TRADEV2_FINAL_ALPHA_003"
+  ],
+  "promotion_gates": {
+    "base_wide_severe_net_positive": true,
+    "max_day_absolute_share": 0.3,
+    "max_promotions": 3,
+    "max_symbol_absolute_share": 0.35,
+    "min_forward_trades": 200,
+    "min_independent_forward_days": 28,
+    "min_positive_folds": 3,
+    "neighbor_majority_positive": true
+  },
+  "search_id": "TRADEV2_ALPHA_SEARCH_004",
+  "selection": "highest one-day net R among two preregistered thresholds; tie lower threshold",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "XRPUSDT",
+    "SOLUSDT",
+    "ZECUSDT",
+    "NEARUSDT",
+    "HYPEUSDT",
+    "DOGEUSDT",
+    "BCHUSDT",
+    "UNIUSDT",
+    "SOXLUSDT",
+    "MUBARAKUSDT",
+    "SUIUSDT",
+    "CLUSDT",
+    "SNDKUSDT",
+    "1000PEPEUSDT",
+    "ENAUSDT",
+    "XAUUSDT",
+    "ARBUSDT",
+    "ADAUSDT"
+  ],
+  "trial_budget": 12,
+  "unsupported_plans": {
+    "btc_eth_residual_model": "Earlier two-factor residual paths consumed",
+    "btc_residual_reversion": "Earlier BTC residual paths consumed",
+    "candidate_ranking": "Too few independent prospective folds to train and validate a meta-ranker",
+    "cross_sectional_momentum": "Earlier momentum paths consumed",
+    "depth_asymmetry": "Only collection-time depth, no historical depth sequence",
+    "lead_lag_relationships": "Earlier BTC lead-lag paths consumed",
+    "maker_adverse_selection": "No calibrated queue position or maker fill outcomes",
+    "meta_labeling": "No independent labeled fill/outcome sample of adequate duration",
+    "multi_horizon_trend_continuation": "Earlier trend paths consumed; no distinct untested mechanism specified",
+    "orderbook_imbalance": "Only seconds-long prospective book samples, no matched outcomes",
+    "pullback_in_trend": "Earlier trend pullback paths consumed",
+    "short_horizon_microstructure": "Seconds-long recorder samples cannot support chronological folds",
+    "short_term_cross_sectional_reversal": "Earlier reversal paths consumed",
+    "spread_liquidity_conditioned": "Historical point-in-time spread/depth series unavailable",
+    "trade_flow_imbalance": "Only seconds-long prospective trade samples, no matched outcomes",
+    "volatility_breakout": "Earlier range breakout paths consumed",
+    "volatility_expansion_continuation": "Earlier expansion paths consumed",
+    "volatility_expansion_reversal": "Only one short fresh regime; insufficient volatility episodes"
+  }
+}

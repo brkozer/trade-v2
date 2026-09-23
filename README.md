@@ -15,6 +15,13 @@ holdout. See the [final report](research/results/FINAL_ALPHA_SEARCH.md), its
 [initial report](research/results/INITIAL_ALPHA_CAMPAIGN.md). Negative evidence is
 a product outcome, not permission to trade a historical winner.
 
+[Search 004](research/results/ALPHA_SEARCH_004.md) adds 20-symbol newly acquired
+public history, 12 configurations, 108 chronological evaluations, six tested
+families rejected, 18 unsupported ideas and **zero promotions**. Its short window
+mostly predates the 003 completion even though it was newly downloaded; it is not
+an independent post-search holdout. Its raw hashed dataset is target-local under
+ignored `data/public/alpha_search_004/`.
+
 ## Local setup
 
 From this directory, use Python 3.11+ and Node 20+:
@@ -63,6 +70,7 @@ Run finite public-data simulations and inspect their evidence separately:
 
 ```powershell
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search final
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search 004
 .\.venv\Scripts\python.exe -m tradev2.cli replay-parity
 .\.venv\Scripts\python.exe -m tradev2.cli run --config configs/paper.json --cycles 1
 .\.venv\Scripts\python.exe -m tradev2.cli run --config configs/shadow.json --cycles 1

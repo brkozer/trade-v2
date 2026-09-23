@@ -8,7 +8,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
 from tradev2.domain.evidence import EvidenceEnvelope
@@ -57,10 +57,12 @@ class Workstation(BaseModel):
 KINDS = ("runtime", "account", "opportunity", "decision", "rejection", "order", "position", "fill", "trade", "funding", "market")
 
 
-def _campaigns(root: Path, errors: list[str]) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
+def _campaigns(root: Path, errors: list[str],
+               selected_search_id: str | None = None) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
     campaigns: list[dict[str, Any]] = []
     for name, marker in (("campaign.json", "initial_campaign_completion.json"),
-                         ("FINAL_ALPHA_SEARCH_003.json", "final_search_completion_003.json")):
+                         ("FINAL_ALPHA_SEARCH_003.json", "final_search_completion_003.json"),
+                         ("ALPHA_SEARCH_004.json", "alpha_search_completion_004.json")):
         path = root / "research/results" / name
         completion = root / "research/manifests" / marker
         if not path.exists():
@@ -76,13 +78,16 @@ def _campaigns(root: Path, errors: list[str]) -> tuple[dict[str, Any] | None, li
             campaigns.append(evidence)
         except (OSError, ValueError, KeyError, json.JSONDecodeError):
             errors.append(f"CAMPAIGN_INTEGRITY_FAILED:{name}")
-    active = campaigns[-1] if campaigns else None
-    summaries = [{"search_id": c.get("search_id"), "generated_at": c.get("generated_at"),
-                  "dataset": (c.get("dataset") or {}).get("id"),
-                  "configurations": (c.get("search_budget") or {}).get("configurations"),
-                  "evaluations": (c.get("search_budget") or {}).get("total_replays"),
+    active = (next((c for c in campaigns if c.get("search_id") == selected_search_id), None)
+              if selected_search_id else campaigns[-1] if campaigns else None)
+    if selected_search_id and active is None:
+        errors.append("SEARCH_NOT_FOUND_OR_UNVERIFIED")
+    summaries = [{"search_id": c.get("search_id"), "generated_at": c.get("generated_at") or c.get("finished_at"),
+                  "dataset": (c.get("dataset") or {}).get("id") or (c.get("dataset") or {}).get("dataset_id"),
+                  "configurations": (c.get("search_budget") or {}).get("configurations") or c.get("trial_count"),
+                  "evaluations": (c.get("search_budget") or {}).get("total_replays") or c.get("evaluation_count"),
                   "promoted": len(c.get("promoted_candidates") or []),
-                  "holdout_state": c.get("final_holdout_state"), "complete": True}
+                  "holdout_state": c.get("final_holdout_state") or c.get("promotion_note"), "complete": True}
                  for c in campaigns]
     return active, summaries
 
@@ -90,6 +95,14 @@ def _campaigns(root: Path, errors: list[str]) -> tuple[dict[str, Any] | None, li
 def _experiments(campaign: dict[str, Any] | None) -> list[dict[str, Any]]:
     if campaign is None:
         return []
+    if campaign.get("search_id") == "TRADEV2_ALPHA_SEARCH_004":
+        return [{"hypothesis": row["family"], "baseline": "preregistered_thresholds",
+                 "treatment": row["cost"], "sample_unit": "chronological_fold_replay",
+                 "n": row["result"]["trades"], "mean_paired_delta": None,
+                 "ci": None, "multiple_testing_family": campaign["search_id"],
+                 "checkpoint": row["fold"], "status": row["status"],
+                 "trial_id": row["trial_id"], "net_r": row["result"]["mean_net_r"]}
+                for row in campaign.get("trials", [])]
     rows: list[dict[str, Any]] = []
     for family in campaign.get("families", []):
         for fold in family.get("folds", []):
@@ -183,7 +196,8 @@ def _performance(events: dict[str, list[EvidenceEnvelope]]) -> dict[str, Any]:
             "execution_cost": None, "drawdown": None}
 
 
-def snapshot(root: Path, mode: str, run_id: str | None = None) -> Workstation:
+def snapshot(root: Path, mode: str, run_id: str | None = None,
+             search_id: str | None = None) -> Workstation:
     now = time.time_ns() // 1_000_000
     events: dict[str, list[EvidenceEnvelope]] = {kind: [] for kind in KINDS}
     manifests: list[dict[str, Any]] = []
@@ -225,7 +239,7 @@ def snapshot(root: Path, mode: str, run_id: str | None = None) -> Workstation:
                               age_ms=age, source_ms=latest.source_ms,
                               source_freshness="UNKNOWN" if source_age is None else "FRESH"
                               if 0 <= source_age <= 30_000 else "STALE")
-    campaign, searches = _campaigns(root, errors)
+    campaign, searches = _campaigns(root, errors, search_id)
     latest_market = events["market"][0] if events["market"] else None
     if latest_market is None or latest_market.source_ms is None:
         public_market = "UNKNOWN"
@@ -266,14 +280,20 @@ def create_app(root: Path | None = None) -> FastAPI:
 
     @app.get("/api/v1/workstation", response_model=Workstation)
     def workstation(mode: Literal["paper", "shadow"] = "paper",
-                    run_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_-]+$")) -> Workstation:
-        return snapshot(project, mode, run_id)
+                    run_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_-]+$"),
+                    search_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_]+$")) -> Workstation:
+        view = snapshot(project, mode, run_id, search_id)
+        if search_id and view.campaign is None:
+            raise HTTPException(404, "Sealed research search not found")
+        return view
 
     @app.get("/api/v1/{resource}")
     def resource_view(resource: str, mode: Literal["paper", "shadow"] = "paper",
-                      run_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_-]+$")) -> dict[str, Any]:
-        from fastapi import HTTPException
-        view = snapshot(project, mode, run_id)
+                      run_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_-]+$"),
+                      search_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_]+$")) -> dict[str, Any]:
+        view = snapshot(project, mode, run_id, search_id)
+        if search_id and view.campaign is None:
+            raise HTTPException(404, "Sealed research search not found")
         aliases = {"positions": "position", "orders": "order", "fills": "fill", "trades": "trade",
                    "opportunities": "opportunity", "decisions": "decision",
                    "rejections": "rejection"}
@@ -304,9 +324,8 @@ def create_app(root: Path | None = None) -> FastAPI:
         return {"schema_version": 1, "generated_ms": view.generated_ms, "data": result}
 
     @app.get("/api/v1/candidates/{family}")
-    def candidate_detail(family: str) -> dict[str, Any]:
-        from fastapi import HTTPException
-        view = snapshot(project, "paper")
+    def candidate_detail(family: str, search_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_]+$")) -> dict[str, Any]:
+        view = snapshot(project, "paper", search_id=search_id)
         candidate = next((row for row in (view.campaign or {}).get("families", [])
                           if row.get("family") == family), None)
         if candidate is None:

@@ -72,14 +72,18 @@ microstructure evidence is `PROSPECTIVE_DATA_COLLECTION_ACTIVE`.
 ```powershell
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search initial
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search final
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search 004
 .\.venv\Scripts\python.exe -m tradev2.cli replay-parity
 ```
 
-`research --search final` is the historical one-shot command, but this checkout's
-identity and completion record are consumed. A genuinely new search requires a
+`research --search final` and `research --search 004` are one-shot commands, but
+both identities and completion records are consumed in this checkout. Search 004
+was prepared with `collect-search004`, `preregister-search004`, then
+`research --search 004` on its dedicated research branch; those create-only
+commands now refuse overwrites. A genuinely new search requires a
 new preregistered search ID and manifest, fresh independently dated holdout,
 explicit search-count accounting and a separate runner/result identity. Do not
-rename, delete or overwrite the consumed final artifacts. Until those inputs
+rename, delete or overwrite consumed artifacts. Until those inputs
 exist, inspection is the valid reproducible operation; no new campaign is
 implicitly authorized by a UI click.
 

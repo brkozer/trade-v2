@@ -167,6 +167,65 @@ function Ledger({ title, events }: { title: string; events: Event[] }) {
   );
 }
 function Campaign({ campaign, searches }: { campaign: RecordData | null; searches: RecordData[] }) {
+  if (campaign?.search_id === "TRADEV2_ALPHA_SEARCH_004")
+    return <Search004Campaign campaign={campaign} searches={searches} />;
+  return <HistoricalCampaign campaign={campaign} searches={searches} />;
+}
+function Search004Campaign({ campaign, searches }: { campaign: RecordData; searches: RecordData[] }) {
+  const [filter, setFilter] = useState("");
+  const [selectedFamily, setSelectedFamily] = useState("");
+  const families = (Array.isArray(campaign.families) ? campaign.families : []) as RecordData[];
+  const tested = families.filter((row) => row.status !== "UNSUPPORTED_WITH_CURRENT_DATA");
+  const visible = families.filter((row) => `${row.family} ${row.status} ${row.reason}`
+    .toLowerCase().includes(filter.toLowerCase()));
+  const detail = families.find((row) => row.family === selectedFamily);
+  return <>
+    <div className="notice"><Badge value="NO PROMOTION" />
+      <span>Search 004 · newly acquired public history, not a fresh post-search holdout.
+        Six forward days cannot establish prospective edge.</span></div>
+    <Metrics values={[["Completed searches", searches.length], ["Search", campaign.search_id],
+      ["Dataset", (campaign.dataset as RecordData | undefined)?.dataset_id],
+      ["Families investigated", families.length], ["Families evaluated", tested.length],
+      ["Configurations", campaign.trial_count], ["Replays", campaign.evaluation_count],
+      ["Rejected", families.filter((row) => row.status === "REJECTED").length],
+      ["Unsupported", families.filter((row) => row.status === "UNSUPPORTED_WITH_CURRENT_DATA").length],
+      ["Promoted", Array.isArray(campaign.promoted_candidates) ? campaign.promoted_candidates.length : null]]} />
+    <section className="panel"><div className="panel-title"><h2>Search 004 candidates</h2>
+      <div className="filters"><label>Filter families <input value={filter}
+        onChange={(event) => setFilter(event.target.value)} placeholder="Family or status" /></label>
+        <label>Candidate detail <select value={selectedFamily}
+          onChange={(event) => setSelectedFamily(event.target.value)}>
+          <option value="">Select a family</option>{families.map((row) =>
+            <option value={String(row.family)} key={String(row.family)}>{String(row.family)}</option>)}
+        </select></label></div></div>
+      <div className="table-scroll"><table><caption className="sr-only">Search 004 family evidence</caption>
+        <thead><tr>{["Family", "Forward net R", "Trades", "Positive folds", "Base · USDT", "Wide · USDT", "Severe · USDT", "Neighbor folds", "State"].map((name) =>
+          <th scope="col" key={name}>{name}</th>)}</tr></thead>
+        <tbody>{visible.map((row) => { const costs = row.costs as RecordData | undefined;
+          return <tr key={String(row.family)}><th scope="row">{display(row.family)}</th>
+            <td>{formatted(row.forward_mean_net_r, 3)}</td><td>{row.status === "UNSUPPORTED_WITH_CURRENT_DATA" ? "—" : display(row.forward_trades)}</td>
+            <td>{display(row.positive_folds)}</td><td>{formatted(costs?.base_taker, 2)}</td>
+            <td>{formatted(costs?.wide_costs, 2)}</td><td>{formatted(costs?.severe_plausible, 2)}</td>
+            <td>{display(row.neighbor_positive_folds)}</td><td><Badge value={row.status} /></td></tr>; })}</tbody>
+      </table></div>{!visible.length ? <p className="empty">No families match this filter.</p> : null}
+    </section>
+    {detail ? <section className="panel" aria-label="Selected candidate detail"><div className="panel-title">
+      <h2>{display(detail.family)}</h2><Badge value={detail.status} /></div>
+      <p>{display(detail.mechanism ?? detail.reason)}</p><Metrics values={[
+        ["Forward net R", detail.forward_mean_net_r], ["Trades", detail.forward_trades],
+        ["Positive folds", detail.positive_folds], ["Worst fold drawdown %", detail.max_drawdown_pct],
+        ["Max symbol concentration", detail.max_symbol_concentration],
+        ["Max day concentration", detail.max_day_concentration],
+        ["Beta attribution", detail.beta_attribution]]} />
+      <p>Decision: {display(detail.reason)}</p><Details value={detail} /></section> : null}
+    <section className="panel"><h2>Evidence boundary</h2>
+      <p>The final 232 bars were not replayed; this adjacent tail is not an independent final holdout.
+        Historic maker fills and orderbook flow are unavailable. No candidate passed all cost and robustness gates.</p>
+      <Details value={{ dataset: campaign.dataset, validation: campaign.validation_design,
+        costs: campaign.cost_assumptions, promotion: campaign.promotion_note }} /></section>
+  </>;
+}
+function HistoricalCampaign({ campaign, searches }: { campaign: RecordData | null; searches: RecordData[] }) {
   const [filter, setFilter] = useState("");
   const [selectedFamily, setSelectedFamily] = useState("");
   const families = (
@@ -414,6 +473,7 @@ export function App() {
   const [refresh, setRefresh] = useState(0);
   const [filter, setFilter] = useState("");
   const [experimentFilter, setExperimentFilter] = useState("");
+  const [searchId, setSearchId] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const initialPage = useRef(true);
   const [tab, setTab] = useState("position");
@@ -431,7 +491,7 @@ export function App() {
     setData(null);
     async function load() {
       try {
-        const response = await fetch(`/api/v1/workstation?mode=${mode}`, {
+        const response = await fetch(`/api/v1/workstation?mode=${mode}${searchId ? `&search_id=${encodeURIComponent(searchId)}` : ""}`, {
           signal: controller.signal,
         });
         if (!response.ok)
@@ -452,7 +512,7 @@ export function App() {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [mode, refresh]);
+  }, [mode, refresh, searchId]);
   const account = data?.account;
   const events = data?.events ?? {};
   const runtime = data?.runtime;
@@ -568,6 +628,12 @@ export function App() {
             </section>
           ) : (
             <>
+              {(page === "Alpha Lab" || page === "Experiments") && data.searches?.length ?
+                <section className="panel"><label>Research search <select value={searchId || String(data.campaign?.search_id ?? "")}
+                  onChange={(event) => setSearchId(event.target.value)}>
+                  {data.searches.map((search) => <option key={String(search.search_id)}
+                    value={String(search.search_id)}>{display(search.search_id)}</option>)}
+                </select></label><p>Sealed campaigns remain separately inspectable; selecting one does not rerun it.</p></section> : null}
               {page === "Trader" ? (
                 <>
                   <div className="notice">
@@ -694,9 +760,9 @@ export function App() {
                     values={[
                       ["Search ID", data.campaign?.search_id],
                       ["Completed searches", data.searches?.length],
-                      ["Paired stress records", data.experiments?.length],
+                      [data.campaign?.search_id === "TRADEV2_ALPHA_SEARCH_004" ? "Recorded evaluations" : "Paired stress records", data.experiments?.length],
                       ["Complete", data.campaign?.complete],
-                      ["Holdout state", data.campaign?.final_holdout_state ? "NOT ACQUIRED" : null],
+                      ["Holdout state", data.campaign?.final_holdout_state ? "NOT ACQUIRED" : data.campaign?.promotion_note],
                     ]}
                   />
                   <section className="panel">
@@ -707,21 +773,21 @@ export function App() {
                     <p>All research periods reuse historical data. No experiment here is fresh final holdout evidence.</p>
                   </section>
                   <section className="panel">
-                    <div className="panel-title"><h2>Paired execution-cost stress</h2>
+                    <div className="panel-title"><h2>{data.campaign?.search_id === "TRADEV2_ALPHA_SEARCH_004" ? "Chronological trial ledger" : "Paired execution-cost stress"}</h2>
                       <label>Filter experiments{" "}<input value={experimentFilter}
                         onChange={(e) => setExperimentFilter(e.target.value)}
                         placeholder="Family or treatment" /></label></div>
                     {(data.experiments ?? []).length ? (
                       <div className="table-scroll"><table>
                         <caption className="sr-only">Common-opportunity paired stress comparisons</caption>
-                        <thead><tr>{["Family", "Fold", "Treatment", "Common n", "Mean paired Δ · USDT", "CI", "Status"].map((name) =>
+                        <thead><tr>{["Family", "Fold", "Treatment", "Trade n", data.campaign?.search_id === "TRADEV2_ALPHA_SEARCH_004" ? "Net R" : "Mean paired Δ · USDT", "CI", "Status"].map((name) =>
                           <th scope="col" key={name}>{name}</th>)}</tr></thead>
                         <tbody>{(data.experiments ?? []).filter((row) =>
                           `${row.hypothesis} ${row.treatment}`.toLowerCase().includes(experimentFilter.toLowerCase())).map((row, index) =>
                           <tr key={`${row.hypothesis}-${row.checkpoint}-${row.treatment}-${index}`}>
                             <th scope="row">{display(row.hypothesis)}</th><td>{display(row.checkpoint)}</td>
                             <td>{display(row.treatment)}</td><td>{display(row.n)}</td>
-                            <td>{formatted(row.mean_paired_delta, 3)}</td><td>{display(row.ci)}</td>
+                            <td>{formatted(row.net_r ?? row.mean_paired_delta, 3)}</td><td>{display(row.ci)}</td>
                             <td><Badge value={row.status} /></td>
                           </tr>)}</tbody>
                       </table></div>
