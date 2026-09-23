@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 14:58 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 15:04 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -248,6 +248,18 @@ in the next five buckets inspected. Every symbol was affected. This interval
 cannot be used for short-horizon features or labels; a closed-run audit must
 locate and censor its exact boundaries and check for later recurrence. The
 prefix is not a score, a completed session or a general latency guarantee.
+
+At 15:03:40 UTC the BTC/ETH supervisor closed its ninth continuation session,
+`c68083a797cf44239795821a08e45f3b`. Independent read-back under the
+current gate verified its hash chain, exactly one completion event, matching
+counts (244,231 messages; 168,387 books; 273,237 trades), both symbols, and
+zero logged source failures. It remains **engineering-only** because its
+immutable manifest says `dirty=true`. The next BTC/ETH run,
+`e9eb10f1edce4c00aa1e356c9ac78992`, began with `dirty=false`, the exact
+BTCUSDT/ETHUSDT universe, `PUBLIC_RECORDER`, and Git SHA `b066cb5`; it is
+open and not yet accepted. A tiny early prefix had both book/trade streams
+and no book message over five seconds late, but cannot establish whole-run
+quality. The WebSocket-closure fix at `25dd584` is included in that Git SHA.
 
 ## New hypothesis queue — not a frozen search
 
