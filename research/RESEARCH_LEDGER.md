@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 20:24 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 20:43 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -529,6 +529,33 @@ cross-clock negative lag is a clock-quality observation, not negative market
 latency. The records remain unscored and do not constitute continuous L2
 coverage or an alpha result. The first supervised OI extension is still
 pending its next safe interval and requires separate real-world audit.
+
+An additional OI field-grain check on the first 40 symbol-points found
+`singleOpenInterest` exactly half the both-sides quantity in 21 rows and within
+6.11×10⁻⁷ relative error in the other 19 (consistent with display rounding).
+It is not an independent long/short or directional-positioning measurement;
+future OI hypotheses must use the total only, without double-counting the
+single-side field as another feature. Across the 20 symbols, the one observed
+15-minute total-OI change ranged from −0.931% to +0.677%; zero changes reached
+1% absolute magnitude. This one interval is a data-shape observation, not an
+event-frequency estimate or evidence of an effect on future returns.
+
+For mechanism *feasibility only*, a read-only public OI query covered the
+seven historical days 16–22 September (before the 004 completion) for the
+fixed 20 symbols. Eighty bounded pages yielded all 13,440 expected 15-minute
+symbol/timestamp keys with no duplicate, missing, nonpositive or nonfinite
+total-OI value. Across 13,360 **overlapping** trailing-hour changes, median
+absolute OI change was 0.449%, the 90th percentile 1.876% and the 99th
+percentile 6.409%; 3,114/13,360 (23.3%) exceeded 1% absolute. Day counts
+varied from 290 to 617 such overlapping windows (20 symbols). This shows that
+an hourly inventory-change condition is not trivially empty in that week, but
+overlap, current-universe selection, historical retrieval/revision risk and
+the lack of any price-outcome or cost test make these **consumed discovery
+statistics**, not an independent event count, alpha estimate or validation.
+No search threshold or direction has been frozen from them, and Search 005 has
+not begun. The [Bybit OI contract](https://bybit-exchange.github.io/docs/v5/market/open-interest)
+allows 200 rows per page, labels total versus single-side units and warns of
+delivery delay; collection-time availability must still control every join.
 
 ## New hypothesis queue — not a frozen search
 
