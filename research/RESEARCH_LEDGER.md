@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 10:07 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 14:12 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -89,6 +89,43 @@ failures or below 100 GiB free disk. Operational status is under ignored
 was **waiting**, with zero successful rounds; no future candle coverage is
 claimed from this plan alone. REST backfills retain actual ingestion times and
 must not be treated as contemporaneously observed order-book or shadow fills.
+
+## Closed prospective evidence audit — 2026-09-23 14:12 UTC
+
+The initial run and seven sequential continuation runs have closed. Independent
+read-back of **all eight** target-local journals verified their hash chains,
+schema, book sequence and counts, with exactly one `recorder_complete` event and
+zero `source_failure` events per run. Together they contain **1,273,740 public
+messages**, including **1,057,815 50-level book updates** and **836,807 public
+trades**, from 10:02:18 to 14:03:01 UTC. The seven continuation run IDs, in
+order, are `100637d3f1d44d2b90d6c1365bbde090`,
+`561cee7a845c4429b20b6261c7601efa`, `fa901dbef22d4f7885031a0b838dcea7`,
+`6fbd9a08285f4efdbec0709e44ff6a41`, `b2ad13257e764ba2bb98a3ab24c8b738`,
+`c025ade2471e4c0e93f305535cbab4e8`, and
+`d6bf2ade112e443c9276269c7ca22d02`. The closed-run CLI receipts are under
+ignored `runtime/recorder/continuation-20260923T101132Z/session-*.log`.
+
+Per-symbol within-run book ingestion gaps peaked at 1,618 ms; there were only
+four book gaps over one second across the eight runs, none over five seconds.
+There were no invalid book states, duplicate trade IDs within a run, or messages
+over one second future-dated. One run contained **62/151,812 (0.041%)** messages
+with exchange-to-ingestion lag over five seconds, all in a roughly 0.8-second
+burst (maximum 5,348 ms). The seven **inter-run** message gaps were 4,862–11,487
+ms. These exact intervals and the delayed-message burst must be excluded or
+explicitly censored in any short-horizon feature/label construction. Hash-chain
+acceptance alone does not certify gap-free market observation.
+
+The 20-symbol public candle chain now holds nine immutable chunks: **16
+consecutive confirmed 15-minute bars per symbol** (320 symbol-bars), from the
+10:00 through 13:45 UTC opens. Rechecking all chunk hashes found no duplicate or
+missing symbol/time keys. Ingestion lag after candle close had median 181,251 ms
+and maximum 1,085,875 ms because the half-hour loop backfills one interval in
+each round. These bars are suitable as later-observed market context, not proof
+that every close was available to a live 15-minute decision at that timestamp.
+Both public-only supervisors were still collecting at 14:12 UTC (seven completed
+L2 continuation sessions; eight successful candle rounds, zero failures), with
+414 GiB free. This is about four hours of observations, **not 28 independent
+forward days**. There is no new alpha search, candidate or promotion.
 
 ## New hypothesis queue — not a frozen search
 
