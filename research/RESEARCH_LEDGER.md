@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 14:57 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 14:58 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -239,6 +239,15 @@ solve the 28-day capacity constraint: at the indicative 60 GiB/day raw rate,
 even 13.68% is roughly 8 GiB/day before BTC/ETH or other storage. Verified
 archival, available space and the 250 GiB stop floor must all be accounted for
 before promising a 28-day L2 dataset.
+
+The open clean-manifest successor had a **provisional startup backlog** in a
+14:52–14:58 UTC read-only prefix. Across eight symbols, 17,651 book messages
+were more than five seconds behind their exchange timestamps (maximum 12,297
+ms); all occurred in the first two UTC minute buckets, with zero such messages
+in the next five buckets inspected. Every symbol was affected. This interval
+cannot be used for short-horizon features or labels; a closed-run audit must
+locate and censor its exact boundaries and check for later recurrence. The
+prefix is not a score, a completed session or a general latency guarantee.
 
 ## New hypothesis queue — not a frozen search
 
