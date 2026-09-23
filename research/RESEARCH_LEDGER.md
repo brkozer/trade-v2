@@ -567,6 +567,31 @@ historical spread paths or a frozen Search 005 cost model; they show why a
 delayed OI condition must clear a material net hurdle. No historical OI/price
 outcome was queried or optimized in this feasibility check.
 
+### WAITING_FOR_DATA — bounded cycle 2026-09-23 21:00 UTC
+
+No new alpha experiment is eligible. The accepted prospective OI chain has
+only four contiguous 15-minute timestamps, 19:45–20:30 UTC on one calendar
+day (80 symbol-points for the fixed 20-symbol universe). This is below the
+unchanged prerequisite of enough independently dated post-registration data
+for training, chronological validation and **at least 28 forward days**.
+
+The exact release condition is: closed, independently accepted, gap-free OI
+and candle evidence across the fixed universe must cover that prerequisite,
+and every scored outcome must have a completed execution bar strictly after
+the later source-availability bound. At this snapshot only the 20:15 UTC row
+from the second OI chunk has a completed matching candle; its first eligible
+execution-bar open is 21:00 UTC, which is not yet accepted evidence. The
+20:30 UTC OI row has no completed matching candle. Therefore no return, fill,
+cost, hypothesis, candidate or alpha statistic is scored, and search/trial
+counts remain unchanged.
+
+One supervisor/process snapshot found the existing candle-chain, breadth and
+OI supervisors alive and responsive as independent PowerShell processes. The
+OI supervisor remained `WAITING_FOR_INTERVAL` after one successful extension,
+zero failures, a 1,344-round bound and 100 GiB free-disk floor. No collector
+was restarted, no open journal was read, and no process was polled or awaited.
+Resume only from newly closed and accepted artifacts on a later invocation.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
