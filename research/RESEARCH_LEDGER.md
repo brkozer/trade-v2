@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 14:17 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 14:27 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -132,6 +132,34 @@ Both public-only supervisors were still collecting at 14:12 UTC (seven completed
 L2 continuation sessions; eight successful candle rounds, zero failures), with
 414 GiB free. This is about four hours of observations, **not 28 independent
 forward days**. There is no new alpha search, candidate or promotion.
+
+Feed-semantics check for the *unfrozen* microstructure hypotheses: Bybit's
+[public-trade specification](https://bybit-exchange.github.io/docs/v5/websocket/public/trade)
+defines `S` as the taker side and trade `T` as match time; its
+[50-level order-book specification](https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook)
+defines snapshot/delta handling, `cts` matching-engine time (correlatable with
+`T`), and `seq` ordering, while noting that RPI orders are absent. Across the
+eight closed runs there were exactly 16 initial book snapshots and 1,057,799
+deltas. All observed within-run `u` steps were `+1`, with no regression or skip;
+this is a dataset observation, **not** an exchange guarantee or proof that
+cross-run gaps contain no missing events. The existing recorder deliberately
+does not invent a `u+1` contract. A skipped or reset `u` in future evidence
+requires explicit investigation/reseed treatment before book-based research.
+The [Cont–Kukanov–Stoikov order-flow study](https://arxiv.org/abs/1011.6402)
+motivates testing order-flow versus depth, but its equity-market association
+does not establish net-positive Bybit execution after costs. No such outcome
+has been inspected in this prospective sample.
+
+At about 14:26 UTC a separate bounded 30-minute public-only feasibility run
+began for XRPUSDT, SOLUSDT, DOGEUSDT, BCHUSDT, UNIUSDT, SUIUSDT, ADAUSDT and
+NEARUSDT (run ID `b9d0ccea3ad74ef5ad5e5a12425cde18`). All eight were
+verified as currently available USDT linear instruments immediately before
+subscription. This expands potential symbol coverage; the run is **open and
+unaccepted** until its own close/read-back and per-symbol quality audit. It is
+not a scored search or an independent 28-day validation set. Broad coverage is
+needed before freezing concentration gates for an economically distinct
+microstructure search; BTC/ETH-only outcomes cannot answer whether an apparent
+edge is one-symbol dependent.
 
 ## New hypothesis queue — not a frozen search
 
