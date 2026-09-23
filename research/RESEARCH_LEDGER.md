@@ -329,6 +329,16 @@ at 19:30 UTC (17 completed half-hour BTC/ETH sessions and 18 successful candle
 rounds, respectively), with 407 GiB free. No new search ID or alpha candidate
 was created from these recorder observations.
 
+At 19:32 UTC, a **single bounded 30-minute diagnostic** eight-symbol public
+recording started as PID 12268, run `fa5e1a439e7f49319e344b83f8638dee`,
+with clean manifest Git SHA `b84184b` and the exact breadth universe. It was
+open at first check (8,786 market messages, no completion yet); output and
+stderr are retained under `runtime/recorder/breadth-diagnostic-20260923T193225Z/`.
+Its purpose is to distinguish a transient close from a repeatable
+eight-symbol collection limitation. It is not a search or an alpha result.
+The 20-symbol candle chain independently hash-verified through the 18:45 UTC
+bar, with 19:00 UTC the next expected open (19 immutable chunks).
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
