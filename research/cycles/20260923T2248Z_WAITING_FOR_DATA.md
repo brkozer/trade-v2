@@ -69,3 +69,12 @@ unchanged. LIVE remains disabled.
 - Frontend TypeScript/Vite production build: passed.
 - Mypy retains the pre-existing unrelated missing `numpy.ndarray` type
   arguments at `ops/extend_btc_eth_public.py:100`.
+
+## Autonomous restart
+
+After commit `60c90ad`, the repaired candle helper was started exactly once as
+independent PID `37304`. An immediate process-table read confirmed the intended
+`ResumeExistingChain` command with 1,344 maximum rounds, 1,800-second intervals
+and a 100 GiB disk floor. Launch output is retained under
+`runtime/recorder/bars-resume-20260923T225157Z.{stdout,stderr}.log`. No later
+process/status check or journal read was performed.

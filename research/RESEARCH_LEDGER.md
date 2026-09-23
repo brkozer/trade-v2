@@ -592,6 +592,43 @@ zero failures, a 1,344-round bound and 100 GiB free-disk floor. No collector
 was restarted, no open journal was read, and no process was polled or awaited.
 Resume only from newly closed and accepted artifacts on a later invocation.
 
+### Closed-chain extension and repaired continuation — 2026-09-23 22:52 UTC
+
+Independent read-back accepted three additional candle chunks and three
+additional OI chunks. The candle chain now contains 25 contiguous chunks and
+960 fixed-universe symbol-bars from 10:00 through 21:45 UTC. The OI chain has
+five contiguous chunks and 200 symbol-points from 19:45 through 22:00 UTC.
+All new paths, identities, source-universe hashes, payload hashes, timestamps,
+quantities/OHLCV geometry, clock probes and availability bounds passed. Nine
+OI timestamps have matching accepted candles; six also have a completed candle
+at the first bar open strictly after both source-availability bounds. These are
+data-integrity and availability results, not outcome or alpha estimates.
+
+The initial candle campaign completed all 24 rounds with zero failures, but
+its preconfigured long continuation then failed on its first ordinary nonzero
+collector exit: Windows PowerShell promoted native stderr under the script's
+strict error policy before bounded retry accounting ran. The repair confines a
+`Continue` policy to the native invocation, captures the exit code, restores
+strict handling, and adds an explicit mutually exclusive
+`ResumeExistingChain` mode. Chain, disk, round and three-consecutive-failure
+gates are unchanged. PowerShell parsing and native-failure behavior passed,
+alongside 124 Python tests, Ruff, six frontend tests and the production build.
+
+After commit `60c90ad`, the repaired helper was started exactly once as
+independent PID `37304`; an immediate process-table read confirmed the intended
+command with 1,344 maximum rounds, 1,800-second intervals and a 100 GiB disk
+floor. Launch stdout/stderr are
+`runtime/recorder/bars-resume-20260923T225157Z.{stdout,stderr}.log`. No later
+process or status check was made. It must stop on three consecutive failures,
+disk-floor breach, explicit stop request or completion of the finite rounds.
+
+**WAITING_FOR_DATA remains exact:** all accepted OI evidence is still from one
+calendar day. Do not begin a search until closed, independently accepted,
+gap-free OI and candle evidence satisfies the registered training and
+chronological-validation design plus at least 28 forward days, with every
+outcome using a completed execution bar strictly after the later source
+availability bound. Search/trial counts remain unchanged; LIVE is disabled.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
