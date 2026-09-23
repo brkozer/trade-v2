@@ -73,3 +73,25 @@ def test_funding_uses_observed_settlement_and_unknown_is_not_zero():
     broker.apply_funding(settled)
     broker.apply_funding(settled)
     assert broker.funding == D("-0.2")
+
+
+def test_short_maker_fill_funding_and_partial_protected_exit():
+    broker = PaperBroker(D(1000))
+    short = intent().model_copy(update={"side": "Sell", "stop_price": D(102)})
+    broker.submit(short, rules())
+    broker.observe(book(130, "100.01", "100.02"), 131)
+    held = broker.positions["BTCUSDT"]
+    assert held.position.side == "Sell"
+    assert held.position.quantity == D(2)
+    assert held.position.protection_healthy
+    assert D(broker.account({"BTCUSDT": D("100.02")})["unrealized_pnl"]) == D("-0.04")
+    broker.apply_funding(FundingSnapshot(symbol="BTCUSDT", rate=D(".001"),
+        funding_ms=200, observed_ms=201, source="settled", status="KNOWN"))
+    assert broker.funding == D("0.2")  # short receives positive funding
+    broker.observe(book(220, "102.99", "103", "4"), 221)
+    remaining = broker.positions["BTCUSDT"].position
+    assert remaining.quantity == D(1) and remaining.protection_healthy
+    trade = [payload for kind, payload in broker.drain() if kind == "trade"][0]
+    assert trade["side"] == "Sell"
+    assert D(trade["gross_pnl"]) < 0
+    assert D(trade["funding"]) > 0

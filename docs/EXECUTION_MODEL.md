@@ -32,6 +32,13 @@ foreign identities and excess coverage rejected, and a complete fresh position s
 must agree exactly before remaining quantity changes. Callers persist the baseline and
 events; this package itself is in-memory and makes no durability claim.
 
+`reconciliation/snapshot.py` compares complete dated account, orders, executions,
+positions and closed-PnL observations against journal state. Missing coverage,
+duplicate IDs, ownership mismatches, unknown money components, unprotected
+positions or account disagreement block entry. The generic startup gate separately
+requires authority, identity, metadata, fees, recovered journal, freshness and
+protection. Neither HTTP acknowledgement nor an empty stale snapshot proves flat.
+
 Ledger amounts retain source and source time. Unknown and estimated fees/funding cannot
 produce canonical net PnL. Known zero is explicit. Net PnL is gross minus entry/exit fees
 plus signed funding. Duplicate immutable ledger events do nothing; conflicts fail. Later

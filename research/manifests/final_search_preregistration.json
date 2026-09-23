@@ -1,0 +1,447 @@
+{
+  "configuration_budget": 28,
+  "cost_scenarios": [
+    {
+      "fee_multiplier": 1.0,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "base_taker",
+      "slippage_bps_per_side": 1.0,
+      "spread_multiplier": 1.0
+    },
+    {
+      "fee_multiplier": 1.5,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "wide_costs",
+      "slippage_bps_per_side": 3.0,
+      "spread_multiplier": 2.0
+    },
+    {
+      "fee_multiplier": 2.0,
+      "fill_fraction": 0.5,
+      "latency_bars": 1,
+      "miss_every": 3,
+      "name": "severe_plausible",
+      "slippage_bps_per_side": 5.0,
+      "spread_multiplier": 3.0
+    }
+  ],
+  "dataset": {
+    "candles_sha256": "07ee53a6daea51eeb810b03ee1d309dd1846950c96274d52d05eb68bd0ef1672",
+    "economics_sha256": "d941484205acd1353b8b415011c8e0d3ec4192d866d496dc1af03dd88f0eb628",
+    "first_open_ms": 1770761700000,
+    "id": "BYBIT_PUBLIC_REUSED_39_OHLCV_210D",
+    "last_open_ms": 1788903900000,
+    "manifest_sha256": "941cd5ded018cb0eea5f68caeb50c5a38e666a2b527e8b3651ec4f0f6a79f30a",
+    "role": "REUSED_HISTORICAL_DISCOVERY",
+    "symbols": [
+      "1000PEPEUSDT",
+      "AAVEUSDT",
+      "APTUSDT",
+      "ARBUSDT",
+      "ASTERUSDT",
+      "BTCUSDT",
+      "CRVUSDT",
+      "DASHUSDT",
+      "DOGEUSDT",
+      "DOTUSDT",
+      "ENAUSDT",
+      "ETHUSDT",
+      "FARTCOINUSDT",
+      "FFUSDT",
+      "FILUSDT",
+      "HEMIUSDT",
+      "HYPEUSDT",
+      "INJUSDT",
+      "LDOUSDT",
+      "LINKUSDT",
+      "LITUSDT",
+      "ONDOUSDT",
+      "OPUSDT",
+      "PENGUUSDT",
+      "PUMPFUNUSDT",
+      "SHIB1000USDT",
+      "SKRUSDT",
+      "SUIUSDT",
+      "TAOUSDT",
+      "UNIUSDT",
+      "USELESSUSDT",
+      "VIRTUALUSDT",
+      "VVVUSDT",
+      "WLDUSDT",
+      "WLFIUSDT",
+      "XMRUSDT",
+      "XPLUSDT",
+      "XRPUSDT",
+      "ZROUSDT"
+    ]
+  },
+  "families": {
+    "btc_eth_residual": "A coin's return relative to lagged BTC and ETH factors converges.",
+    "btc_lead_lag": "Large BTC moves precede aligned moves in slower altcoins.",
+    "btc_residual": "A coin's return relative to lagged BTC beta converges.",
+    "cross_sectional_momentum": "Leaders outperform laggards in cross-sectional selection; executed neutrality is not guaranteed.",
+    "cross_sectional_reversal": "Cross-sectional extremes converge after a common shock.",
+    "funding_crowding": "The last settled funding rate proxies crowded positioning.",
+    "medium_reversal": "A larger multi-session dislocation mean-reverts.",
+    "range_breakout": "A prior range break initiates a new directional move.",
+    "ridge_ohlcv": "Regularized linear prediction of four-bar return, thresholded above execution costs.",
+    "short_reversal": "An extreme short-horizon move mean-reverts after costs.",
+    "trend_persistence": "Multi-day momentum persists after a material directional move.",
+    "trend_pullback": "A pullback within an established trend offers a better entry.",
+    "volatility_expansion": "Directional volatility acceleration continues briefly.",
+    "volume_reversal": "A volume-backed price shock exhausts rather than continues."
+  },
+  "frozen_at": "2026-09-23T00:37:56.640573+00:00",
+  "holdout_state": "NO_UNTOUCHED_HISTORICAL_HOLDOUT; PROSPECTIVE_PUBLIC_DATA_REQUIRED",
+  "limitations": [
+    "previously consumed 2026 public OHLCV and funding; forward folds are not fresh final OOS",
+    "current symbol universe and fee/minimum snapshots may differ historically",
+    "no historical L2 queue or trade-flow data; primary executions are taker/taker",
+    "funding uses settlement timestamps and entry-notional approximation",
+    "OHLC stop takes precedence over ambiguous target",
+    "ML uses OHLCV only"
+  ],
+  "parameter_space": [
+    {
+      "candidate_id": "FINAL_trend_persistence_96_0.025",
+      "family": "trend_persistence",
+      "holding_bars": 24,
+      "lookback": 96,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.025
+    },
+    {
+      "candidate_id": "FINAL_trend_persistence_192_0.04",
+      "family": "trend_persistence",
+      "holding_bars": 32,
+      "lookback": 192,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.04
+    },
+    {
+      "candidate_id": "FINAL_trend_pullback_96_0.012",
+      "family": "trend_pullback",
+      "holding_bars": 16,
+      "lookback": 96,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.012
+    },
+    {
+      "candidate_id": "FINAL_trend_pullback_192_0.018",
+      "family": "trend_pullback",
+      "holding_bars": 24,
+      "lookback": 192,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.018
+    },
+    {
+      "candidate_id": "FINAL_range_breakout_48_0.001",
+      "family": "range_breakout",
+      "holding_bars": 24,
+      "lookback": 48,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.001
+    },
+    {
+      "candidate_id": "FINAL_range_breakout_96_0.0015",
+      "family": "range_breakout",
+      "holding_bars": 32,
+      "lookback": 96,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.0015
+    },
+    {
+      "candidate_id": "FINAL_short_reversal_4_0.012",
+      "family": "short_reversal",
+      "holding_bars": 8,
+      "lookback": 4,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.012
+    },
+    {
+      "candidate_id": "FINAL_short_reversal_8_0.018",
+      "family": "short_reversal",
+      "holding_bars": 12,
+      "lookback": 8,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.018
+    },
+    {
+      "candidate_id": "FINAL_medium_reversal_48_0.045",
+      "family": "medium_reversal",
+      "holding_bars": 24,
+      "lookback": 48,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.045
+    },
+    {
+      "candidate_id": "FINAL_medium_reversal_96_0.07",
+      "family": "medium_reversal",
+      "holding_bars": 32,
+      "lookback": 96,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.07
+    },
+    {
+      "candidate_id": "FINAL_cross_sectional_momentum_48_0.2",
+      "family": "cross_sectional_momentum",
+      "holding_bars": 16,
+      "lookback": 48,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.2
+    },
+    {
+      "candidate_id": "FINAL_cross_sectional_momentum_96_0.25",
+      "family": "cross_sectional_momentum",
+      "holding_bars": 24,
+      "lookback": 96,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.25
+    },
+    {
+      "candidate_id": "FINAL_cross_sectional_reversal_16_0.2",
+      "family": "cross_sectional_reversal",
+      "holding_bars": 12,
+      "lookback": 16,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.2
+    },
+    {
+      "candidate_id": "FINAL_cross_sectional_reversal_48_0.25",
+      "family": "cross_sectional_reversal",
+      "holding_bars": 16,
+      "lookback": 48,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.25
+    },
+    {
+      "candidate_id": "FINAL_btc_residual_48_0.012",
+      "family": "btc_residual",
+      "holding_bars": 16,
+      "lookback": 48,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.012
+    },
+    {
+      "candidate_id": "FINAL_btc_residual_96_0.02",
+      "family": "btc_residual",
+      "holding_bars": 24,
+      "lookback": 96,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.02
+    },
+    {
+      "candidate_id": "FINAL_btc_eth_residual_48_0.012",
+      "family": "btc_eth_residual",
+      "holding_bars": 16,
+      "lookback": 48,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.012
+    },
+    {
+      "candidate_id": "FINAL_btc_eth_residual_96_0.02",
+      "family": "btc_eth_residual",
+      "holding_bars": 24,
+      "lookback": 96,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.02
+    },
+    {
+      "candidate_id": "FINAL_volatility_expansion_32_1.5",
+      "family": "volatility_expansion",
+      "holding_bars": 16,
+      "lookback": 32,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 1.5
+    },
+    {
+      "candidate_id": "FINAL_volatility_expansion_64_2",
+      "family": "volatility_expansion",
+      "holding_bars": 24,
+      "lookback": 64,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 2.0
+    },
+    {
+      "candidate_id": "FINAL_volume_reversal_32_2",
+      "family": "volume_reversal",
+      "holding_bars": 8,
+      "lookback": 32,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 2.0
+    },
+    {
+      "candidate_id": "FINAL_volume_reversal_64_3",
+      "family": "volume_reversal",
+      "holding_bars": 12,
+      "lookback": 64,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 3.0
+    },
+    {
+      "candidate_id": "FINAL_btc_lead_lag_4_0.006",
+      "family": "btc_lead_lag",
+      "holding_bars": 8,
+      "lookback": 4,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.006
+    },
+    {
+      "candidate_id": "FINAL_btc_lead_lag_8_0.01",
+      "family": "btc_lead_lag",
+      "holding_bars": 12,
+      "lookback": 8,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.01
+    },
+    {
+      "candidate_id": "FINAL_funding_crowding_48_0.0002",
+      "family": "funding_crowding",
+      "holding_bars": 16,
+      "lookback": 48,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.0002
+    },
+    {
+      "candidate_id": "FINAL_funding_crowding_96_0.0004",
+      "family": "funding_crowding",
+      "holding_bars": 24,
+      "lookback": 96,
+      "stop_pct": 0.025,
+      "target_r": 1.5,
+      "threshold": 0.0004
+    },
+    {
+      "alpha": 10.0,
+      "family": "ridge_ohlcv",
+      "horizon_bars": 4
+    },
+    {
+      "alpha": 1000.0,
+      "family": "ridge_ohlcv",
+      "horizon_bars": 4
+    }
+  ],
+  "planned_evaluations": {
+    "forward": 56,
+    "inner_selection": 112,
+    "neighbor_forward": 56,
+    "stress": 112
+  },
+  "promotion_gates": {
+    "bootstrap_lower_above": 0,
+    "holm_pvalue_max": 0.05,
+    "max_drawdown_pct": 10,
+    "max_symbol_absolute_share": 0.35,
+    "minimum_forward_trades": 200,
+    "neighbor_majority_positive": true,
+    "positive_folds": 3,
+    "wide_and_severe_net_positive": true
+  },
+  "schema_version": 1,
+  "search_correction": "7-day block bootstrap and Holm over all 14 family forward paths; all 28 configurations disclosed",
+  "search_id": "TRADEV2_FINAL_ALPHA_002",
+  "seed": 20260923,
+  "selection_metric": "inner-forward mean net R; minimum 30 trades; tie by candidate ID",
+  "software": {
+    "files": {
+      "src/tradev2/alpha/candidates.py": "44b8dbf91242f59c513daba595b476b39ff8ac176bc2613137561e5ae177979b",
+      "src/tradev2/alpha/completion.py": "4f98045b16cef22c08cd66220ef29b20ec380af9ef77d99c544d62769fdd9cea",
+      "src/tradev2/alpha/factors.py": "039882906878144e76d771d7b12c084b0a74c2420b8a896515c8c13daede19de",
+      "src/tradev2/alpha/ml.py": "2cb09e1d75f1eed1003c7e47af6c815d3181561dbc052d71d7bbd68dcb7ebb2e",
+      "src/tradev2/research/costs.py": "825cd7fb6444762dc153dfe87a8a9851ae1b5b21b5ff85bc0cded1bdd6b6af3c",
+      "src/tradev2/research/datasets.py": "8805f7f61257d2fc1cd391ed34a9aea9a409454c50d7d778ba681ad2d16c5948",
+      "src/tradev2/research/replay.py": "27a3e9a04a19393ddc28724d2bb8803167d628b491c5b136ba4713328b235298",
+      "src/tradev2/research/statistics.py": "d792df016c24c7728e206bf54bb8deaf91bd836a298f504bf293cae6cf40165f"
+    },
+    "git_sha": "36a5d367706c5329948c1a85aad8c8986cbaff89",
+    "research_code_sha256": "93b66358db5aeaf002e6a24b8a713c2fe47b8fd87c81d95c38070fc86470f673"
+  },
+  "validation_design": {
+    "folds": [
+      {
+        "discovery_start": 7,
+        "discovery_start_ms": 1770768000000,
+        "discovery_stop": 6631,
+        "fold": 1,
+        "forward_start": 8551,
+        "forward_start_ms": 1778457600000,
+        "forward_stop": 11431,
+        "forward_stop_ms": 1781049600000,
+        "selection_start": 6631,
+        "selection_start_ms": 1776729600000,
+        "selection_stop": 8551
+      },
+      {
+        "discovery_start": 7,
+        "discovery_start_ms": 1770768000000,
+        "discovery_stop": 9511,
+        "fold": 2,
+        "forward_start": 11431,
+        "forward_start_ms": 1781049600000,
+        "forward_stop": 14311,
+        "forward_stop_ms": 1783641600000,
+        "selection_start": 9511,
+        "selection_start_ms": 1779321600000,
+        "selection_stop": 11431
+      },
+      {
+        "discovery_start": 7,
+        "discovery_start_ms": 1770768000000,
+        "discovery_stop": 12391,
+        "fold": 3,
+        "forward_start": 14311,
+        "forward_start_ms": 1783641600000,
+        "forward_stop": 17191,
+        "forward_stop_ms": 1786233600000,
+        "selection_start": 12391,
+        "selection_start_ms": 1781913600000,
+        "selection_stop": 14311
+      },
+      {
+        "discovery_start": 7,
+        "discovery_start_ms": 1770768000000,
+        "discovery_stop": 15271,
+        "fold": 4,
+        "forward_start": 17191,
+        "forward_start_ms": 1786233600000,
+        "forward_stop": 20071,
+        "forward_stop_ms": 1788825600000,
+        "selection_start": 15271,
+        "selection_start_ms": 1784505600000,
+        "selection_stop": 17191
+      }
+    ],
+    "method": "nested expanding discovery / 20-day inner selection / next 30-day outer forward; positions flat at boundaries",
+    "purge_bars_for_ml": 4
+  }
+}

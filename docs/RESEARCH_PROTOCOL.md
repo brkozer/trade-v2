@@ -35,3 +35,11 @@ Reproduction requires the hashed public inputs, frozen code and environment.
 Run tests first, commit the preregistration, then execute the one-shot campaign.
 Create a new search identity for any successor or correction; preserve the
 original result and clearly disclose the relationship between searches.
+
+The final search follows this rule: attempt 002 failed while writing a checkpoint
+after 24 negative evaluations and remains consumed. Attempt 003 froze the same
+grid, data, costs and gates with a scalar-serialization correction and disclosed
+the prior work. Its 14 family paths were rejected. Its forward windows are
+chronological but are **not** an untouched final holdout because the source history
+was already used for research. The prospective recorder supplies the next source
+of fresh evidence, subject to a new preregistration and enough observation time.

@@ -59,8 +59,23 @@ def test_corrupt_evidence_fails_closed(tmp_path: Path) -> None:
 
 def test_read_routes(tmp_path: Path) -> None:
     client = TestClient(create_app(tmp_path))
-    for route in ("runtime", "account", "positions", "orders", "trades", "symbols",
+    for route in ("runtime", "account", "positions", "orders", "fills", "trades", "symbols",
                   "opportunities", "decisions", "rejections", "experiments", "searches",
                   "candidates", "performance", "evidence-health", "system-health", "run-manifests"):
         assert client.get("/api/v1/" + route).status_code == 200
     assert client.get("/api/v1/not-a-route").status_code == 404
+
+
+def test_completed_research_and_paired_stress_are_read_only() -> None:
+    root = Path(__file__).resolve().parents[2]
+    client = TestClient(create_app(root))
+    body = client.get("/api/v1/workstation").json()
+    assert body["campaign"]["search_id"] == "TRADEV2_FINAL_ALPHA_003"
+    assert len(body["campaign"]["families"]) == 14
+    assert len(body["searches"]) == 2
+    assert len(body["experiments"]) == 112
+    assert all(row["ci"] is None and row["status"] == "DESCRIPTIVE_ONLY"
+               for row in body["experiments"])
+    assert len(client.get("/api/v1/candidates").json()["data"]) == 14
+    assert len(client.get("/api/v1/experiments").json()["data"]) == 112
+    assert client.post("/api/v1/experiments", json={}).status_code == 405

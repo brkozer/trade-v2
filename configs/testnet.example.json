@@ -1,0 +1,14 @@
+{
+  "mode": "testnet",
+  "venue": "bybit_linear",
+  "profile": "dedicated-testnet-example",
+  "symbols": ["BTCUSDT", "ETHUSDT"],
+  "initial_equity": "1000",
+  "risk_fraction": "0.005",
+  "max_open_risk_fraction": "0.02",
+  "max_spread_bps": "15",
+  "source_max_age_ms": 15000,
+  "heartbeat_max_age_ms": 30000,
+  "candidate_id": "REFERENCE_CANDIDATE_001",
+  "testnet_authorized": false
+}

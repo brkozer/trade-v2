@@ -97,7 +97,9 @@ class SimulationRuntime:
                  rules: InstrumentRules, now_ms: int) -> None:
         self.broker.observe(book, now_ms)
         if book.bids:
-            self.marks[book.symbol] = book.bids[0][0]
+            position_item = self.broker.positions.get(book.symbol)
+            self.marks[book.symbol] = (book.asks[0][0] if position_item is not None
+                                       and position_item.position.side == "Sell" else book.bids[0][0])
         try:
             window = confirmed_window(candles, now_ms)
         except ValueError as exc:
@@ -165,7 +167,7 @@ class SimulationRuntime:
         account = self.broker.account(self.marks)
         equity = Decimal(account["equity"]) if account["equity"] is not None else None
         notional = sum((p.position.quantity*p.position.entry_price for p in self.broker.positions.values()), Decimal(0))
-        pending_risk = sum(((o.intent.quantity-o.filled)*(o.intent.reference_price-o.intent.stop_price)
+        pending_risk = sum(((o.intent.quantity-o.filled)*abs(o.intent.reference_price-o.intent.stop_price)
                             for o in self.broker.orders.values() if o.unresolved), Decimal(0))
         pending_notional = sum(((o.intent.quantity-o.filled)*o.intent.reference_price
                                 for o in self.broker.orders.values() if o.unresolved), Decimal(0))

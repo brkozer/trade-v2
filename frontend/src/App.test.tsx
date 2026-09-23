@@ -96,4 +96,44 @@ describe("truthful workstation", () => {
     expect(screen.getByText("rsi_reversion")).toBeTruthy();
     expect(screen.queryByText("volume_shock")).toBeNull();
   });
+  it("shows final forward evidence, paired stress and unknown attribution honestly", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...fixture,
+        searches: [{ search_id: "INITIAL" }, { search_id: "FINAL" }],
+        campaign: {
+          search_id: "FINAL",
+          final_holdout_state: "NO_UNTOUCHED_HISTORICAL_HOLDOUT",
+          search_budget: { configurations: 28, selection_evaluations: 112, total_replays: 336 },
+          promoted_candidates: [],
+          families: [{ family: "ridge_ohlcv", mechanism: "Linear net-cost hurdle",
+            status: "REJECTED", discovery: { eligible_trials: 3 },
+            forward: { mean_net_r: -0.0487, trades: 454, total_net_pnl: -566.59 },
+            folds: [{ forward: { total_net_pnl: -1 } }],
+            stress_total_net_pnl: { wide_costs: -700, severe_plausible: -900 },
+            parameter_stability: { neighbor_positive_folds: 0 }, adjusted_pvalue: 1 }],
+        },
+        experiments: [{ hypothesis: "ridge_ohlcv", checkpoint: 1,
+          treatment: "wide_costs", n: 12, mean_paired_delta: -2,
+          ci: null, status: "DESCRIPTIVE_ONLY" }],
+        symbols: [{ symbol: "BTCUSDT", signals: 0, opportunities: 0, entries: 0,
+          closed_trades: 0, net_usdt: null, net_r: null, spread_bps: null,
+          source_age_ms: null, rejections: 0 }],
+        performance: { net_usdt: null, net_r: null },
+      }),
+    } as Response);
+    render(<App />);
+    await screen.findByText("No positions recorded for this run.");
+    fireEvent.click(screen.getByRole("button", { name: "Alpha Lab" }));
+    expect(screen.getByText("ridge_ohlcv")).toBeTruthy();
+    expect(screen.getByText(/454 trades/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Experiments" }));
+    expect(screen.getByText("Paired execution-cost stress")).toBeTruthy();
+    expect(screen.getByText("DESCRIPTIVE_ONLY")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Symbols" }));
+    expect(screen.getByRole("rowheader", { name: "BTCUSDT" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Performance" }));
+    expect(screen.getByText(/Unrecorded strategy/)).toBeTruthy();
+  });
 });

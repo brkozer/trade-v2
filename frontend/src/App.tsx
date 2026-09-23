@@ -28,6 +28,10 @@ export type Snapshot = {
   events: Record<string, Event[]>;
   manifests: RecordData[];
   campaign: RecordData | null;
+  searches?: RecordData[];
+  experiments?: RecordData[];
+  symbols?: RecordData[];
+  performance?: RecordData;
   evidence: { integrity: string; errors: string[]; journals: number };
   system: RecordData;
 };
@@ -160,7 +164,7 @@ function Ledger({ title, events }: { title: string; events: Event[] }) {
     </section>
   );
 }
-function Campaign({ campaign }: { campaign: RecordData | null }) {
+function Campaign({ campaign, searches }: { campaign: RecordData | null; searches: RecordData[] }) {
   const [filter, setFilter] = useState("");
   const families = (
     Array.isArray(campaign?.families) ? campaign.families : []
@@ -184,12 +188,14 @@ function Campaign({ campaign }: { campaign: RecordData | null }) {
       </div>
       <Metrics
         values={[
+          ["Completed searches", searches.length],
           ["Search", campaign?.search_id],
           [
             "Configurations tested",
             (campaign?.search_budget as RecordData | undefined)?.configurations,
           ],
           ["Total replays", (campaign?.search_budget as RecordData | undefined)?.total_replays],
+          ["Inner trials", (campaign?.search_budget as RecordData | undefined)?.selection_evaluations],
           ["Final holdout", campaign?.final_holdout_state],
           [
             "Next-stage queue",
@@ -241,18 +247,23 @@ function Campaign({ campaign }: { campaign: RecordData | null }) {
                       <small>{display(f.mechanism)}</small>
                     </td>
                     <td>
-                      <strong>{formatted((f.discovery as RecordData | undefined)?.mean_net_r, 3)} R</strong>
+                      <strong>{(f.discovery as RecordData | undefined)?.mean_net_r == null
+                        ? `${display((f.discovery as RecordData | undefined)?.eligible_trials)} eligible inner trials`
+                        : `${formatted((f.discovery as RecordData).mean_net_r, 3)} R`}</strong>
                       <Details value={f.discovery} />
                     </td>
                     <td>
-                      <strong>{formatted((f.oos as RecordData | undefined)?.mean_net_r, 3)} R</strong>
-                      <small>{display((f.oos as RecordData | undefined)?.trades)} trades · {formatted((f.oos as RecordData | undefined)?.total_net_pnl, 2)} USDT net</small>
-                      <Details value={f.oos} />
+                      <strong>{formatted(((f.forward ?? f.oos) as RecordData | undefined)?.mean_net_r, 3)} R</strong>
+                      <small>{display(((f.forward ?? f.oos) as RecordData | undefined)?.trades)} trades · {formatted(((f.forward ?? f.oos) as RecordData | undefined)?.total_net_pnl, 2)} USDT net</small>
+                      <Details value={f.forward ?? f.oos} />
                     </td>
                     <td>
-                      {display(f.positive_folds)} positive folds
+                      {display(f.positive_folds ?? (Array.isArray(f.folds) ?
+                        f.folds.filter((fold: RecordData) => Number(((fold.forward ?? fold.validation) as RecordData | undefined)?.total_net_pnl) > 0).length : null))} positive folds
                       <small>Adjusted p: {display(f.adjusted_pvalue)}</small>
-                      <small>Worse costs: {formatted((f.stress as RecordData | undefined)?.wide_costs, 2)} USDT</small>
+                      <small>Wide costs: {formatted(((f.stress_total_net_pnl ?? f.stress) as RecordData | undefined)?.wide_costs, 2)} USDT</small>
+                      <small>Severe: {formatted((f.stress_total_net_pnl as RecordData | undefined)?.severe_plausible, 2)} USDT</small>
+                      <small>Neighbor: {display((f.parameter_stability as RecordData | undefined)?.neighbor_positive_folds)} positive folds</small>
                     </td>
                     <td>
                       <Badge value={f.status} />
@@ -280,6 +291,8 @@ function Campaign({ campaign }: { campaign: RecordData | null }) {
             validation: campaign?.validation_design ?? null,
             costs: campaign?.cost_assumptions ?? null,
             search_budget: campaign?.search_budget ?? null,
+            concentration: "Per-family details preserve symbol/day/regime shares",
+            beta_attribution: "Per-family details preserve descriptive BTC/ETH slopes",
             prospective_status: "NO_ACCEPTED_PROSPECTIVE_EVIDENCE",
           }}
         />
@@ -308,6 +321,8 @@ function Performance({ data }: { data: Snapshot }) {
           ["Unrealized PnL", data.account?.unrealized_pnl],
           ["Known fees", data.account?.fees ?? data.account?.known_fees],
           ["Funding", data.account?.funding],
+          ["Closed-trade net · window", data.performance?.net_usdt],
+          ["Closed-trade net R · window", data.performance?.net_r],
         ]}
       />
       <section className="panel">
@@ -351,12 +366,9 @@ function Performance({ data }: { data: Snapshot }) {
       </section>
       <section className="panel">
         <h2>Attribution coverage</h2>
-        <p>
-          Daily, symbol, candidate, R distribution, regime and execution-cost
-          attribution require complete closed-trade evidence. No attribution is
-          inferred from incomplete records.
-        </p>
-        <Badge value="UNKNOWN" />
+        <p>Observed closed-trade window only. Unrecorded strategy, regime, R and
+          execution-cost components remain Unknown.</p>
+        <Details value={data.performance ?? null} />
       </section>
       <Ledger title="Closed trade evidence" events={data.events.trade ?? []} />
     </>
@@ -580,7 +592,7 @@ export function App() {
                 </>
               ) : null}
               {page === "Alpha Lab" ? (
-                <Campaign campaign={data.campaign} />
+                <Campaign campaign={data.campaign} searches={data.searches ?? []} />
               ) : null}
               {page === "Symbols" ? (
                 <>
@@ -598,6 +610,28 @@ export function App() {
                       fee tier and spread remain unknown unless included in the
                       source record.
                     </p>
+                  </section>
+                  <section className="panel">
+                    <h2>Per-symbol evidence · latest window</h2>
+                    {(data.symbols ?? []).length ? (
+                      <div className="table-scroll">
+                        <table>
+                          <caption className="sr-only">Per-symbol simulated evidence</caption>
+                          <thead><tr>{["Symbol", "Signals", "Opportunities", "Entries", "Closed trades", "Net USDT", "Net R", "Spread bps", "Freshness ms", "Rejections"].map((name) =>
+                            <th scope="col" key={name}>{name}</th>)}</tr></thead>
+                          <tbody>{(data.symbols ?? []).filter((row) =>
+                            display(row.symbol).toLowerCase().includes(filter.toLowerCase())).map((row) =>
+                            <tr key={String(row.symbol)}>
+                              <th scope="row">{display(row.symbol)}</th>
+                              <td>{display(row.signals)}</td><td>{display(row.opportunities)}</td>
+                              <td>{display(row.entries)}</td><td>{display(row.closed_trades)}</td>
+                              <td>{display(row.net_usdt)}</td><td>{display(row.net_r)}</td>
+                              <td>{display(row.spread_bps)}</td><td>{display(row.source_age_ms)}</td>
+                              <td>{display(row.rejections)}</td>
+                            </tr>)}</tbody>
+                        </table>
+                      </div>
+                    ) : <p className="empty">No per-symbol evidence available.</p>}
                   </section>
                   <Ledger
                     title="Market observations"
@@ -622,18 +656,36 @@ export function App() {
                   <Metrics
                     values={[
                       ["Search ID", data.campaign?.search_id],
+                      ["Completed searches", data.searches?.length],
+                      ["Paired stress records", data.experiments?.length],
                       ["Complete", data.campaign?.complete],
                       ["Holdout state", data.campaign?.final_holdout_state],
                     ]}
                   />
                   <section className="panel">
-                    <h2>Campaign design</h2>
-                    <Details value={data.campaign} />
-                    <p>
-                      Paired treatment effects are unknown unless explicitly
-                      recorded. Candidate comparisons are not paired
-                      experiments.
-                    </p>
+                    <h2>Search history and campaign design</h2>
+                    <Details value={{ searches: data.searches ?? [],
+                      validation: data.campaign?.validation_design,
+                      costs: data.campaign?.cost_assumptions }} />
+                    <p>All research periods reuse historical data. No experiment here is fresh final holdout evidence.</p>
+                  </section>
+                  <section className="panel">
+                    <h2>Paired execution-cost stress</h2>
+                    {(data.experiments ?? []).length ? (
+                      <div className="table-scroll"><table>
+                        <caption className="sr-only">Common-opportunity paired stress comparisons</caption>
+                        <thead><tr>{["Family", "Fold", "Treatment", "Common n", "Mean paired Δ · USDT", "CI", "Status"].map((name) =>
+                          <th scope="col" key={name}>{name}</th>)}</tr></thead>
+                        <tbody>{(data.experiments ?? []).map((row, index) =>
+                          <tr key={`${row.hypothesis}-${row.checkpoint}-${row.treatment}-${index}`}>
+                            <th scope="row">{display(row.hypothesis)}</th><td>{display(row.checkpoint)}</td>
+                            <td>{display(row.treatment)}</td><td>{display(row.n)}</td>
+                            <td>{formatted(row.mean_paired_delta, 3)}</td><td>{display(row.ci)}</td>
+                            <td><Badge value={row.status} /></td>
+                          </tr>)}</tbody>
+                      </table></div>
+                    ) : <p className="empty">No paired execution-cost evidence recorded.</p>}
+                    <p>Opportunity-intent pairing is descriptive; portfolio refilling was replayed separately. CI is Unknown.</p>
                   </section>
                   <section className="panel">
                     <h2>Run manifests</h2>
@@ -661,6 +713,8 @@ export function App() {
                       ["Safety", runtime?.safety],
                       ["Reconciliation", data.system.reconciliation],
                       ["Protection", data.system.protection],
+                      ["Testnet", data.system.testnet],
+                      ["Public recorder", (data.system.public_recorder as RecordData | undefined)?.status],
                       ["Live barrier", data.system.live],
                     ]}
                   />
@@ -675,7 +729,8 @@ export function App() {
                   </section>
                   <section className="panel">
                     <h2>Runtime provenance</h2>
-                    <Details value={{ runtime, manifests: data.manifests }} />
+                    <Details value={{ runtime, manifests: data.manifests,
+                      public_recorder: data.system.public_recorder }} />
                   </section>
                 </>
               ) : null}

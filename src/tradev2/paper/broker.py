@@ -44,8 +44,11 @@ class PaperBroker:
         self.last_book_ms: dict[str, int] = {}
 
     def submit(self, intent: OrderIntent, rules: InstrumentRules) -> str:
-        if intent.reduce_only or intent.side != "Buy":
-            raise ValueError("reference broker entries are long-only; exit uses owned position")
+        if intent.reduce_only:
+            raise ValueError("entry intent cannot be reduce-only; exit uses owned position")
+        if ((intent.side == "Buy" and intent.stop_price >= intent.reference_price)
+                or (intent.side == "Sell" and intent.stop_price <= intent.reference_price)):
+            raise ValueError("protective stop must oppose entry direction")
         if intent.symbol in self.positions or any(
             o.intent.symbol == intent.symbol and o.unresolved for o in self.orders.values()
         ):
@@ -87,7 +90,10 @@ class PaperBroker:
             if intent.symbol != book.symbol or not order.unresolved:
                 continue
             existing_position = self.positions.get(book.symbol)
-            if existing_position is not None and book.bids[0][0] <= existing_position.stop:
+            if existing_position is not None and (
+                (existing_position.position.side == "Buy" and book.bids[0][0] <= existing_position.stop)
+                or (existing_position.position.side == "Sell" and book.asks[0][0] >= existing_position.stop)
+            ):
                 # An adverse quote makes further simulated entry unsafe. The real venue
                 # may still report a late fill; this simulator does not claim certainty.
                 order.request_cancel()
@@ -100,17 +106,20 @@ class PaperBroker:
                 self._order_event(order)
                 continue
             # Strict later availability and through-price avoid guaranteed maker touches.
-            if event_ms <= intent.available_ms or book.asks[0][0] >= intent.reference_price:
+            through = (book.asks[0][0] < intent.reference_price if intent.side == "Buy"
+                       else book.bids[0][0] > intent.reference_price)
+            if event_ms <= intent.available_ms or not through:
                 continue
             rules = self.rules[book.symbol]
-            capacity = (book.asks[0][1] * Decimal("0.25") / rules.qty_step).to_integral_value(
+            opposite_depth = book.asks[0][1] if intent.side == "Buy" else book.bids[0][1]
+            capacity = (opposite_depth * Decimal("0.25") / rules.qty_step).to_integral_value(
                 rounding=ROUND_DOWN) * rules.qty_step
             quantity = min(intent.quantity - order.filled, capacity)
             if quantity <= 0:
                 continue
             fee = quantity * intent.reference_price * self.maker_fee
             fill = Fill(execution_id=f"{intent.client_id}-{event_ms}-{order.filled}",
-                        client_id=intent.client_id, symbol=book.symbol, side="Buy",
+                        client_id=intent.client_id, symbol=book.symbol, side=intent.side,
                         quantity=quantity, price=intent.reference_price, fee=fee,
                         source="simulated_quote_through", source_ms=event_ms)
             if not order.record_fill(fill):
@@ -120,7 +129,7 @@ class PaperBroker:
             existing = self.positions.get(book.symbol)
             total = quantity + (existing.position.quantity if existing else Decimal(0))
             position = Position(position_id=intent.client_id, owner_id=intent.owner_id,
-                                symbol=book.symbol, side="Buy", quantity=total,
+                                symbol=book.symbol, side=intent.side, quantity=total,
                                 entry_price=intent.reference_price, protected_quantity=total)
             target = intent.reference_price + (
                 intent.reference_price - intent.stop_price) * Decimal(str(REFERENCE_PARAMS.target_r))
@@ -133,10 +142,12 @@ class PaperBroker:
             self._position_event(self.positions[book.symbol])
         current = self.positions.get(book.symbol)
         if current is not None:
-            bid = book.bids[0][0]
-            if bid <= current.stop:
+            mark = book.bids[0][0] if current.position.side == "Buy" else book.asks[0][0]
+            stop_hit = mark <= current.stop if current.position.side == "Buy" else mark >= current.stop
+            target_hit = mark >= current.target if current.position.side == "Buy" else mark <= current.target
+            if stop_hit:
                 self.exit(book, now_ms, "STOP")
-            elif bid >= current.target:
+            elif target_hit:
                 self.exit(book, now_ms, "TARGET")
 
     def _position_event(self, item: SimPosition) -> None:
@@ -154,7 +165,8 @@ class PaperBroker:
         if now_ms - book.exchange_event_ms > 15000:
             return
         rules = self.rules[book.symbol]
-        capacity = (book.bids[0][1] * Decimal("0.25") / rules.qty_step).to_integral_value(
+        opposite_depth = book.bids[0][1] if item.position.side == "Buy" else book.asks[0][1]
+        capacity = (opposite_depth * Decimal("0.25") / rules.qty_step).to_integral_value(
             rounding=ROUND_DOWN) * rules.qty_step
         quantity = min(item.position.quantity, capacity)
         if quantity <= 0:
@@ -165,8 +177,10 @@ class PaperBroker:
         order = self.orders[item.position.position_id]
         order.request_cancel()
         order.confirm_cancel(order.filled)
-        price = book.bids[0][0] * Decimal("0.9998")  # explicit 2bps adverse exit slippage
-        gross = quantity * (price - item.position.entry_price)
+        direction = Decimal(1) if item.position.side == "Buy" else Decimal(-1)
+        mark = book.bids[0][0] if direction == 1 else book.asks[0][0]
+        price = mark * (Decimal(1) - direction * Decimal("0.0002"))  # 2bps adverse exit
+        gross = direction * quantity * (price - item.position.entry_price)
         exit_fee = quantity * price * self.taker_fee
         fraction = quantity / item.position.quantity
         entry_fee = item.entry_fee * fraction
@@ -177,7 +191,7 @@ class PaperBroker:
         self.fees += exit_fee
         residual = item.position.quantity - quantity
         self.events.append(("trade", {"position_id": item.position.position_id,
-            "symbol": book.symbol, "side": "Buy", "quantity": str(quantity),
+            "symbol": book.symbol, "side": item.position.side, "quantity": str(quantity),
             "entry_price": str(item.position.entry_price), "exit_price": str(price),
             "gross_pnl": str(gross), "fees": str(entry_fee + exit_fee),
             "funding": str(funding), "net_pnl": str(net), "reason": reason,
@@ -205,7 +219,8 @@ class PaperBroker:
         if item is None or snapshot.funding_ms <= item.opened_ms:
             return
         # Entry notional proxy is disclosed; historical mark-price not available here.
-        amount = -(item.position.quantity * item.position.entry_price * snapshot.rate)
+        direction = Decimal(1) if item.position.side == "Buy" else Decimal(-1)
+        amount = -(direction * item.position.quantity * item.position.entry_price * snapshot.rate)
         item.funding += amount
         self.cash += amount
         self.funding += amount
@@ -216,13 +231,14 @@ class PaperBroker:
     def account(self, marks: dict[str, Decimal]) -> dict[str, Any]:
         complete = all(symbol in marks for symbol in self.positions)
         unrealized = sum(((marks[symbol] - item.position.entry_price) * item.position.quantity
-                          for symbol, item in self.positions.items() if symbol in marks), Decimal(0))
+                           * (Decimal(1) if item.position.side == "Buy" else Decimal(-1))
+                           for symbol, item in self.positions.items() if symbol in marks), Decimal(0))
         return {"equity": str(self.cash + unrealized) if complete else None,
                 "start_equity": str(self.initial_equity), "cash": str(self.cash),
                 "equity_delta": str(self.cash + unrealized - self.initial_equity) if complete else None,
                 "realized_pnl": str(self.realized), "unrealized_pnl": str(unrealized) if complete else None,
                 "known_fees": str(self.fees), "funding": str(self.funding),
-                "open_risk": str(sum(((item.position.entry_price-item.stop)*item.position.quantity
+                "open_risk": str(sum((abs(item.position.entry_price-item.stop)*item.position.quantity
                                       for item in self.positions.values()), Decimal(0))),
                 "net_completeness": "SIMULATED_ESTIMATE", "source": "paper_broker",
                 "simulated": True}
