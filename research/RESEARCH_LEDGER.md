@@ -1,6 +1,6 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 20:22 UTC. This ledger tracks search consumption and the next
+Snapshot: 2026-09-23 20:24 UTC. This ledger tracks search consumption and the next
 evidence gate; sealed per-search artifacts remain authoritative for exact results.
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
@@ -477,6 +477,19 @@ confirmed live at 20:21 UTC under
 `WAITING_FOR_INTERVAL`, zero rounds, a 100 GiB disk floor, 1,344 half-hour
 rounds maximum, and a stop after three consecutive failures. Its next chunk
 is not yet present. This plan does not establish 28 days of data or alpha.
+
+A read-only one-day public OI profile ending at the first chunk's 20:00 UTC
+timestamp returned 100 rows for each of the 20 symbols. The 97 expected
+quarter-hour keys per symbol were all present (zero gaps across 1,940 keys),
+with no duplicate timestamp or invalid quantity among the 2,000 returned
+rows. The stored 19:45/20:00 values matched a later endpoint read for all 20
+symbols. This is a short stability check, not proof that older OI never
+revises. The collector now re-requests each symbol's last immutable point as
+an overlap anchor before writing the next chunk; a revision raises an error
+and preserves the previous chunk rather than silently overwriting history.
+The first chunk predates this overlap check; its saved collector hash and raw
+values remain unchanged. The first supervised extension will be the first
+operational test of the new anchor gate.
 
 ## New hypothesis queue — not a frozen search
 

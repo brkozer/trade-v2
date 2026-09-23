@@ -40,8 +40,9 @@ def _source(root: Path) -> tuple[list[str], str, int]:
 
 
 def _next_timestamp(root: Path, symbols: list[str], source_hash: str,
-                    earliest: int) -> int | None:
+                    earliest: int) -> tuple[int | None, dict[str, list[str | int]] | None]:
     next_ms: int | None = None
+    anchor: dict[str, list[str | int]] | None = None
     for path in sorted((root / "data/public").glob("prospective_oi_*")):
         manifest = json.loads((path / "manifest.json").read_text(encoding="utf-8"))
         first = manifest["first_timestamp_ms"]
@@ -59,8 +60,14 @@ def _next_timestamp(root: Path, symbols: list[str], source_hash: str,
             raise ValueError(f"prospective OI chain inconsistent: {path.name}")
         if hashlib.sha256((path / "oi.json").read_bytes()).hexdigest() != manifest["oi_sha256"]:
             raise ValueError(f"prospective OI hash drift: {path.name}")
+        stored = json.loads((path / "oi.json").read_text(encoding="utf-8"))["symbols"]
+        if set(stored) != set(symbols):
+            raise ValueError(f"prospective OI stored universe mismatch: {path.name}")
+        anchor = {symbol: stored[symbol][-1] for symbol in symbols}
+        if any(int(row[0]) != last for row in anchor.values()):
+            raise ValueError(f"prospective OI stored final timestamp mismatch: {path.name}")
         next_ms = last + BAR_MS
-    return next_ms
+    return next_ms, anchor
 
 
 def _positive_decimal(value: Any, *, field: str) -> str:
@@ -75,7 +82,7 @@ def _positive_decimal(value: Any, *, field: str) -> str:
 
 def collect(root: Path, client: PublicBybit, *, first_timestamp_ms: int | None = None) -> dict[str, Any]:
     symbols, source_hash, earliest = _source(root)
-    next_ms = _next_timestamp(root, symbols, source_hash, earliest)
+    next_ms, anchor = _next_timestamp(root, symbols, source_hash, earliest)
     probe = observe_public_clock(client)
     if probe["status"] != "WALL_CLOCK_STABLE":
         raise ValueError("OI collection clock unstable during server-time request")
@@ -89,14 +96,15 @@ def collect(root: Path, client: PublicBybit, *, first_timestamp_ms: int | None =
             or last < first):
         raise ValueError("OI must start at the next nonoverlapping post-004 timestamp")
     expected = list(range(first, last + BAR_MS, BAR_MS))
-    if len(expected) > MAX_POINTS_PER_REQUEST:
+    required_points = len(expected) + (anchor is not None)
+    if required_points > MAX_POINTS_PER_REQUEST:
         raise ValueError("OI gap exceeds bounded single-page recovery")
     observations: dict[str, list[list[str | int]]] = {}
     latest_response_server_ms = server_ms
     for symbol in symbols:
         body = client.get("/v5/market/open-interest", {
             "category": "linear", "symbol": symbol, "intervalTime": "15min",
-            "endTime": last, "limit": len(expected),
+            "endTime": last, "limit": required_points,
         })
         result = body["result"]
         if result.get("category") != "linear" or result.get("symbol") != symbol:
@@ -106,15 +114,23 @@ def collect(root: Path, client: PublicBybit, *, first_timestamp_ms: int | None =
             raise ValueError(f"OI response time inconsistent: {symbol}")
         latest_response_server_ms = max(latest_response_server_ms, response_server_ms)
         rows: dict[int, list[str | int]] = {}
+        observed_anchor = False
         for raw in result["list"]:
             timestamp = int(raw["timestamp"])
+            if anchor is not None and timestamp == first - BAR_MS:
+                prior = anchor[symbol]
+                if (observed_anchor or Decimal(str(raw["openInterest"])) != Decimal(str(prior[1]))
+                        or Decimal(str(raw["singleOpenInterest"])) != Decimal(str(prior[2]))):
+                    raise ValueError(f"OI historical revision: {symbol} {timestamp}")
+                observed_anchor = True
+                continue
             if timestamp not in expected or timestamp in rows:
                 raise ValueError(f"OI duplicate or unexpected timestamp: {symbol} {timestamp}")
             rows[timestamp] = [timestamp,
                 _positive_decimal(raw["openInterest"], field="total"),
                 _positive_decimal(raw["singleOpenInterest"], field="single-side"),
                 response_server_ms]
-        if set(rows) != set(expected):
+        if set(rows) != set(expected) or (anchor is not None and not observed_anchor):
             raise ValueError(f"OI timestamp gap: {symbol} {len(rows)}/{len(expected)}")
         observations[symbol] = [rows[timestamp] for timestamp in expected]
     target = root / "data/public" / f"prospective_oi_{first}_{last}"

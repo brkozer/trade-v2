@@ -27,7 +27,7 @@ def _root(tmp_path: Path) -> tuple[Path, list[str]]:
 
 def _client(*, server_ms: int, missing: str | None = None,
             invalid: str | None = None, wrong_identity: str | None = None,
-            stale_response: str | None = None) -> MagicMock:
+            stale_response: str | None = None, revised_anchor: str | None = None) -> MagicMock:
     client = MagicMock(spec=PublicBybit)
     client.server_time.return_value = server_ms
 
@@ -42,6 +42,8 @@ def _client(*, server_ms: int, missing: str | None = None,
                  "singleOpenInterest": "10.25"} for t in times]
         if params["symbol"] == invalid:
             rows[0]["openInterest"] = "NaN"
+        if params["symbol"] == revised_anchor:
+            rows[-1]["openInterest"] = "21.0"
         return {"time": server_ms - 1 if params["symbol"] == stale_response else server_ms + 10,
                 "result": {"category": "linear",
                            "symbol": "WRONGUSDT" if params["symbol"] == wrong_identity
@@ -97,3 +99,15 @@ def test_rejects_nonprospective_start(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="post-004"):
         collect(root, _client(server_ms=FIRST + 2 * BAR_MS + 120_000),
                 first_timestamp_ms=FIRST - BAR_MS)
+
+
+def test_rejects_historical_oi_revision_without_mutating_prior_chunk(tmp_path: Path) -> None:
+    root, symbols = _root(tmp_path)
+    collect(root, _client(server_ms=FIRST + 2 * BAR_MS + 120_000))
+    prior = root / "data/public" / f"prospective_oi_{FIRST}_{FIRST + BAR_MS}" / "oi.json"
+    prior_hash = hashlib.sha256(prior.read_bytes()).hexdigest()
+    with pytest.raises(ValueError, match="historical revision"):
+        collect(root, _client(server_ms=FIRST + 4 * BAR_MS + 120_000,
+                              revised_anchor=symbols[-1]))
+    assert hashlib.sha256(prior.read_bytes()).hexdigest() == prior_hash
+    assert len(list((root / "data/public").glob("prospective_oi_*"))) == 1
