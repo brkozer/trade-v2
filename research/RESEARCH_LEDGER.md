@@ -629,6 +629,26 @@ chronological-validation design plus at least 28 forward days, with every
 outcome using a completed execution bar strictly after the later source
 availability bound. Search/trial counts remain unchanged; LIVE is disabled.
 
+### First repaired continuation round accepted — 2026-09-23 22:54 UTC
+
+The repaired candle supervisor's first closed round succeeded with zero
+failures. Its new chunk extends the immutable chain through 22:30 UTC; the
+concurrent closed OI extension reaches the same timestamp. Full-chain read-back
+now verifies 26 candle chunks/1,020 symbol-bars and six OI chunks/240
+symbol-points, with exact continuity, universe and source identity, matching
+hashes, valid Decimal quantities and OHLCV geometry, stable clock probes and
+conservative availability bounds. Twelve OI timestamps match accepted candles;
+nine also have a completed first-eligible execution bar. This validates the
+repair and data path, not any predictive or economic result.
+
+**WAITING_FOR_DATA remains unchanged:** the OI chain still covers only one
+calendar day. The latest 22:00, 22:15 and 22:30 UTC feature timestamps require
+the unaccepted 23:00 UTC execution bar and remain unscored. Do not start a new
+search until the registered training and chronological-validation design plus
+at least 28 forward days are present as closed, independently accepted,
+gap-free evidence with strictly later completed execution bars. Search/trial
+counts remain unchanged; LIVE is disabled.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
