@@ -1,0 +1,2433 @@
+{
+  "complete": true,
+  "configurations": [
+    {
+      "aggregate_base": {
+        "day_concentration": 0.03171681533856583,
+        "days": 120,
+        "fees": 162.5716088062316,
+        "funding": -5.4479080396998985,
+        "gross_pnl": -187.68901194926104,
+        "max_drawdown_pct": 4.976136383884549,
+        "mean_gross_r": -0.016589290119217,
+        "mean_net_r": -0.03540061859539469,
+        "regime_net_pnl": {
+          "down": 14.164410517916512,
+          "sideways": -355.7926475543291,
+          "up": -62.92714417322293
+        },
+        "slippage": 23.104209630075776,
+        "spread": 36.638458863766964,
+        "symbol_concentration": 0.3715306236071519,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -9.877930904779681,
+          "DASHUSDT": 3.546032744158328,
+          "FARTCOINUSDT": -95.9165001895048,
+          "FFUSDT": 23.43387767755438,
+          "HEMIUSDT": -53.73948367456479,
+          "HYPEUSDT": 81.88216264067894,
+          "LDOUSDT": -4.4872878014244,
+          "LITUSDT": 33.749083906811,
+          "PENGUUSDT": 14.165568359688,
+          "PUMPFUNUSDT": -45.37602495382294,
+          "SKRUSDT": -2.5106370552168666,
+          "UNIUSDT": -10.12699017198125,
+          "USELESSUSDT": -324.4768078010943,
+          "VIRTUALUSDT": 27.79548847516007,
+          "VVVUSDT": -47.58080127238399,
+          "WLDUSDT": -20.024994278390146,
+          "WLFIUSDT": -24.835956094481165,
+          "XMRUSDT": 22.589273564824637,
+          "XPLUSDT": 27.236545619133548
+        },
+        "symbols_traded": 19,
+        "tail_loss_r": -1.02404368,
+        "total_net_pnl": -404.55538120963547,
+        "trades": 464
+      },
+      "bootstrap": {
+        "blocks": 17,
+        "draws": 2000,
+        "lower_95": -8.372979130888998,
+        "mean": -3.3712948434136294,
+        "positive_pvalue": 0.9065467266366817,
+        "upper_95": 1.1334750726914415
+      },
+      "cost_total_net_pnl": {
+        "base_taker": -404.55538120963547,
+        "severe_plausible": -192.4109984625435,
+        "wide_costs": -561.9289864408256
+      },
+      "folds": [
+        {
+          "arms": {
+            "base_taker": {
+              "day_concentration": 0.1145937284603415,
+              "days": 30,
+              "fees": 44.6441857361803,
+              "funding": -0.5321296002133845,
+              "gross_pnl": 109.85485200171428,
+              "max_drawdown_pct": 1.8880706613685896,
+              "mean_gross_r": 0.038179769116289626,
+              "mean_net_r": 0.017963385624258085,
+              "regime_net_pnl": {
+                "down": 84.58934172766944,
+                "sideways": -17.471827480270647,
+                "up": -16.142298477346056
+              },
+              "rejections": {},
+              "slippage": 5.806415425755872,
+              "spread": 8.961164669938771,
+              "symbol_concentration": 0.2526203689063941,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -6.924853838947779,
+                "FARTCOINUSDT": 84.79324608566418,
+                "FFUSDT": -25.300447683978597,
+                "HEMIUSDT": -33.81713935791394,
+                "HYPEUSDT": 53.48788114755419,
+                "USELESSUSDT": -23.47609763283585,
+                "VIRTUALUSDT": 27.79548847516007,
+                "VVVUSDT": -2.3524061972698904,
+                "WLFIUSDT": -20.690595476759785,
+                "XMRUSDT": -29.778265157519716,
+                "XPLUSDT": 27.238405406899858
+              },
+              "symbols_traded": 11,
+              "tail_loss_r": -1.024647525,
+              "total_net_pnl": 50.975215770052735,
+              "trades": 116,
+              "turnover": 58064.127478578455
+            },
+            "severe_plausible": {
+              "day_concentration": 0.11586221427588755,
+              "days": 30,
+              "fees": 28.481990951851156,
+              "funding": -0.4326272389220336,
+              "gross_pnl": 62.060032885366,
+              "max_drawdown_pct": 0.7773160475254606,
+              "mean_gross_r": 0.06661192899151905,
+              "mean_net_r": 0.01751878495380304,
+              "regime_net_pnl": {
+                "down": 23.747547325482373,
+                "sideways": 12.255255085157527,
+                "up": -19.945490311185132
+              },
+              "rejections": {
+                "ASSUMED_MISSED_FILL": 41
+              },
+              "slippage": 9.335848134960184,
+              "spread": 8.61750893802192,
+              "symbol_concentration": 0.3193819567643686,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -1.543305716135569,
+                "FARTCOINUSDT": 45.158921052307676,
+                "FFUSDT": -4.663462803023016,
+                "HEMIUSDT": -19.410163776003202,
+                "HYPEUSDT": 23.306506969291185,
+                "USELESSUSDT": 4.172998064736806,
+                "VIRTUALUSDT": 6.087587932215101,
+                "VVVUSDT": -13.183247854597886,
+                "WLFIUSDT": -5.502492127500282,
+                "XMRUSDT": -2.1480691979156568,
+                "XPLUSDT": -16.21796044392039
+              },
+              "symbols_traded": 11,
+              "tail_loss_r": -1.05404587,
+              "total_net_pnl": 16.057312099454776,
+              "trades": 75,
+              "turnover": 18671.637342752398
+            },
+            "wide_costs": {
+              "day_concentration": 0.1119671423811983,
+              "days": 30,
+              "fees": 66.83301414052062,
+              "funding": -0.4886776355087172,
+              "gross_pnl": 111.34070968989543,
+              "max_drawdown_pct": 2.044750823204306,
+              "mean_gross_r": 0.03882295676384206,
+              "mean_net_r": 0.003864489915531424,
+              "regime_net_pnl": {
+                "down": 67.1636537590699,
+                "sideways": -37.086535751816186,
+                "up": -20.344614755741276
+              },
+              "rejections": {},
+              "slippage": 17.38123051593897,
+              "spread": 17.882639417432134,
+              "symbol_concentration": 0.22902122694823265,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -8.476546309093663,
+                "FARTCOINUSDT": 81.35981841614677,
+                "FFUSDT": -29.560534660429536,
+                "HEMIUSDT": -35.411243851221215,
+                "HYPEUSDT": 52.406345328018475,
+                "USELESSUSDT": -34.70840173217406,
+                "VIRTUALUSDT": 24.289118780857116,
+                "VVVUSDT": -9.019133225207824,
+                "WLFIUSDT": -21.589677508391667,
+                "XMRUSDT": -33.99327121924173,
+                "XPLUSDT": 24.436029232249815
+              },
+              "symbols_traded": 11,
+              "tail_loss_r": -1.03976089,
+              "total_net_pnl": 9.732503251512446,
+              "trades": 116,
+              "turnover": 57937.369594060394
+            }
+          },
+          "fold": 1
+        },
+        {
+          "arms": {
+            "base_taker": {
+              "day_concentration": 0.08871031318254305,
+              "days": 30,
+              "fees": 39.34601959523673,
+              "funding": -1.731370603779734,
+              "gross_pnl": -390.5592286357646,
+              "max_drawdown_pct": 4.976136383884549,
+              "mean_gross_r": -0.13719209705478028,
+              "mean_net_r": -0.15572538676281,
+              "regime_net_pnl": {
+                "down": -136.6072712241258,
+                "sideways": -111.63732555844574,
+                "up": -194.6099020866306
+              },
+              "rejections": {},
+              "slippage": 5.670561083488224,
+              "spread": 9.010060158492363,
+              "symbol_concentration": 0.4908751223359786,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 9.07899645201367,
+                "FARTCOINUSDT": -121.39935075002109,
+                "FFUSDT": -83.40105015082403,
+                "USELESSUSDT": -226.29956329759835,
+                "VVVUSDT": -7.204082063579039,
+                "WLFIUSDT": -12.151159075532885,
+                "XMRUSDT": -1.4782899836604049
+              },
+              "symbols_traded": 7,
+              "tail_loss_r": -1.0233530249999998,
+              "total_net_pnl": -442.8544988692022,
+              "trades": 116,
+              "turnover": 56705.7110026022
+            },
+            "severe_plausible": {
+              "day_concentration": 0.09692893166765067,
+              "days": 30,
+              "fees": 28.69253595211501,
+              "funding": -0.41198673875614805,
+              "gross_pnl": -125.28488754748408,
+              "max_drawdown_pct": 1.9833684612833942,
+              "mean_gross_r": -0.12140306579504755,
+              "mean_net_r": -0.16861354111031313,
+              "regime_net_pnl": {
+                "down": -51.42488115737533,
+                "sideways": -39.94936619577034,
+                "up": -82.31417558666743
+              },
+              "rejections": {
+                "ASSUMED_MISSED_FILL": 33
+              },
+              "slippage": 10.284663179353059,
+              "spread": 9.838322999617102,
+              "symbol_concentration": 0.42842062153110055,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 0.5977514771733805,
+                "FARTCOINUSDT": -40.90085670333661,
+                "FFUSDT": -46.69333017571207,
+                "USELESSUSDT": -74.92388022737491,
+                "VVVUSDT": -5.522402729312264,
+                "WLFIUSDT": -4.316106109996852,
+                "XMRUSDT": -1.9295984712538052
+              },
+              "symbols_traded": 7,
+              "tail_loss_r": -1.0536864000000001,
+              "total_net_pnl": -173.6884229398131,
+              "trades": 83,
+              "turnover": 20569.449098116973
+            },
+            "wide_costs": {
+              "day_concentration": 0.08816270683147565,
+              "days": 30,
+              "fees": 58.91581261768124,
+              "funding": -1.7277810015092068,
+              "gross_pnl": -388.31900600326406,
+              "max_drawdown_pct": 5.319428714706399,
+              "mean_gross_r": -0.13666863451184477,
+              "mean_net_r": -0.1693825491691379,
+              "regime_net_pnl": {
+                "down": -148.14266456055717,
+                "sideways": -126.22171506919273,
+                "up": -206.11131630171766
+              },
+              "rejections": {},
+              "slippage": 16.98124230909946,
+              "spread": 17.987416002932004,
+              "symbol_concentration": 0.4818295742724423,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 6.702154879839284,
+                "FARTCOINUSDT": -129.39755532023005,
+                "FFUSDT": -92.38543289228996,
+                "USELESSUSDT": -237.96599288383632,
+                "VVVUSDT": -7.641087282758722,
+                "WLFIUSDT": -14.247632313176311,
+                "XMRUSDT": -5.540150119015498
+              },
+              "symbols_traded": 7,
+              "tail_loss_r": -1.0387608899999998,
+              "total_net_pnl": -480.47569593146756,
+              "trades": 116,
+              "turnover": 56604.37905957266
+            }
+          },
+          "fold": 2
+        },
+        {
+          "arms": {
+            "base_taker": {
+              "day_concentration": 0.09479828047799603,
+              "days": 30,
+              "fees": 39.37280406799687,
+              "funding": -4.245268959639306,
+              "gross_pnl": 156.44643552175,
+              "max_drawdown_pct": 0.9918373235132365,
+              "mean_gross_r": 0.05395555524147232,
+              "mean_net_r": 0.03678144861600973,
+              "regime_net_pnl": {
+                "down": 68.79228190624661,
+                "sideways": -11.577978539622183,
+                "up": 49.192344730105674
+              },
+              "rejections": {},
+              "slippage": 5.813343306447825,
+              "spread": 9.098909010214538,
+              "symbol_concentration": 0.5568637690382601,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -6.632165765756809,
+                "FARTCOINUSDT": 0.5322432314423136,
+                "FFUSDT": -3.334739451139053,
+                "LDOUSDT": -4.4872878014244,
+                "LITUSDT": 33.749083906811,
+                "PUMPFUNUSDT": -20.234394543589044,
+                "USELESSUSDT": 165.46879528527452,
+                "VVVUSDT": -45.521589072693054,
+                "WLFIUSDT": -15.158559922672225,
+                "XMRUSDT": 2.025262230476781
+              },
+              "symbols_traded": 10,
+              "tail_loss_r": -0.5843677682003405,
+              "total_net_pnl": 106.40664809673008,
+              "trades": 116,
+              "turnover": 58133.39370522837
+            },
+            "severe_plausible": {
+              "day_concentration": 0.1250042702878644,
+              "days": 30,
+              "fees": 28.213314930316567,
+              "funding": -1.6229581472583485,
+              "gross_pnl": 33.000662495899995,
+              "max_drawdown_pct": 0.6005128244662328,
+              "mean_gross_r": 0.031921551959108736,
+              "mean_net_r": -0.013066816765488218,
+              "regime_net_pnl": {
+                "down": 11.836115707830954,
+                "sideways": -29.6092007476664,
+                "up": 4.159151742076528
+              },
+              "rejections": {
+                "ASSUMED_MISSED_FILL": 33
+              },
+              "slippage": 10.34071954875205,
+              "spread": 9.683519461848645,
+              "symbol_concentration": 0.39237016825591964,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -6.571729366544709,
+                "FARTCOINUSDT": -6.363313953313092,
+                "FFUSDT": -3.510441149135889,
+                "LDOUSDT": -3.5962931499815816,
+                "LITUSDT": 6.6840991227052,
+                "PUMPFUNUSDT": -7.729763115930727,
+                "USELESSUSDT": 49.18238429783192,
+                "VVVUSDT": -26.39658340945484,
+                "WLFIUSDT": -6.976612606521776,
+                "XMRUSDT": -8.335679967413427
+              },
+              "symbols_traded": 10,
+              "tail_loss_r": -0.7964435337344087,
+              "total_net_pnl": -13.613933297758916,
+              "trades": 83,
+              "turnover": 20681.407258847532
+            },
+            "wide_costs": {
+              "day_concentration": 0.09880401264525034,
+              "days": 30,
+              "fees": 58.95183022317124,
+              "funding": -4.221612069610905,
+              "gross_pnl": 156.7498281398,
+              "max_drawdown_pct": 1.0583599883382284,
+              "mean_gross_r": 0.054106260667596134,
+              "mean_net_r": 0.02306138549334155,
+              "regime_net_pnl": {
+                "down": 60.308850254715644,
+                "sideways": -33.574840313797544,
+                "up": 39.71351307384787
+              },
+              "rejections": {},
+              "slippage": 17.40789047755806,
+              "spread": 18.16419649391566,
+              "symbol_concentration": 0.5014200606493608,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -10.366594087344035,
+                "FARTCOINUSDT": -6.9513032656677805,
+                "FFUSDT": -10.269987489065109,
+                "LDOUSDT": -4.802046424578572,
+                "LITUSDT": 32.78594330084655,
+                "PUMPFUNUSDT": -21.09145017282995,
+                "USELESSUSDT": 154.59257446061122,
+                "VVVUSDT": -46.65324355227507,
+                "WLFIUSDT": -19.817372590164766,
+                "XMRUSDT": -0.9789971647665132
+              },
+              "symbols_traded": 10,
+              "tail_loss_r": -0.5985272796401413,
+              "total_net_pnl": 66.44752301476595,
+              "trades": 116,
+              "turnover": 58026.207046048214
+            }
+          },
+          "fold": 3
+        },
+        {
+          "arms": {
+            "base_taker": {
+              "day_concentration": 0.10471168600902483,
+              "days": 30,
+              "fees": 39.208599406817704,
+              "funding": 1.0608611239325254,
+              "gross_pnl": -63.43107083696073,
+              "max_drawdown_pct": 2.3283496783151327,
+              "mean_gross_r": -0.02130038777984966,
+              "mean_net_r": -0.040621921859036576,
+              "regime_net_pnl": {
+                "down": -2.609941891873674,
+                "sideways": -215.10551597599047,
+                "up": 98.63271166064808
+              },
+              "rejections": {},
+              "slippage": 5.813889814383854,
+              "spread": 9.568325025121291,
+              "symbol_concentration": 0.37109125482206656,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -5.399907752088757,
+                "DASHUSDT": 3.546032744158328,
+                "FARTCOINUSDT": -59.84263875659023,
+                "FFUSDT": 135.47011496349606,
+                "HEMIUSDT": -19.92234431665085,
+                "HYPEUSDT": 28.394281493124765,
+                "PENGUUSDT": 14.165568359688,
+                "PUMPFUNUSDT": -25.141630410233898,
+                "SKRUSDT": -2.5106370552168666,
+                "UNIUSDT": -10.12699017198125,
+                "USELESSUSDT": -240.16994215593468,
+                "VVVUSDT": 7.497276061158,
+                "WLDUSDT": -20.024994278390146,
+                "WLFIUSDT": 23.164358380483737,
+                "XMRUSDT": 51.820566475528,
+                "XPLUSDT": -0.001859787766310125
+              },
+              "symbols_traded": 16,
+              "tail_loss_r": -1.023978025,
+              "total_net_pnl": -119.08274620721609,
+              "trades": 116,
+              "turnover": 58138.90873671495
+            },
+            "severe_plausible": {
+              "day_concentration": 0.09905600375406008,
+              "days": 30,
+              "fees": 25.43776466805687,
+              "funding": 0.17001946913729893,
+              "gross_pnl": 23.482162451034995,
+              "max_drawdown_pct": 0.6867508988285159,
+              "mean_gross_r": 0.025265536519850074,
+              "mean_net_r": -0.021910227480141563,
+              "regime_net_pnl": {
+                "down": -14.033054549595654,
+                "sideways": -39.883915340502405,
+                "up": 32.7510155656718
+              },
+              "rejections": {
+                "ASSUMED_MISSED_FILL": 40
+              },
+              "slippage": 9.536192066951317,
+              "spread": 9.504140571315764,
+              "symbol_concentration": 0.36186086741747103,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -4.707619594006005,
+                "DASHUSDT": 0.8155252656955945,
+                "FARTCOINUSDT": 2.081180236269297,
+                "FFUSDT": 40.75870847124716,
+                "HYPEUSDT": 8.854600839561384,
+                "PUMPFUNUSDT": -12.819007389039385,
+                "SKRUSDT": -3.021723977024266,
+                "UNIUSDT": -5.80101421015,
+                "USELESSUSDT": -68.68171911995299,
+                "VVVUSDT": 3.0906945293865,
+                "WLDUSDT": -10.207021223381982,
+                "WLFIUSDT": 11.31895396076076,
+                "XMRUSDT": 17.39808700247098,
+                "XPLUSDT": -0.24559911626331615
+              },
+              "symbols_traded": 14,
+              "tail_loss_r": -1.05529799,
+              "total_net_pnl": -21.165954324426252,
+              "trades": 76,
+              "turnover": 19072.356607447306
+            },
+            "wide_costs": {
+              "day_concentration": 0.10600737577811893,
+              "days": 30,
+              "fees": 58.707044843164475,
+              "funding": 1.0618258246202037,
+              "gross_pnl": -61.35386180936775,
+              "max_drawdown_pct": 2.6336580298864565,
+              "mean_gross_r": -0.020651372179136148,
+              "mean_net_r": -0.054127029716340716,
+              "regime_net_pnl": {
+                "down": -9.286324108241747,
+                "sideways": -236.03973095936283,
+                "up": 87.6927382919681
+              },
+              "rejections": {},
+              "slippage": 17.40911914153759,
+              "spread": 19.101465156946418,
+              "symbol_concentration": 0.38313793255575695,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -6.648195855531917,
+                "DASHUSDT": 3.0135816572886043,
+                "FARTCOINUSDT": -65.68642833982963,
+                "FFUSDT": 126.33970248611465,
+                "HEMIUSDT": -20.677500300633405,
+                "HYPEUSDT": 27.428236034518907,
+                "PENGUUSDT": 13.844294415044,
+                "PUMPFUNUSDT": -25.304433896648366,
+                "SKRUSDT": -4.434754320985714,
+                "UNIUSDT": -10.4261819667,
+                "USELESSUSDT": -248.88675609530614,
+                "VVVUSDT": 7.0540352283024,
+                "WLDUSDT": -21.244159761117402,
+                "WLFIUSDT": 20.94911663368621,
+                "XMRUSDT": 47.354838576607165,
+                "XPLUSDT": -0.3087112704457691
+              },
+              "symbols_traded": 16,
+              "tail_loss_r": -1.03938589,
+              "total_net_pnl": -157.63331677563642,
+              "trades": 116,
+              "turnover": 58030.423436661775
+            }
+          },
+          "fold": 4
+        }
+      ],
+      "holm_pvalue": 1.0,
+      "lookback": 1344,
+      "market_attribution": {
+        "btc_daily_beta": -0.056287457235900853,
+        "btc_daily_correlation": -0.3853483503706469
+      },
+      "passed": false,
+      "positive_folds": 2
+    },
+    {
+      "aggregate_base": {
+        "day_concentration": 0.029292862345306814,
+        "days": 120,
+        "fees": 162.1094744671833,
+        "funding": -6.271412129697406,
+        "gross_pnl": -184.63098716084173,
+        "max_drawdown_pct": 5.281725106240967,
+        "mean_gross_r": -0.016830733797588968,
+        "mean_net_r": -0.035524818448938185,
+        "regime_net_pnl": {
+          "down": -88.41616849639307,
+          "sideways": -298.09973864637567,
+          "up": -13.58533291335677
+        },
+        "slippage": 23.117045418518316,
+        "spread": 36.5151451392795,
+        "symbol_concentration": 0.4787876296144789,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 20.43102369064222,
+          "FARTCOINUSDT": -53.81370118349892,
+          "FFUSDT": 66.49941270999169,
+          "HEMIUSDT": -6.826133717759508,
+          "USELESSUSDT": -352.97098874267346,
+          "VIRTUALUSDT": 64.08712439855553,
+          "VVVUSDT": -6.608125866326606,
+          "WLFIUSDT": -27.477086274255058,
+          "XMRUSDT": 17.540954946458893,
+          "XPLUSDT": -120.9637200172602
+        },
+        "symbols_traded": 10,
+        "tail_loss_r": -1.023353025,
+        "total_net_pnl": -400.10124005612545,
+        "trades": 464
+      },
+      "bootstrap": {
+        "blocks": 17,
+        "draws": 2000,
+        "lower_95": -9.785439453642706,
+        "mean": -3.3341770004677125,
+        "positive_pvalue": 0.8540729635182409,
+        "upper_95": 2.4591759096151162
+      },
+      "cost_total_net_pnl": {
+        "base_taker": -400.10124005612545,
+        "severe_plausible": -216.9866219632762,
+        "wide_costs": -557.1260135106756
+      },
+      "folds": [
+        {
+          "arms": {
+            "base_taker": {
+              "day_concentration": 0.10056044369106856,
+              "days": 30,
+              "fees": 43.164453117986355,
+              "funding": -0.8602731512124036,
+              "gross_pnl": 125.49929870083257,
+              "max_drawdown_pct": 1.8102733191333902,
+              "mean_gross_r": 0.04366130456148679,
+              "mean_net_r": 0.02409458456675857,
+              "regime_net_pnl": {
+                "down": 34.17100681808345,
+                "sideways": -29.310179261409385,
+                "up": 63.39792784466231
+              },
+              "rejections": {},
+              "slippage": 5.829669203541633,
+              "spread": 9.106694129180593,
+              "symbol_concentration": 0.36875513204151866,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 4.094956910104796,
+                "FARTCOINUSDT": 103.09933974706885,
+                "FFUSDT": -0.36824968410045855,
+                "HEMIUSDT": -6.826133717759508,
+                "USELESSUSDT": -20.39204148864789,
+                "VIRTUALUSDT": 66.728850388867,
+                "VVVUSDT": -6.608125866326606,
+                "WLFIUSDT": -35.120935854469586,
+                "XMRUSDT": -29.033318737369562,
+                "XPLUSDT": -7.315586296030656
+              },
+              "symbols_traded": 10,
+              "tail_loss_r": -1.0241462499999998,
+              "total_net_pnl": 68.25875540133639,
+              "trades": 116,
+              "turnover": 58296.660349618716
+            },
+            "severe_plausible": {
+              "day_concentration": 0.12764212924227092,
+              "days": 30,
+              "fees": 29.12688273992189,
+              "funding": -0.5619886633719019,
+              "gross_pnl": 84.99349531733985,
+              "max_drawdown_pct": 0.5255689048425657,
+              "mean_gross_r": 0.08415500164156581,
+              "mean_net_r": 0.03670987795213864,
+              "regime_net_pnl": {
+                "down": 4.152658668981221,
+                "sideways": 4.140752704955659,
+                "up": 28.568105640882578
+              },
+              "rejections": {
+                "ASSUMED_MISSED_FILL": 35
+              },
+              "slippage": 10.11303346310927,
+              "spread": 9.45405076286112,
+              "symbol_concentration": 0.28944723737334743,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 2.8894737847041148,
+                "FARTCOINUSDT": 29.829583214684853,
+                "FFUSDT": 8.444741768627518,
+                "HEMIUSDT": 3.0526821415502874,
+                "USELESSUSDT": 5.994283979229921,
+                "VIRTUALUSDT": 16.96994682656584,
+                "VVVUSDT": -7.766235430075808,
+                "WLFIUSDT": -21.716974637451614,
+                "XMRUSDT": 2.7785800842975656,
+                "XPLUSDT": -3.6145647173132085
+              },
+              "symbols_traded": 10,
+              "tail_loss_r": -1.05517299,
+              "total_net_pnl": 36.86151701481946,
+              "trades": 81,
+              "turnover": 20225.98449783681
+            },
+            "wide_costs": {
+              "day_concentration": 0.09803488630869837,
+              "days": 30,
+              "fees": 64.62324607325336,
+              "funding": -0.814808728802433,
+              "gross_pnl": 127.5139252630388,
+              "max_drawdown_pct": 2.032270439542768,
+              "mean_gross_r": 0.044283940063103745,
+              "mean_net_r": 0.01022794607195889,
+              "regime_net_pnl": {
+                "down": 18.1478895629754,
+                "sideways": -49.18845341475562,
+                "up": 59.11298637065761
+              },
+              "rejections": {},
+              "slippage": 17.45520606022999,
+              "spread": 18.17785933948055,
+              "symbol_concentration": 0.3245177542352685,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 1.24860287199144,
+                "FARTCOINUSDT": 97.73990642687414,
+                "FFUSDT": -6.599674082318295,
+                "HEMIUSDT": -7.702633754024875,
+                "USELESSUSDT": -32.502293940004904,
+                "VIRTUALUSDT": 65.64024297146457,
+                "VVVUSDT": -10.589317764194515,
+                "WLFIUSDT": -37.75612744868137,
+                "XMRUSDT": -31.382702213017385,
+                "XPLUSDT": -10.02358054921144
+              },
+              "symbols_traded": 10,
+              "tail_loss_r": -1.03976089,
+              "total_net_pnl": 28.07242251887736,
+              "trades": 116,
+              "turnover": 58183.94304169332
+            }
+          },
+          "fold": 1
+        },
+        {
+          "arms": {
+            "base_taker": {
+              "day_concentration": 0.07952419859059028,
+              "days": 30,
+              "fees": 38.96567337964101,
+              "funding": -1.0425371606742928,
+              "gross_pnl": -423.9336859392041,
+              "max_drawdown_pct": 5.281725106240967,
+              "mean_gross_r": -0.14921800490926723,
+              "mean_net_r": -0.16791534425491286,
+              "regime_net_pnl": {
+                "down": -152.48833215869863,
+                "sideways": -142.31294072681584,
+                "up": -181.69886442231984
+              },
+              "rejections": {},
+              "slippage": 5.65638784712378,
+              "spread": 8.986927302539751,
+              "symbol_concentration": 0.4464092950277488,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 9.137808620096756,
+                "FARTCOINUSDT": -64.77215858645148,
+                "FFUSDT": -82.9863582738035,
+                "USELESSUSDT": -225.5038339747086,
+                "VIRTUALUSDT": -2.641725990311467,
+                "WLFIUSDT": 5.187322757037526,
+                "XMRUSDT": -1.2730581384639788,
+                "XPLUSDT": -113.64813372122956
+              },
+              "symbols_traded": 8,
+              "tail_loss_r": -1.023353025,
+              "total_net_pnl": -476.50013730783434,
+              "trades": 116,
+              "turnover": 56563.98696942694
+            },
+            "severe_plausible": {
+              "day_concentration": 0.09109326157294052,
+              "days": 30,
+              "fees": 27.408992739173506,
+              "funding": -0.7573424996639395,
+              "gross_pnl": -133.94795376345002,
+              "max_drawdown_pct": 2.0016922775702928,
+              "mean_gross_r": -0.13821266639654928,
+              "mean_net_r": -0.18550414098805307,
+              "regime_net_pnl": {
+                "down": -18.08179839446841,
+                "sideways": -86.22012848540476,
+                "up": -75.18224809619997
+              },
+              "rejections": {
+                "ASSUMED_MISSED_FILL": 38
+              },
+              "slippage": 9.701966746881725,
+              "spread": 9.182604226231852,
+              "symbol_concentration": 0.4260653983133804,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 10.368484574333255,
+                "FARTCOINUSDT": -32.76233348024191,
+                "FFUSDT": -18.544088602555473,
+                "USELESSUSDT": -85.30730152226796,
+                "VIRTUALUSDT": -2.915492217413761,
+                "WLFIUSDT": -2.2316362303400794,
+                "XMRUSDT": -1.5859384682186142,
+                "XPLUSDT": -46.505869029368625
+              },
+              "symbols_traded": 8,
+              "tail_loss_r": -1.05432299,
+              "total_net_pnl": -179.48417497607315,
+              "trades": 78,
+              "turnover": 19404.06172779776
+            },
+            "wide_costs": {
+              "day_concentration": 0.07965025540571911,
+              "days": 30,
+              "fees": 58.34204005790205,
+              "funding": -1.0399545856126007,
+              "gross_pnl": -421.8357440265431,
+              "max_drawdown_pct": 5.6213356234504515,
+              "mean_gross_r": -0.1486036096793107,
+              "mean_net_r": -0.1814489021656965,
+              "regime_net_pnl": {
+                "down": -164.24835683960305,
+                "sideways": -156.64562832418085,
+                "up": -193.12038758796228
+              },
+              "rejections": {},
+              "slippage": 16.937063986394836,
+              "spread": 17.93947926651885,
+              "symbol_concentration": 0.44295131881394983,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 6.743170747377214,
+                "FARTCOINUSDT": -70.0223014177532,
+                "FFUSDT": -91.94001279189412,
+                "USELESSUSDT": -237.1668938925801,
+                "VIRTUALUSDT": -3.5617491359810596,
+                "WLFIUSDT": 3.9617861971716235,
+                "XMRUSDT": -6.535309138476741,
+                "XPLUSDT": -115.4930633196098
+              },
+              "symbols_traded": 8,
+              "tail_loss_r": -1.03876089,
+              "total_net_pnl": -514.0143727517462,
+              "trades": 116,
+              "turnover": 56457.13806793467
+            }
+          },
+          "fold": 2
+        },
+        {
+          "arms": {
+            "base_taker": {
+              "day_concentration": 0.10394423516148084,
+              "days": 30,
+              "fees": 40.18046929155405,
+              "funding": -3.7953736625089474,
+              "gross_pnl": 295.143534046,
+              "max_drawdown_pct": 0.9065640766798195,
+              "mean_gross_r": 0.1009328496920722,
+              "mean_net_r": 0.08336970713435843,
+              "regime_net_pnl": {
+                "down": 76.49455538077122,
+                "sideways": 89.24263334468837,
+                "up": 77.89354023009898
+              },
+              "rejections": {},
+              "slippage": 5.8544859585954,
+              "spread": 9.2732235028009,
+              "symbol_concentration": 0.7141958244274605,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 0.673003372777182,
+                "FARTCOINUSDT": 22.630371700109315,
+                "FFUSDT": 13.317262091181501,
+                "USELESSUSDT": 174.00004932227836,
+                "WLFIUSDT": 6.689455166142877,
+                "XMRUSDT": 26.320587303069377
+              },
+              "symbols_traded": 6,
+              "tail_loss_r": -0.49932336977902625,
+              "total_net_pnl": 243.6307289555586,
+              "trades": 116,
+              "turnover": 58544.78484813346
+            },
+            "severe_plausible": {
+              "day_concentration": 0.11231807476982959,
+              "days": 30,
+              "fees": 23.814791722840777,
+              "funding": -0.9468745182527889,
+              "gross_pnl": 84.60918,
+              "max_drawdown_pct": 0.39178024339289,
+              "mean_gross_r": 0.09388252281265155,
+              "mean_net_r": 0.049002231460581906,
+              "regime_net_pnl": {
+                "down": 9.93337007464065,
+                "sideways": 19.75509284187862,
+                "up": 14.544997531491331
+              },
+              "rejections": {
+                "ASSUMED_MISSED_FILL": 44
+              },
+              "slippage": 8.97235523,
+              "spread": 8.5354471174014,
+              "symbol_concentration": 0.7538708493299329,
+              "symbol_net_pnl": {
+                "FARTCOINUSDT": -4.525266857230005,
+                "FFUSDT": 5.128526569308517,
+                "USELESSUSDT": 50.44656190956434,
+                "XMRUSDT": -6.816361173632239
+              },
+              "symbols_traded": 4,
+              "tail_loss_r": -0.40978227388731825,
+              "total_net_pnl": 44.23346044801061,
+              "trades": 72,
+              "turnover": 17944.62847356348
+            },
+            "wide_costs": {
+              "day_concentration": 0.10363481355357346,
+              "days": 30,
+              "fees": 60.15482771927029,
+              "funding": -3.783581476188421,
+              "gross_pnl": 294.780334408,
+              "max_drawdown_pct": 0.9353128269794923,
+              "mean_gross_r": 0.10098308172737289,
+              "mean_net_r": 0.06942512451549819,
+              "regime_net_pnl": {
+                "down": 67.824622643395,
+                "sideways": 66.57090300120191,
+                "up": 67.97605260274061
+              },
+              "rejections": {},
+              "slippage": 17.5283212516776,
+              "spread": 18.509188665903,
+              "symbol_concentration": 0.7945967160352255,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 0.03345118394884006,
+                "FARTCOINUSDT": 13.482245470458231,
+                "FFUSDT": 4.2648880727006855,
+                "USELESSUSDT": 160.8037914942001,
+                "WLFIUSDT": 6.356352946100622,
+                "XMRUSDT": 17.430849079929068
+              },
+              "symbols_traded": 6,
+              "tail_loss_r": -0.516429700147184,
+              "total_net_pnl": 202.37157824733754,
+              "trades": 116,
+              "turnover": 58427.55873703524
+            }
+          },
+          "fold": 3
+        },
+        {
+          "arms": {
+            "base_taker": {
+              "day_concentration": 0.10638441031103484,
+              "days": 30,
+              "fees": 39.7988786780019,
+              "funding": -0.5732281553017625,
+              "gross_pnl": -181.3401339684702,
+              "max_drawdown_pct": 3.086471216009066,
+              "mean_gross_r": -0.06269908453464762,
+              "mean_net_r": -0.08164822124195685,
+              "regime_net_pnl": {
+                "down": -46.59339853654906,
+                "sideways": -215.71925200283883,
+                "up": 26.822063434201816
+              },
+              "rejections": {},
+              "slippage": 5.776502409257503,
+              "spread": 9.148300204758248,
+              "symbol_concentration": 0.49777056853717316,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 6.525254787663487,
+                "FARTCOINUSDT": -114.77125404422559,
+                "FFUSDT": 136.53675857671413,
+                "USELESSUSDT": -281.07516260159525,
+                "WLFIUSDT": -4.2329283429658755,
+                "XMRUSDT": 21.52674451922307
+              },
+              "symbols_traded": 6,
+              "tail_loss_r": -1.023978025,
+              "total_net_pnl": -235.4905871051861,
+              "trades": 116,
+              "turnover": 57765.0640524903
+            },
+            "severe_plausible": {
+              "day_concentration": 0.10934417297483426,
+              "days": 30,
+              "fees": 29.227420517955856,
+              "funding": -0.30681529587075046,
+              "gross_pnl": -69.11177801673065,
+              "max_drawdown_pct": 1.4123519561518219,
+              "mean_gross_r": -0.06593447925093393,
+              "mean_net_r": -0.113526403651829,
+              "regime_net_pnl": {
+                "down": -40.61922757968954,
+                "sideways": -114.38638013657635,
+                "up": 36.40818326623274
+              },
+              "rejections": {
+                "ASSUMED_MISSED_FILL": 32
+              },
+              "slippage": 10.496151918935334,
+              "spread": 10.068889292282037,
+              "symbol_concentration": 0.5331499474331871,
+              "symbol_net_pnl": {
+                "ASTERUSDT": -2.4759793034160773,
+                "FARTCOINUSDT": -31.122035280445672,
+                "FFUSDT": 57.95770066100621,
+                "USELESSUSDT": -125.03050073277426,
+                "WLFIUSDT": -7.9265052630722,
+                "XMRUSDT": -10.000104531331127
+              },
+              "symbols_traded": 6,
+              "tail_loss_r": -1.05467299,
+              "total_net_pnl": -118.59742445003315,
+              "trades": 84,
+              "turnover": 20992.361820344602
+            },
+            "wide_costs": {
+              "day_concentration": 0.10698699377737576,
+              "days": 30,
+              "fees": 59.57524943922391,
+              "funding": -0.5766931619618695,
+              "gross_pnl": -179.00812071288672,
+              "max_drawdown_pct": 3.389367683344119,
+              "mean_gross_r": -0.06197950013011478,
+              "mean_net_r": -0.09512125139148908,
+              "regime_net_pnl": {
+                "down": -53.15342179437523,
+                "sideways": -236.56799409636923,
+                "up": 16.165774365600225
+              },
+              "rejections": {},
+              "slippage": 17.292077533051174,
+              "spread": 18.256887001944342,
+              "symbol_concentration": 0.5155022401819037,
+              "symbol_net_pnl": {
+                "ASTERUSDT": 3.698618006343204,
+                "FARTCOINUSDT": -123.15993891825973,
+                "FFUSDT": 127.4763854935861,
+                "USELESSUSDT": -292.07148959852634,
+                "WLFIUSDT": -4.834675818970899,
+                "XMRUSDT": 15.33545931068339
+              },
+              "symbols_traded": 6,
+              "tail_loss_r": -1.03938589,
+              "total_net_pnl": -273.55564152514427,
+              "trades": 116,
+              "turnover": 57640.35511304486
+            }
+          },
+          "fold": 4
+        }
+      ],
+      "holm_pvalue": 1.0,
+      "lookback": 2688,
+      "market_attribution": {
+        "btc_daily_beta": -0.05462235830457178,
+        "btc_daily_correlation": -0.3597784467724273
+      },
+      "passed": false,
+      "positive_folds": 2
+    }
+  ],
+  "dataset": {
+    "candles_sha256": "07ee53a6daea51eeb810b03ee1d309dd1846950c96274d52d05eb68bd0ef1672",
+    "economics_sha256": "d941484205acd1353b8b415011c8e0d3ec4192d866d496dc1af03dd88f0eb628",
+    "first_open_ms": 1770761700000,
+    "id": "BYBIT_PUBLIC_REUSED_39_OHLCV_210D",
+    "last_open_ms": 1788903900000,
+    "manifest_sha256": "941cd5ded018cb0eea5f68caeb50c5a38e666a2b527e8b3651ec4f0f6a79f30a",
+    "prior_consumption": "Original 37-symbol data consumed in legacy and initial campaigns; BTC/ETH historical download is not a fresh holdout",
+    "role": "REUSED_HISTORICAL_DISCOVERY",
+    "symbols": [
+      "1000PEPEUSDT",
+      "AAVEUSDT",
+      "APTUSDT",
+      "ARBUSDT",
+      "ASTERUSDT",
+      "BTCUSDT",
+      "CRVUSDT",
+      "DASHUSDT",
+      "DOGEUSDT",
+      "DOTUSDT",
+      "ENAUSDT",
+      "ETHUSDT",
+      "FARTCOINUSDT",
+      "FFUSDT",
+      "FILUSDT",
+      "HEMIUSDT",
+      "HYPEUSDT",
+      "INJUSDT",
+      "LDOUSDT",
+      "LINKUSDT",
+      "LITUSDT",
+      "ONDOUSDT",
+      "OPUSDT",
+      "PENGUUSDT",
+      "PUMPFUNUSDT",
+      "SHIB1000USDT",
+      "SKRUSDT",
+      "SUIUSDT",
+      "TAOUSDT",
+      "UNIUSDT",
+      "USELESSUSDT",
+      "VIRTUALUSDT",
+      "VVVUSDT",
+      "WLDUSDT",
+      "WLFIUSDT",
+      "XMRUSDT",
+      "XPLUSDT",
+      "XRPUSDT",
+      "ZROUSDT"
+    ]
+  },
+  "evaluation_count": 24,
+  "evidence_role": "DISCOVERY_ONLY_NOT_FRESH_VALIDATION",
+  "family": "cross_sectional_downside_beta_defensiveness",
+  "finished_at": "2026-09-24T10:37:52.755672+00:00",
+  "frozen_candidate": null,
+  "mechanism": "Leverage constraints and forced deleveraging may make altcoins with high conditional BTC downside beta persistently underperform low-downside-beta peers.",
+  "preregistration_sha256": "4c2f01fdcafe5dd9e1ab6fa4c8eb815ed4bbb977e314d1f88a10f92f1d45c5a6",
+  "promotion": "NONE; discovery-only cannot satisfy fresh validation",
+  "schema_version": 1,
+  "search_id": "TRADEV2_DISCOVERY_010",
+  "status": "REJECTED_DISCOVERY_ONLY",
+  "trial_count": 2,
+  "trials": [
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "base_taker",
+      "fold": 1,
+      "lookback": 1344,
+      "period": [
+        8551,
+        11431
+      ],
+      "result": {
+        "day_concentration": 0.1145937284603415,
+        "days": 30,
+        "fees": 44.6441857361803,
+        "funding": -0.5321296002133845,
+        "gross_pnl": 109.85485200171428,
+        "max_drawdown_pct": 1.8880706613685896,
+        "mean_gross_r": 0.038179769116289626,
+        "mean_net_r": 0.017963385624258085,
+        "regime_net_pnl": {
+          "down": 84.58934172766944,
+          "sideways": -17.471827480270647,
+          "up": -16.142298477346056
+        },
+        "rejections": {},
+        "slippage": 5.806415425755872,
+        "spread": 8.961164669938771,
+        "symbol_concentration": 0.2526203689063941,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -6.924853838947779,
+          "FARTCOINUSDT": 84.79324608566418,
+          "FFUSDT": -25.300447683978597,
+          "HEMIUSDT": -33.81713935791394,
+          "HYPEUSDT": 53.48788114755419,
+          "USELESSUSDT": -23.47609763283585,
+          "VIRTUALUSDT": 27.79548847516007,
+          "VVVUSDT": -2.3524061972698904,
+          "WLFIUSDT": -20.690595476759785,
+          "XMRUSDT": -29.778265157519716,
+          "XPLUSDT": 27.238405406899858
+        },
+        "symbols_traded": 11,
+        "tail_loss_r": -1.024647525,
+        "total_net_pnl": 50.975215770052735,
+        "trades": 116,
+        "turnover": 58064.127478578455
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "wide_costs",
+      "fold": 1,
+      "lookback": 1344,
+      "period": [
+        8551,
+        11431
+      ],
+      "result": {
+        "day_concentration": 0.1119671423811983,
+        "days": 30,
+        "fees": 66.83301414052062,
+        "funding": -0.4886776355087172,
+        "gross_pnl": 111.34070968989543,
+        "max_drawdown_pct": 2.044750823204306,
+        "mean_gross_r": 0.03882295676384206,
+        "mean_net_r": 0.003864489915531424,
+        "regime_net_pnl": {
+          "down": 67.1636537590699,
+          "sideways": -37.086535751816186,
+          "up": -20.344614755741276
+        },
+        "rejections": {},
+        "slippage": 17.38123051593897,
+        "spread": 17.882639417432134,
+        "symbol_concentration": 0.22902122694823265,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -8.476546309093663,
+          "FARTCOINUSDT": 81.35981841614677,
+          "FFUSDT": -29.560534660429536,
+          "HEMIUSDT": -35.411243851221215,
+          "HYPEUSDT": 52.406345328018475,
+          "USELESSUSDT": -34.70840173217406,
+          "VIRTUALUSDT": 24.289118780857116,
+          "VVVUSDT": -9.019133225207824,
+          "WLFIUSDT": -21.589677508391667,
+          "XMRUSDT": -33.99327121924173,
+          "XPLUSDT": 24.436029232249815
+        },
+        "symbols_traded": 11,
+        "tail_loss_r": -1.03976089,
+        "total_net_pnl": 9.732503251512446,
+        "trades": 116,
+        "turnover": 57937.369594060394
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "severe_plausible",
+      "fold": 1,
+      "lookback": 1344,
+      "period": [
+        8551,
+        11431
+      ],
+      "result": {
+        "day_concentration": 0.11586221427588755,
+        "days": 30,
+        "fees": 28.481990951851156,
+        "funding": -0.4326272389220336,
+        "gross_pnl": 62.060032885366,
+        "max_drawdown_pct": 0.7773160475254606,
+        "mean_gross_r": 0.06661192899151905,
+        "mean_net_r": 0.01751878495380304,
+        "regime_net_pnl": {
+          "down": 23.747547325482373,
+          "sideways": 12.255255085157527,
+          "up": -19.945490311185132
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 41
+        },
+        "slippage": 9.335848134960184,
+        "spread": 8.61750893802192,
+        "symbol_concentration": 0.3193819567643686,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -1.543305716135569,
+          "FARTCOINUSDT": 45.158921052307676,
+          "FFUSDT": -4.663462803023016,
+          "HEMIUSDT": -19.410163776003202,
+          "HYPEUSDT": 23.306506969291185,
+          "USELESSUSDT": 4.172998064736806,
+          "VIRTUALUSDT": 6.087587932215101,
+          "VVVUSDT": -13.183247854597886,
+          "WLFIUSDT": -5.502492127500282,
+          "XMRUSDT": -2.1480691979156568,
+          "XPLUSDT": -16.21796044392039
+        },
+        "symbols_traded": 11,
+        "tail_loss_r": -1.05404587,
+        "total_net_pnl": 16.057312099454776,
+        "trades": 75,
+        "turnover": 18671.637342752398
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "base_taker",
+      "fold": 2,
+      "lookback": 1344,
+      "period": [
+        11431,
+        14311
+      ],
+      "result": {
+        "day_concentration": 0.08871031318254305,
+        "days": 30,
+        "fees": 39.34601959523673,
+        "funding": -1.731370603779734,
+        "gross_pnl": -390.5592286357646,
+        "max_drawdown_pct": 4.976136383884549,
+        "mean_gross_r": -0.13719209705478028,
+        "mean_net_r": -0.15572538676281,
+        "regime_net_pnl": {
+          "down": -136.6072712241258,
+          "sideways": -111.63732555844574,
+          "up": -194.6099020866306
+        },
+        "rejections": {},
+        "slippage": 5.670561083488224,
+        "spread": 9.010060158492363,
+        "symbol_concentration": 0.4908751223359786,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 9.07899645201367,
+          "FARTCOINUSDT": -121.39935075002109,
+          "FFUSDT": -83.40105015082403,
+          "USELESSUSDT": -226.29956329759835,
+          "VVVUSDT": -7.204082063579039,
+          "WLFIUSDT": -12.151159075532885,
+          "XMRUSDT": -1.4782899836604049
+        },
+        "symbols_traded": 7,
+        "tail_loss_r": -1.0233530249999998,
+        "total_net_pnl": -442.8544988692022,
+        "trades": 116,
+        "turnover": 56705.7110026022
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "wide_costs",
+      "fold": 2,
+      "lookback": 1344,
+      "period": [
+        11431,
+        14311
+      ],
+      "result": {
+        "day_concentration": 0.08816270683147565,
+        "days": 30,
+        "fees": 58.91581261768124,
+        "funding": -1.7277810015092068,
+        "gross_pnl": -388.31900600326406,
+        "max_drawdown_pct": 5.319428714706399,
+        "mean_gross_r": -0.13666863451184477,
+        "mean_net_r": -0.1693825491691379,
+        "regime_net_pnl": {
+          "down": -148.14266456055717,
+          "sideways": -126.22171506919273,
+          "up": -206.11131630171766
+        },
+        "rejections": {},
+        "slippage": 16.98124230909946,
+        "spread": 17.987416002932004,
+        "symbol_concentration": 0.4818295742724423,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 6.702154879839284,
+          "FARTCOINUSDT": -129.39755532023005,
+          "FFUSDT": -92.38543289228996,
+          "USELESSUSDT": -237.96599288383632,
+          "VVVUSDT": -7.641087282758722,
+          "WLFIUSDT": -14.247632313176311,
+          "XMRUSDT": -5.540150119015498
+        },
+        "symbols_traded": 7,
+        "tail_loss_r": -1.0387608899999998,
+        "total_net_pnl": -480.47569593146756,
+        "trades": 116,
+        "turnover": 56604.37905957266
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "severe_plausible",
+      "fold": 2,
+      "lookback": 1344,
+      "period": [
+        11431,
+        14311
+      ],
+      "result": {
+        "day_concentration": 0.09692893166765067,
+        "days": 30,
+        "fees": 28.69253595211501,
+        "funding": -0.41198673875614805,
+        "gross_pnl": -125.28488754748408,
+        "max_drawdown_pct": 1.9833684612833942,
+        "mean_gross_r": -0.12140306579504755,
+        "mean_net_r": -0.16861354111031313,
+        "regime_net_pnl": {
+          "down": -51.42488115737533,
+          "sideways": -39.94936619577034,
+          "up": -82.31417558666743
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 33
+        },
+        "slippage": 10.284663179353059,
+        "spread": 9.838322999617102,
+        "symbol_concentration": 0.42842062153110055,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 0.5977514771733805,
+          "FARTCOINUSDT": -40.90085670333661,
+          "FFUSDT": -46.69333017571207,
+          "USELESSUSDT": -74.92388022737491,
+          "VVVUSDT": -5.522402729312264,
+          "WLFIUSDT": -4.316106109996852,
+          "XMRUSDT": -1.9295984712538052
+        },
+        "symbols_traded": 7,
+        "tail_loss_r": -1.0536864000000001,
+        "total_net_pnl": -173.6884229398131,
+        "trades": 83,
+        "turnover": 20569.449098116973
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "base_taker",
+      "fold": 3,
+      "lookback": 1344,
+      "period": [
+        14311,
+        17191
+      ],
+      "result": {
+        "day_concentration": 0.09479828047799603,
+        "days": 30,
+        "fees": 39.37280406799687,
+        "funding": -4.245268959639306,
+        "gross_pnl": 156.44643552175,
+        "max_drawdown_pct": 0.9918373235132365,
+        "mean_gross_r": 0.05395555524147232,
+        "mean_net_r": 0.03678144861600973,
+        "regime_net_pnl": {
+          "down": 68.79228190624661,
+          "sideways": -11.577978539622183,
+          "up": 49.192344730105674
+        },
+        "rejections": {},
+        "slippage": 5.813343306447825,
+        "spread": 9.098909010214538,
+        "symbol_concentration": 0.5568637690382601,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -6.632165765756809,
+          "FARTCOINUSDT": 0.5322432314423136,
+          "FFUSDT": -3.334739451139053,
+          "LDOUSDT": -4.4872878014244,
+          "LITUSDT": 33.749083906811,
+          "PUMPFUNUSDT": -20.234394543589044,
+          "USELESSUSDT": 165.46879528527452,
+          "VVVUSDT": -45.521589072693054,
+          "WLFIUSDT": -15.158559922672225,
+          "XMRUSDT": 2.025262230476781
+        },
+        "symbols_traded": 10,
+        "tail_loss_r": -0.5843677682003405,
+        "total_net_pnl": 106.40664809673008,
+        "trades": 116,
+        "turnover": 58133.39370522837
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "wide_costs",
+      "fold": 3,
+      "lookback": 1344,
+      "period": [
+        14311,
+        17191
+      ],
+      "result": {
+        "day_concentration": 0.09880401264525034,
+        "days": 30,
+        "fees": 58.95183022317124,
+        "funding": -4.221612069610905,
+        "gross_pnl": 156.7498281398,
+        "max_drawdown_pct": 1.0583599883382284,
+        "mean_gross_r": 0.054106260667596134,
+        "mean_net_r": 0.02306138549334155,
+        "regime_net_pnl": {
+          "down": 60.308850254715644,
+          "sideways": -33.574840313797544,
+          "up": 39.71351307384787
+        },
+        "rejections": {},
+        "slippage": 17.40789047755806,
+        "spread": 18.16419649391566,
+        "symbol_concentration": 0.5014200606493608,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -10.366594087344035,
+          "FARTCOINUSDT": -6.9513032656677805,
+          "FFUSDT": -10.269987489065109,
+          "LDOUSDT": -4.802046424578572,
+          "LITUSDT": 32.78594330084655,
+          "PUMPFUNUSDT": -21.09145017282995,
+          "USELESSUSDT": 154.59257446061122,
+          "VVVUSDT": -46.65324355227507,
+          "WLFIUSDT": -19.817372590164766,
+          "XMRUSDT": -0.9789971647665132
+        },
+        "symbols_traded": 10,
+        "tail_loss_r": -0.5985272796401413,
+        "total_net_pnl": 66.44752301476595,
+        "trades": 116,
+        "turnover": 58026.207046048214
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "severe_plausible",
+      "fold": 3,
+      "lookback": 1344,
+      "period": [
+        14311,
+        17191
+      ],
+      "result": {
+        "day_concentration": 0.1250042702878644,
+        "days": 30,
+        "fees": 28.213314930316567,
+        "funding": -1.6229581472583485,
+        "gross_pnl": 33.000662495899995,
+        "max_drawdown_pct": 0.6005128244662328,
+        "mean_gross_r": 0.031921551959108736,
+        "mean_net_r": -0.013066816765488218,
+        "regime_net_pnl": {
+          "down": 11.836115707830954,
+          "sideways": -29.6092007476664,
+          "up": 4.159151742076528
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 33
+        },
+        "slippage": 10.34071954875205,
+        "spread": 9.683519461848645,
+        "symbol_concentration": 0.39237016825591964,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -6.571729366544709,
+          "FARTCOINUSDT": -6.363313953313092,
+          "FFUSDT": -3.510441149135889,
+          "LDOUSDT": -3.5962931499815816,
+          "LITUSDT": 6.6840991227052,
+          "PUMPFUNUSDT": -7.729763115930727,
+          "USELESSUSDT": 49.18238429783192,
+          "VVVUSDT": -26.39658340945484,
+          "WLFIUSDT": -6.976612606521776,
+          "XMRUSDT": -8.335679967413427
+        },
+        "symbols_traded": 10,
+        "tail_loss_r": -0.7964435337344087,
+        "total_net_pnl": -13.613933297758916,
+        "trades": 83,
+        "turnover": 20681.407258847532
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "base_taker",
+      "fold": 4,
+      "lookback": 1344,
+      "period": [
+        17191,
+        20071
+      ],
+      "result": {
+        "day_concentration": 0.10471168600902483,
+        "days": 30,
+        "fees": 39.208599406817704,
+        "funding": 1.0608611239325254,
+        "gross_pnl": -63.43107083696073,
+        "max_drawdown_pct": 2.3283496783151327,
+        "mean_gross_r": -0.02130038777984966,
+        "mean_net_r": -0.040621921859036576,
+        "regime_net_pnl": {
+          "down": -2.609941891873674,
+          "sideways": -215.10551597599047,
+          "up": 98.63271166064808
+        },
+        "rejections": {},
+        "slippage": 5.813889814383854,
+        "spread": 9.568325025121291,
+        "symbol_concentration": 0.37109125482206656,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -5.399907752088757,
+          "DASHUSDT": 3.546032744158328,
+          "FARTCOINUSDT": -59.84263875659023,
+          "FFUSDT": 135.47011496349606,
+          "HEMIUSDT": -19.92234431665085,
+          "HYPEUSDT": 28.394281493124765,
+          "PENGUUSDT": 14.165568359688,
+          "PUMPFUNUSDT": -25.141630410233898,
+          "SKRUSDT": -2.5106370552168666,
+          "UNIUSDT": -10.12699017198125,
+          "USELESSUSDT": -240.16994215593468,
+          "VVVUSDT": 7.497276061158,
+          "WLDUSDT": -20.024994278390146,
+          "WLFIUSDT": 23.164358380483737,
+          "XMRUSDT": 51.820566475528,
+          "XPLUSDT": -0.001859787766310125
+        },
+        "symbols_traded": 16,
+        "tail_loss_r": -1.023978025,
+        "total_net_pnl": -119.08274620721609,
+        "trades": 116,
+        "turnover": 58138.90873671495
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "wide_costs",
+      "fold": 4,
+      "lookback": 1344,
+      "period": [
+        17191,
+        20071
+      ],
+      "result": {
+        "day_concentration": 0.10600737577811893,
+        "days": 30,
+        "fees": 58.707044843164475,
+        "funding": 1.0618258246202037,
+        "gross_pnl": -61.35386180936775,
+        "max_drawdown_pct": 2.6336580298864565,
+        "mean_gross_r": -0.020651372179136148,
+        "mean_net_r": -0.054127029716340716,
+        "regime_net_pnl": {
+          "down": -9.286324108241747,
+          "sideways": -236.03973095936283,
+          "up": 87.6927382919681
+        },
+        "rejections": {},
+        "slippage": 17.40911914153759,
+        "spread": 19.101465156946418,
+        "symbol_concentration": 0.38313793255575695,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -6.648195855531917,
+          "DASHUSDT": 3.0135816572886043,
+          "FARTCOINUSDT": -65.68642833982963,
+          "FFUSDT": 126.33970248611465,
+          "HEMIUSDT": -20.677500300633405,
+          "HYPEUSDT": 27.428236034518907,
+          "PENGUUSDT": 13.844294415044,
+          "PUMPFUNUSDT": -25.304433896648366,
+          "SKRUSDT": -4.434754320985714,
+          "UNIUSDT": -10.4261819667,
+          "USELESSUSDT": -248.88675609530614,
+          "VVVUSDT": 7.0540352283024,
+          "WLDUSDT": -21.244159761117402,
+          "WLFIUSDT": 20.94911663368621,
+          "XMRUSDT": 47.354838576607165,
+          "XPLUSDT": -0.3087112704457691
+        },
+        "symbols_traded": 16,
+        "tail_loss_r": -1.03938589,
+        "total_net_pnl": -157.63331677563642,
+        "trades": 116,
+        "turnover": 58030.423436661775
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_14D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 1344,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "severe_plausible",
+      "fold": 4,
+      "lookback": 1344,
+      "period": [
+        17191,
+        20071
+      ],
+      "result": {
+        "day_concentration": 0.09905600375406008,
+        "days": 30,
+        "fees": 25.43776466805687,
+        "funding": 0.17001946913729893,
+        "gross_pnl": 23.482162451034995,
+        "max_drawdown_pct": 0.6867508988285159,
+        "mean_gross_r": 0.025265536519850074,
+        "mean_net_r": -0.021910227480141563,
+        "regime_net_pnl": {
+          "down": -14.033054549595654,
+          "sideways": -39.883915340502405,
+          "up": 32.7510155656718
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 40
+        },
+        "slippage": 9.536192066951317,
+        "spread": 9.504140571315764,
+        "symbol_concentration": 0.36186086741747103,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -4.707619594006005,
+          "DASHUSDT": 0.8155252656955945,
+          "FARTCOINUSDT": 2.081180236269297,
+          "FFUSDT": 40.75870847124716,
+          "HYPEUSDT": 8.854600839561384,
+          "PUMPFUNUSDT": -12.819007389039385,
+          "SKRUSDT": -3.021723977024266,
+          "UNIUSDT": -5.80101421015,
+          "USELESSUSDT": -68.68171911995299,
+          "VVVUSDT": 3.0906945293865,
+          "WLDUSDT": -10.207021223381982,
+          "WLFIUSDT": 11.31895396076076,
+          "XMRUSDT": 17.39808700247098,
+          "XPLUSDT": -0.24559911626331615
+        },
+        "symbols_traded": 14,
+        "tail_loss_r": -1.05529799,
+        "total_net_pnl": -21.165954324426252,
+        "trades": 76,
+        "turnover": 19072.356607447306
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "base_taker",
+      "fold": 1,
+      "lookback": 2688,
+      "period": [
+        8551,
+        11431
+      ],
+      "result": {
+        "day_concentration": 0.10056044369106856,
+        "days": 30,
+        "fees": 43.164453117986355,
+        "funding": -0.8602731512124036,
+        "gross_pnl": 125.49929870083257,
+        "max_drawdown_pct": 1.8102733191333902,
+        "mean_gross_r": 0.04366130456148679,
+        "mean_net_r": 0.02409458456675857,
+        "regime_net_pnl": {
+          "down": 34.17100681808345,
+          "sideways": -29.310179261409385,
+          "up": 63.39792784466231
+        },
+        "rejections": {},
+        "slippage": 5.829669203541633,
+        "spread": 9.106694129180593,
+        "symbol_concentration": 0.36875513204151866,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 4.094956910104796,
+          "FARTCOINUSDT": 103.09933974706885,
+          "FFUSDT": -0.36824968410045855,
+          "HEMIUSDT": -6.826133717759508,
+          "USELESSUSDT": -20.39204148864789,
+          "VIRTUALUSDT": 66.728850388867,
+          "VVVUSDT": -6.608125866326606,
+          "WLFIUSDT": -35.120935854469586,
+          "XMRUSDT": -29.033318737369562,
+          "XPLUSDT": -7.315586296030656
+        },
+        "symbols_traded": 10,
+        "tail_loss_r": -1.0241462499999998,
+        "total_net_pnl": 68.25875540133639,
+        "trades": 116,
+        "turnover": 58296.660349618716
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "wide_costs",
+      "fold": 1,
+      "lookback": 2688,
+      "period": [
+        8551,
+        11431
+      ],
+      "result": {
+        "day_concentration": 0.09803488630869837,
+        "days": 30,
+        "fees": 64.62324607325336,
+        "funding": -0.814808728802433,
+        "gross_pnl": 127.5139252630388,
+        "max_drawdown_pct": 2.032270439542768,
+        "mean_gross_r": 0.044283940063103745,
+        "mean_net_r": 0.01022794607195889,
+        "regime_net_pnl": {
+          "down": 18.1478895629754,
+          "sideways": -49.18845341475562,
+          "up": 59.11298637065761
+        },
+        "rejections": {},
+        "slippage": 17.45520606022999,
+        "spread": 18.17785933948055,
+        "symbol_concentration": 0.3245177542352685,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 1.24860287199144,
+          "FARTCOINUSDT": 97.73990642687414,
+          "FFUSDT": -6.599674082318295,
+          "HEMIUSDT": -7.702633754024875,
+          "USELESSUSDT": -32.502293940004904,
+          "VIRTUALUSDT": 65.64024297146457,
+          "VVVUSDT": -10.589317764194515,
+          "WLFIUSDT": -37.75612744868137,
+          "XMRUSDT": -31.382702213017385,
+          "XPLUSDT": -10.02358054921144
+        },
+        "symbols_traded": 10,
+        "tail_loss_r": -1.03976089,
+        "total_net_pnl": 28.07242251887736,
+        "trades": 116,
+        "turnover": 58183.94304169332
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "severe_plausible",
+      "fold": 1,
+      "lookback": 2688,
+      "period": [
+        8551,
+        11431
+      ],
+      "result": {
+        "day_concentration": 0.12764212924227092,
+        "days": 30,
+        "fees": 29.12688273992189,
+        "funding": -0.5619886633719019,
+        "gross_pnl": 84.99349531733985,
+        "max_drawdown_pct": 0.5255689048425657,
+        "mean_gross_r": 0.08415500164156581,
+        "mean_net_r": 0.03670987795213864,
+        "regime_net_pnl": {
+          "down": 4.152658668981221,
+          "sideways": 4.140752704955659,
+          "up": 28.568105640882578
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 35
+        },
+        "slippage": 10.11303346310927,
+        "spread": 9.45405076286112,
+        "symbol_concentration": 0.28944723737334743,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 2.8894737847041148,
+          "FARTCOINUSDT": 29.829583214684853,
+          "FFUSDT": 8.444741768627518,
+          "HEMIUSDT": 3.0526821415502874,
+          "USELESSUSDT": 5.994283979229921,
+          "VIRTUALUSDT": 16.96994682656584,
+          "VVVUSDT": -7.766235430075808,
+          "WLFIUSDT": -21.716974637451614,
+          "XMRUSDT": 2.7785800842975656,
+          "XPLUSDT": -3.6145647173132085
+        },
+        "symbols_traded": 10,
+        "tail_loss_r": -1.05517299,
+        "total_net_pnl": 36.86151701481946,
+        "trades": 81,
+        "turnover": 20225.98449783681
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "base_taker",
+      "fold": 2,
+      "lookback": 2688,
+      "period": [
+        11431,
+        14311
+      ],
+      "result": {
+        "day_concentration": 0.07952419859059028,
+        "days": 30,
+        "fees": 38.96567337964101,
+        "funding": -1.0425371606742928,
+        "gross_pnl": -423.9336859392041,
+        "max_drawdown_pct": 5.281725106240967,
+        "mean_gross_r": -0.14921800490926723,
+        "mean_net_r": -0.16791534425491286,
+        "regime_net_pnl": {
+          "down": -152.48833215869863,
+          "sideways": -142.31294072681584,
+          "up": -181.69886442231984
+        },
+        "rejections": {},
+        "slippage": 5.65638784712378,
+        "spread": 8.986927302539751,
+        "symbol_concentration": 0.4464092950277488,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 9.137808620096756,
+          "FARTCOINUSDT": -64.77215858645148,
+          "FFUSDT": -82.9863582738035,
+          "USELESSUSDT": -225.5038339747086,
+          "VIRTUALUSDT": -2.641725990311467,
+          "WLFIUSDT": 5.187322757037526,
+          "XMRUSDT": -1.2730581384639788,
+          "XPLUSDT": -113.64813372122956
+        },
+        "symbols_traded": 8,
+        "tail_loss_r": -1.023353025,
+        "total_net_pnl": -476.50013730783434,
+        "trades": 116,
+        "turnover": 56563.98696942694
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "wide_costs",
+      "fold": 2,
+      "lookback": 2688,
+      "period": [
+        11431,
+        14311
+      ],
+      "result": {
+        "day_concentration": 0.07965025540571911,
+        "days": 30,
+        "fees": 58.34204005790205,
+        "funding": -1.0399545856126007,
+        "gross_pnl": -421.8357440265431,
+        "max_drawdown_pct": 5.6213356234504515,
+        "mean_gross_r": -0.1486036096793107,
+        "mean_net_r": -0.1814489021656965,
+        "regime_net_pnl": {
+          "down": -164.24835683960305,
+          "sideways": -156.64562832418085,
+          "up": -193.12038758796228
+        },
+        "rejections": {},
+        "slippage": 16.937063986394836,
+        "spread": 17.93947926651885,
+        "symbol_concentration": 0.44295131881394983,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 6.743170747377214,
+          "FARTCOINUSDT": -70.0223014177532,
+          "FFUSDT": -91.94001279189412,
+          "USELESSUSDT": -237.1668938925801,
+          "VIRTUALUSDT": -3.5617491359810596,
+          "WLFIUSDT": 3.9617861971716235,
+          "XMRUSDT": -6.535309138476741,
+          "XPLUSDT": -115.4930633196098
+        },
+        "symbols_traded": 8,
+        "tail_loss_r": -1.03876089,
+        "total_net_pnl": -514.0143727517462,
+        "trades": 116,
+        "turnover": 56457.13806793467
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "severe_plausible",
+      "fold": 2,
+      "lookback": 2688,
+      "period": [
+        11431,
+        14311
+      ],
+      "result": {
+        "day_concentration": 0.09109326157294052,
+        "days": 30,
+        "fees": 27.408992739173506,
+        "funding": -0.7573424996639395,
+        "gross_pnl": -133.94795376345002,
+        "max_drawdown_pct": 2.0016922775702928,
+        "mean_gross_r": -0.13821266639654928,
+        "mean_net_r": -0.18550414098805307,
+        "regime_net_pnl": {
+          "down": -18.08179839446841,
+          "sideways": -86.22012848540476,
+          "up": -75.18224809619997
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 38
+        },
+        "slippage": 9.701966746881725,
+        "spread": 9.182604226231852,
+        "symbol_concentration": 0.4260653983133804,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 10.368484574333255,
+          "FARTCOINUSDT": -32.76233348024191,
+          "FFUSDT": -18.544088602555473,
+          "USELESSUSDT": -85.30730152226796,
+          "VIRTUALUSDT": -2.915492217413761,
+          "WLFIUSDT": -2.2316362303400794,
+          "XMRUSDT": -1.5859384682186142,
+          "XPLUSDT": -46.505869029368625
+        },
+        "symbols_traded": 8,
+        "tail_loss_r": -1.05432299,
+        "total_net_pnl": -179.48417497607315,
+        "trades": 78,
+        "turnover": 19404.06172779776
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "base_taker",
+      "fold": 3,
+      "lookback": 2688,
+      "period": [
+        14311,
+        17191
+      ],
+      "result": {
+        "day_concentration": 0.10394423516148084,
+        "days": 30,
+        "fees": 40.18046929155405,
+        "funding": -3.7953736625089474,
+        "gross_pnl": 295.143534046,
+        "max_drawdown_pct": 0.9065640766798195,
+        "mean_gross_r": 0.1009328496920722,
+        "mean_net_r": 0.08336970713435843,
+        "regime_net_pnl": {
+          "down": 76.49455538077122,
+          "sideways": 89.24263334468837,
+          "up": 77.89354023009898
+        },
+        "rejections": {},
+        "slippage": 5.8544859585954,
+        "spread": 9.2732235028009,
+        "symbol_concentration": 0.7141958244274605,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 0.673003372777182,
+          "FARTCOINUSDT": 22.630371700109315,
+          "FFUSDT": 13.317262091181501,
+          "USELESSUSDT": 174.00004932227836,
+          "WLFIUSDT": 6.689455166142877,
+          "XMRUSDT": 26.320587303069377
+        },
+        "symbols_traded": 6,
+        "tail_loss_r": -0.49932336977902625,
+        "total_net_pnl": 243.6307289555586,
+        "trades": 116,
+        "turnover": 58544.78484813346
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "wide_costs",
+      "fold": 3,
+      "lookback": 2688,
+      "period": [
+        14311,
+        17191
+      ],
+      "result": {
+        "day_concentration": 0.10363481355357346,
+        "days": 30,
+        "fees": 60.15482771927029,
+        "funding": -3.783581476188421,
+        "gross_pnl": 294.780334408,
+        "max_drawdown_pct": 0.9353128269794923,
+        "mean_gross_r": 0.10098308172737289,
+        "mean_net_r": 0.06942512451549819,
+        "regime_net_pnl": {
+          "down": 67.824622643395,
+          "sideways": 66.57090300120191,
+          "up": 67.97605260274061
+        },
+        "rejections": {},
+        "slippage": 17.5283212516776,
+        "spread": 18.509188665903,
+        "symbol_concentration": 0.7945967160352255,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 0.03345118394884006,
+          "FARTCOINUSDT": 13.482245470458231,
+          "FFUSDT": 4.2648880727006855,
+          "USELESSUSDT": 160.8037914942001,
+          "WLFIUSDT": 6.356352946100622,
+          "XMRUSDT": 17.430849079929068
+        },
+        "symbols_traded": 6,
+        "tail_loss_r": -0.516429700147184,
+        "total_net_pnl": 202.37157824733754,
+        "trades": 116,
+        "turnover": 58427.55873703524
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "severe_plausible",
+      "fold": 3,
+      "lookback": 2688,
+      "period": [
+        14311,
+        17191
+      ],
+      "result": {
+        "day_concentration": 0.11231807476982959,
+        "days": 30,
+        "fees": 23.814791722840777,
+        "funding": -0.9468745182527889,
+        "gross_pnl": 84.60918,
+        "max_drawdown_pct": 0.39178024339289,
+        "mean_gross_r": 0.09388252281265155,
+        "mean_net_r": 0.049002231460581906,
+        "regime_net_pnl": {
+          "down": 9.93337007464065,
+          "sideways": 19.75509284187862,
+          "up": 14.544997531491331
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 44
+        },
+        "slippage": 8.97235523,
+        "spread": 8.5354471174014,
+        "symbol_concentration": 0.7538708493299329,
+        "symbol_net_pnl": {
+          "FARTCOINUSDT": -4.525266857230005,
+          "FFUSDT": 5.128526569308517,
+          "USELESSUSDT": 50.44656190956434,
+          "XMRUSDT": -6.816361173632239
+        },
+        "symbols_traded": 4,
+        "tail_loss_r": -0.40978227388731825,
+        "total_net_pnl": 44.23346044801061,
+        "trades": 72,
+        "turnover": 17944.62847356348
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "base_taker",
+      "fold": 4,
+      "lookback": 2688,
+      "period": [
+        17191,
+        20071
+      ],
+      "result": {
+        "day_concentration": 0.10638441031103484,
+        "days": 30,
+        "fees": 39.7988786780019,
+        "funding": -0.5732281553017625,
+        "gross_pnl": -181.3401339684702,
+        "max_drawdown_pct": 3.086471216009066,
+        "mean_gross_r": -0.06269908453464762,
+        "mean_net_r": -0.08164822124195685,
+        "regime_net_pnl": {
+          "down": -46.59339853654906,
+          "sideways": -215.71925200283883,
+          "up": 26.822063434201816
+        },
+        "rejections": {},
+        "slippage": 5.776502409257503,
+        "spread": 9.148300204758248,
+        "symbol_concentration": 0.49777056853717316,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 6.525254787663487,
+          "FARTCOINUSDT": -114.77125404422559,
+          "FFUSDT": 136.53675857671413,
+          "USELESSUSDT": -281.07516260159525,
+          "WLFIUSDT": -4.2329283429658755,
+          "XMRUSDT": 21.52674451922307
+        },
+        "symbols_traded": 6,
+        "tail_loss_r": -1.023978025,
+        "total_net_pnl": -235.4905871051861,
+        "trades": 116,
+        "turnover": 57765.0640524903
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "wide_costs",
+      "fold": 4,
+      "lookback": 2688,
+      "period": [
+        17191,
+        20071
+      ],
+      "result": {
+        "day_concentration": 0.10698699377737576,
+        "days": 30,
+        "fees": 59.57524943922391,
+        "funding": -0.5766931619618695,
+        "gross_pnl": -179.00812071288672,
+        "max_drawdown_pct": 3.389367683344119,
+        "mean_gross_r": -0.06197950013011478,
+        "mean_net_r": -0.09512125139148908,
+        "regime_net_pnl": {
+          "down": -53.15342179437523,
+          "sideways": -236.56799409636923,
+          "up": 16.165774365600225
+        },
+        "rejections": {},
+        "slippage": 17.292077533051174,
+        "spread": 18.256887001944342,
+        "symbol_concentration": 0.5155022401819037,
+        "symbol_net_pnl": {
+          "ASTERUSDT": 3.698618006343204,
+          "FARTCOINUSDT": -123.15993891825973,
+          "FFUSDT": 127.4763854935861,
+          "USELESSUSDT": -292.07148959852634,
+          "WLFIUSDT": -4.834675818970899,
+          "XMRUSDT": 15.33545931068339
+        },
+        "symbols_traded": 6,
+        "tail_loss_r": -1.03938589,
+        "total_net_pnl": -273.55564152514427,
+        "trades": 116,
+        "turnover": 57640.35511304486
+      },
+      "stage": "FORWARD"
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH010_DOWNSIDE_BETA_28D",
+        "family": "cross_sectional_downside_beta_defensiveness",
+        "holding_bars": 96,
+        "lookback": 2688,
+        "reference": null,
+        "stop_pct": 0.1,
+        "target_r": 10.0,
+        "threshold": 2.0
+      },
+      "cost": "severe_plausible",
+      "fold": 4,
+      "lookback": 2688,
+      "period": [
+        17191,
+        20071
+      ],
+      "result": {
+        "day_concentration": 0.10934417297483426,
+        "days": 30,
+        "fees": 29.227420517955856,
+        "funding": -0.30681529587075046,
+        "gross_pnl": -69.11177801673065,
+        "max_drawdown_pct": 1.4123519561518219,
+        "mean_gross_r": -0.06593447925093393,
+        "mean_net_r": -0.113526403651829,
+        "regime_net_pnl": {
+          "down": -40.61922757968954,
+          "sideways": -114.38638013657635,
+          "up": 36.40818326623274
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 32
+        },
+        "slippage": 10.496151918935334,
+        "spread": 10.068889292282037,
+        "symbol_concentration": 0.5331499474331871,
+        "symbol_net_pnl": {
+          "ASTERUSDT": -2.4759793034160773,
+          "FARTCOINUSDT": -31.122035280445672,
+          "FFUSDT": 57.95770066100621,
+          "USELESSUSDT": -125.03050073277426,
+          "WLFIUSDT": -7.9265052630722,
+          "XMRUSDT": -10.000104531331127
+        },
+        "symbols_traded": 6,
+        "tail_loss_r": -1.05467299,
+        "total_net_pnl": -118.59742445003315,
+        "trades": 84,
+        "turnover": 20992.361820344602
+      },
+      "stage": "FORWARD"
+    }
+  ]
+}
