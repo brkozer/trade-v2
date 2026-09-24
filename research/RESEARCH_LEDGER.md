@@ -13,8 +13,9 @@ evidence gate; sealed per-search artifacts remain authoritative for exact result
 | `TRADEV2_DISCOVERY_006` | One UTC-hour seasonality family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_006.md) |
 | `TRADEV2_DISCOVERY_007` | One low-idiosyncratic-volatility family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_007.md) |
 | `TRADEV2_DISCOVERY_008` | One low-volume dislocation-reversal family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_008.md) |
+| `TRADEV2_DISCOVERY_009` | One idiosyncratic-MAX family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_009.md) |
 
-Totals through 008: **66 distinct searched configurations** and **702 recorded
+Totals through 009: **68 distinct searched configurations** and **726 recorded
 replay evaluations**, including the consumed 002 abort. These are search-footprint
 counts, not independent tests. There is **no promoted candidate** and no live,
 testnet or authenticated paper authority granted by any search.
@@ -27,8 +28,8 @@ funding crowding, ridge OHLCV, and 004 breadth transition, dispersion exhaustion
 volatility-term release, funding-price disagreement, volume-breadth confirmation
 and low-beta residual trend, plus 005 persistent funding-settlement carry and
 006 UTC-hour cross-sectional seasonality and 007 cross-sectional low
-idiosyncratic volatility, plus 008 low-volume range-dislocation reversal. These
-are not eligible for minor
+idiosyncratic volatility, 008 low-volume range-dislocation reversal and 009
+cross-sectional idiosyncratic MAX. These are not eligible for minor
 parameter, buffer or calendar-bin retuning, nor repetition under a fresh
 identity without a materially new causal mechanism and evidence source.
 
@@ -783,6 +784,35 @@ concentration show this was not a market-exposure or single-contributor failure.
 The stricter hurdle barely changed opportunity count and did not improve gross
 economics, directly rejecting the proposed liquidity-vacuum reversal. No
 candidate was frozen or promoted, and no threshold retuning is authorized.
+
+### Discovery-only Search 009 — 2026-09-24 09:47 UTC
+
+The one-time prospective chain read-back was unchanged and integrity-valid: 28
+candle chunks/1,860 symbol-bars through 09:00 UTC and seven OI chunks/280
+symbol-points through 23:30 UTC. Their latest hashes remained respectively
+`c7a232310fbcbf6c971ecfc28fd90f69c3fb969669fe72e7596685de6bae8a8c` and
+`5df2e4bb83909b20353ff066e276eeb838aaa5219f2c10ea4a406312dcc59eb7`.
+The synchronized OI/candle chain still spans one prospective calendar day, so
+the 28-day acceptance gate remains `WAITING_FOR_DATA`. No supervisor or open
+journal was inspected.
+
+Search 009 separated a positive-tail lottery-demand hypothesis from Search
+007's generic residual-volatility hypothesis. Each UTC day it ranked a causal
+BTC/ETH-residual maximum 15-minute return, bought the two lowest-MAX and sold
+the two highest-MAX non-factor symbols, then held one day. Frozen 14/28-day
+lookbacks ran in four disjoint 30-day folds under all three cost schedules. All
+24 evaluations were retained as `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`.
+
+The result is **REJECTED_DISCOVERY_ONLY**. Both variants made 464 trades and
+only one of four folds was positive. The 14-day arm was almost gross-flat at
++7.25 USDT but lost −225.12/−381.58/−120.50 USDT under base/wide/severe costs.
+The 28-day arm was gross-negative and lost −281.38/−437.61/−136.49 USDT. Both
+weekly-block intervals crossed zero with Holm p=1.0. Low BTC attribution and
+acceptable aggregate concentration rule out market beta or one contributor as
+the primary explanation. The positive-tail feature did not supply enough gross
+edge to fund daily turnover, and the longer lookback reversed sign. No candidate
+was frozen or promoted; lookback, cadence and holding-period retuning are not
+authorized under this identity.
 
 ## New hypothesis queue — not a frozen search
 

@@ -1,0 +1,8 @@
+{
+  "completed_at": "2026-09-24T09:46:30.331021+00:00",
+  "evaluations": 24,
+  "evidence_role": "DISCOVERY_ONLY_NOT_FRESH_VALIDATION",
+  "preregistration_sha256": "75372511e030297d1db9356846a657ceaa8d0e4fece8210801c98785cd75b900",
+  "result_sha256": "17be1171248d49a7aec3f441c04793a73a478b23c0ba948fa42159073d70cea1",
+  "search_id": "TRADEV2_DISCOVERY_009"
+}
