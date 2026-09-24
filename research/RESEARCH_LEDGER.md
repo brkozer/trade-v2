@@ -9,8 +9,9 @@ evidence gate; sealed per-search artifacts remain authoritative for exact result
 | `TRADEV2_FINAL_ALPHA_002` | Interrupted after 24 evaluations in the first trend family | Consumed abort, no promotion | Same reused 39-symbol history; [record](results/FINAL_ALPHA_SEARCH_002_ABORTED.md) |
 | `TRADEV2_FINAL_ALPHA_003` | 14 families, 28 configurations, 336 replays | 14 rejected, zero promoted | Reused 39-symbol history; [report](results/FINAL_ALPHA_SEARCH.md) |
 | `TRADEV2_ALPHA_SEARCH_004` | Six new tested families, 12 configurations, 108 evaluations; 18 more ideas explicitly unsupported | Six tested rejected, zero promoted | Newly acquired 20-symbol history, mostly predating the 003 completion; [report](results/ALPHA_SEARCH_004.md) |
+| `TRADEV2_DISCOVERY_005` | One funding-carry family, two configurations, 18 evaluations | Rejected discovery-only; zero candidates | Reused consumed 004 panel; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_005.md) |
 
-Totals through 004: **58 distinct searched configurations** and **612 recorded
+Totals through 005: **60 distinct searched configurations** and **630 recorded
 replay evaluations**, including the consumed 002 abort. These are search-footprint
 counts, not independent tests. There is **no promoted candidate** and no live,
 testnet or authenticated paper authority granted by any search.
@@ -21,7 +22,8 @@ reversion, volume shock/reversal, trend persistence/pullback, short/medium
 reversal, cross-sectional momentum/reversal, volatility expansion, BTC lead-lag,
 funding crowding, ridge OHLCV, and 004 breadth transition, dispersion exhaustion,
 volatility-term release, funding-price disagreement, volume-breadth confirmation
-and low-beta residual trend. These are not eligible for repeated tuning under a
+and low-beta residual trend, plus 005 persistent funding-settlement carry. These
+are not eligible for repeated tuning under a
 fresh identity without a materially new causal mechanism and evidence source.
 
 What 004 taught: a positive base-cost dispersion-exhaustion estimate can be an
@@ -648,6 +650,38 @@ search until the registered training and chronological-validation design plus
 at least 28 forward days are present as closed, independently accepted,
 gap-free evidence with strictly later completed execution bars. Search/trial
 counts remain unchanged; LIVE is disabled.
+
+### Discovery-only Search 005 and next closed chunks — 2026-09-24 09:09 UTC
+
+Per the separate discovery track, Search 005 froze one economically distinct
+family before replay: after two consecutive same-sign settled funding rates,
+take the receiving side after the settlement-opening bar closes and hold 32
+bars. Two absolute-rate thresholds (0.5/1.0 bp) and 18 chronological evaluations
+were sealed under `TRADEV2_DISCOVERY_005`; the consumed Search 004 panel was
+explicitly labeled `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`.
+
+The result is **REJECTED_DISCOVERY_ONLY**: 72 forward trades, mean gross/net R
+−0.234/−0.291, zero of three positive folds and zero neighbor-positive folds.
+Aggregate net PnL was −520.17/−593.35/−325.66 USDT under base/wide/severe costs.
+Base folds received 6.08 USDT funding but lost 418.73 USDT from price movement
+before 107.52 USDT of fees, spread and slippage. Maximum symbol/day absolute
+shares were 37.4%/84.6%. The smaller severe loss is an exposure/missed-fill
+effect, not robustness. No candidate was frozen or promoted.
+
+Post-completion read-back found three symbols with four-hour funding histories
+and one mixed four/eight-hour history, while the preregistered description said
+expected eight-hour settlement. A 32-bar hold can cross two settlements there.
+This consumed limitation prevents a general claim about an exactly-one-settlement
+rule; no symbols, thresholds or horizons were changed after outcomes and the
+negative search was not rerun.
+
+The one-time prospective check also found one new closed candle chunk and one
+new closed OI chunk. Full-chain integrity accepted 27 candle chunks/1,060
+symbol-bars through 23:30 UTC and seven OI chunks/280 symbol-points through the
+same timestamp. Their latest payload hashes are respectively
+`5e0a99a56e6c104df3eec5ae45852dc9754f092e9142684d1a2eff02cc845493`
+and `5df2e4bb83909b20353ff066e276eeb838aaa5219f2c10ea4a406312dcc59eb7`.
+This remains one prospective calendar day and cannot satisfy fresh acceptance.
 
 ## New hypothesis queue — not a frozen search
 
