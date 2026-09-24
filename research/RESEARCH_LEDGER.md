@@ -12,8 +12,9 @@ evidence gate; sealed per-search artifacts remain authoritative for exact result
 | `TRADEV2_DISCOVERY_005` | One funding-carry family, two configurations, 18 evaluations | Rejected discovery-only; zero candidates | Reused consumed 004 panel; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_005.md) |
 | `TRADEV2_DISCOVERY_006` | One UTC-hour seasonality family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_006.md) |
 | `TRADEV2_DISCOVERY_007` | One low-idiosyncratic-volatility family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_007.md) |
+| `TRADEV2_DISCOVERY_008` | One low-volume dislocation-reversal family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_008.md) |
 
-Totals through 007: **64 distinct searched configurations** and **678 recorded
+Totals through 008: **66 distinct searched configurations** and **702 recorded
 replay evaluations**, including the consumed 002 abort. These are search-footprint
 counts, not independent tests. There is **no promoted candidate** and no live,
 testnet or authenticated paper authority granted by any search.
@@ -26,7 +27,8 @@ funding crowding, ridge OHLCV, and 004 breadth transition, dispersion exhaustion
 volatility-term release, funding-price disagreement, volume-breadth confirmation
 and low-beta residual trend, plus 005 persistent funding-settlement carry and
 006 UTC-hour cross-sectional seasonality and 007 cross-sectional low
-idiosyncratic volatility. These are not eligible for minor
+idiosyncratic volatility, plus 008 low-volume range-dislocation reversal. These
+are not eligible for minor
 parameter, buffer or calendar-bin retuning, nor repetition under a fresh
 identity without a materially new causal mechanism and evidence source.
 
@@ -751,6 +753,36 @@ The fixed weekly four-leg design can produce only 68 trades per configuration
 over the 120-day forward span, so the preregistered 200-trade gate was
 structurally unreachable. That consumed design limitation does not authorize a
 weaker gate, cadence change or rerun. No candidate was frozen or promoted.
+
+### Discovery-only Search 008 — 2026-09-24 09:40 UTC
+
+The one-time prospective chain audit accepted one additional closed candle
+chunk. Full read-back verified 28 contiguous chunks/1,860 symbol-bars through
+09:00 UTC; the latest dataset is
+`BYBIT_PUBLIC_FORWARD_1790205300000_1790240400000` with bars hash
+`c7a232310fbcbf6c971ecfc28fd90f69c3fb969669fe72e7596685de6bae8a8c`.
+OI remained seven chunks/280 symbol-points through 23:30 UTC with latest hash
+`5df2e4bb83909b20353ff066e276eeb838aaa5219f2c10ea4a406312dcc59eb7`.
+The synchronized prospective evidence still spans one calendar day and cannot
+advance the 28-day acceptance gate. Supervisors were not inspected again.
+
+Search 008 tested whether the earlier failures of high-volume reversal and
+generic volatility expansion concealed a distinct thin-liquidity mechanism.
+It reversed only wide, extreme-closing candles with unusually low volume and a
+body above a symbol-specific 1.5× or 2.5× base-cost hurdle. Both frozen variants
+used next-open execution, a four-bar hold, four disjoint 30-day folds and all
+three cost schedules. All 24 evaluations were retained and labeled
+`DISCOVERY_ONLY_NOT_FRESH_VALIDATION`.
+
+The result is **REJECTED_DISCOVERY_ONLY**. The 1.5×/2.5× variants produced
+174/166 trades, negative gross R of −0.0315/−0.0349, zero positive folds and
+base PnL of −441.64/−436.74 USDT. Wide losses were −667.27/−652.55 USDT and
+severe losses −180.11/−225.24 USDT. Both weekly-block intervals were wholly
+negative with Holm p=1.0. Near-zero BTC beta/correlation and acceptable
+concentration show this was not a market-exposure or single-contributor failure.
+The stricter hurdle barely changed opportunity count and did not improve gross
+economics, directly rejecting the proposed liquidity-vacuum reversal. No
+candidate was frozen or promoted, and no threshold retuning is authorized.
 
 ## New hypothesis queue — not a frozen search
 
