@@ -11,8 +11,9 @@ evidence gate; sealed per-search artifacts remain authoritative for exact result
 | `TRADEV2_ALPHA_SEARCH_004` | Six new tested families, 12 configurations, 108 evaluations; 18 more ideas explicitly unsupported | Six tested rejected, zero promoted | Newly acquired 20-symbol history, mostly predating the 003 completion; [report](results/ALPHA_SEARCH_004.md) |
 | `TRADEV2_DISCOVERY_005` | One funding-carry family, two configurations, 18 evaluations | Rejected discovery-only; zero candidates | Reused consumed 004 panel; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_005.md) |
 | `TRADEV2_DISCOVERY_006` | One UTC-hour seasonality family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_006.md) |
+| `TRADEV2_DISCOVERY_007` | One low-idiosyncratic-volatility family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_007.md) |
 
-Totals through 006: **62 distinct searched configurations** and **654 recorded
+Totals through 007: **64 distinct searched configurations** and **678 recorded
 replay evaluations**, including the consumed 002 abort. These are search-footprint
 counts, not independent tests. There is **no promoted candidate** and no live,
 testnet or authenticated paper authority granted by any search.
@@ -24,7 +25,8 @@ reversal, cross-sectional momentum/reversal, volatility expansion, BTC lead-lag,
 funding crowding, ridge OHLCV, and 004 breadth transition, dispersion exhaustion,
 volatility-term release, funding-price disagreement, volume-breadth confirmation
 and low-beta residual trend, plus 005 persistent funding-settlement carry and
-006 UTC-hour cross-sectional seasonality. These are not eligible for minor
+006 UTC-hour cross-sectional seasonality and 007 cross-sectional low
+idiosyncratic volatility. These are not eligible for minor
 parameter, buffer or calendar-bin retuning, nor repetition under a fresh
 identity without a materially new causal mechanism and evidence source.
 
@@ -708,6 +710,47 @@ fold, while every neighboring-buffer fold lost money. This discriminates
 against a stable UTC liquidity-handoff premium: neither gross structure,
 parameter stability nor net costs passed. No candidate was frozen or promoted;
 no calendar-bin or buffer retuning is authorized under this identity.
+
+### Supervisor recovery and Discovery-only Search 007 — 2026-09-24 09:32 UTC
+
+The one-time supervisor audit found the earlier candle PID `37304` and OI PID
+`23844` missing while their status files remained nonterminal and unchanged
+since 23:22 UTC. Their last recorded rounds had zero failures, and empty launch
+logs exposed no collector implementation defect; external termination is the
+most defensible classification. The already accepted gate evidence therefore
+remained 27 candle chunks/1,060 symbol-bars and seven OI chunks/280 points
+through 23:30 UTC, still one calendar day and far below 28 forward days.
+
+An initial relaunch attempt at 09:26:11 UTC exited immediately because the
+launcher failed to quote the repository path containing a space; its stderr
+records that launch-only error and it collected nothing. The corrected durable
+launch at 09:26:32 UTC was verified once from the process table as candle PID
+`33456` and OI PID `13340`, each using the target-local public-only script,
+1,344 maximum half-hour rounds and a 100 GiB disk floor. Logs are under
+`runtime/recorder/{bars,oi}-resume-20260924T092632Z.*.log`. Both supervisors
+terminate on their finite round count, disk floor, explicit stop, or bounded
+failure policy. They were not polled again during this cycle.
+
+Search 007 then tested a distinct speculative-demand/leverage-constraint
+mechanism on the reused 210-day panel. Each Monday it held equal-count long
+positions in the two lowest and shorts in the two highest BTC/ETH-residual-
+volatility altcoins for seven days. Frozen 14/28-day lookbacks were evaluated in
+four disjoint 30-day forward folds under base, wide and severe costs. All 24
+evaluations were retained as `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; there was no
+outcome-selected winner.
+
+The result is **REJECTED_DISCOVERY_ONLY**. The 14-day variant lost 103.78 USDT
+at base cost with negative gross expectancy. The 28-day variant made only 26.31
+USDT base and 4.69 USDT wide across 68 trades, with two of four positive folds;
+its higher 80.16 USDT severe result is an exposure/missed-fill artifact, not
+monotone robustness. Its seven-day block interval crossed zero [−4.59, 4.62]
+USDT/day, Holm p was 0.901, and BTC daily correlation 0.308 exceeded the frozen
+0.30 cap. The neighboring 14-day configuration failed.
+
+The fixed weekly four-leg design can produce only 68 trades per configuration
+over the 120-day forward span, so the preregistered 200-trade gate was
+structurally unreachable. That consumed design limitation does not authorize a
+weaker gate, cadence change or rerun. No candidate was frozen or promoted.
 
 ## New hypothesis queue — not a frozen search
 
