@@ -1,0 +1,1527 @@
+{
+  "complete": true,
+  "cost_total_net_pnl": {
+    "base_taker": -520.1742366806412,
+    "severe_plausible": -325.6570340783997,
+    "wide_costs": -593.3520254262596
+  },
+  "dataset": {
+    "bars_per_symbol": 1384,
+    "collected_at": "2026-09-23T09:40:45.557371+00:00",
+    "dataset_id": "BYBIT_PUBLIC_POST003_004",
+    "evidence_role": "NEW_POST003_RESEARCH_CONSUMED_ON_SEARCH",
+    "files_sha256": {
+      "candles_15m.npz": "1db34b03ef7c8a457e454be50c3e51cfdece39370dd510eda83fe0cd715153b6",
+      "economics.json": "c91db44af170657e1d64d2dcfd367da9213d8586507e941f2ed0d6240df7d0fd",
+      "raw.json": "028c7f6ca31292036093290f9cd6ce33cfbbf634ae3e2211a099a47c798492eb"
+    },
+    "first_open_ms": 1788904800000,
+    "interval_ms": 900000,
+    "last_open_ms": 1790149500000,
+    "limitations": [
+      "Current spread, rules and fee schedule are not historical time series",
+      "REST book is a collection snapshot, not historical queue depth",
+      "OHLCV volume is not aggressor-signed trade flow",
+      "Funding uses settlement rates and entry-notional approximation"
+    ],
+    "raw_sha256": "028c7f6ca31292036093290f9cd6ce33cfbbf634ae3e2211a099a47c798492eb",
+    "schema_version": 1,
+    "search_id": "TRADEV2_ALPHA_SEARCH_004",
+    "selection": {
+      "max_symbols": 20,
+      "rank": "current turnover24h descending",
+      "survivorship_bias": "current selection, not point-in-time universe",
+      "turnover24h_min_usdt": "20000000"
+    },
+    "server_time_ms": 1790156424540,
+    "source": "Bybit public V5 REST",
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "XRPUSDT",
+      "SOLUSDT",
+      "ZECUSDT",
+      "NEARUSDT",
+      "HYPEUSDT",
+      "DOGEUSDT",
+      "BCHUSDT",
+      "UNIUSDT",
+      "SOXLUSDT",
+      "MUBARAKUSDT",
+      "SUIUSDT",
+      "CLUSDT",
+      "SNDKUSDT",
+      "1000PEPEUSDT",
+      "ENAUSDT",
+      "XAUUSDT",
+      "ARBUSDT",
+      "ADAUSDT"
+    ]
+  },
+  "evaluation_count": 18,
+  "evidence_role": "DISCOVERY_ONLY_NOT_FRESH_VALIDATION",
+  "family": "funding_settlement_carry",
+  "finished_at": "2026-09-24T09:09:22.178681+00:00",
+  "folds": [
+    {
+      "arms": {
+        "base_taker": {
+          "day_concentration": 0.8286442371879242,
+          "fees": 21.986015561477323,
+          "funding": -3.393072098378309,
+          "gross_pnl": -110.55352240128909,
+          "max_drawdown_pct": 1.9743156241167912,
+          "mean_gross_r": -0.2216409407604886,
+          "mean_net_r": -0.2732550442491287,
+          "regime_net_pnl": {
+            "sideways": -73.95811363613412,
+            "up": -62.34158632453418
+          },
+          "rejections": {
+            "PORTFOLIO_SLOTS": 6,
+            "SYMBOL_ALREADY_OPEN": 1
+          },
+          "slippage": 3.997455372240129,
+          "spread": 3.155778724040044,
+          "symbol_concentration": 0.3258457581696066,
+          "symbol_net_pnl": {
+            "1000PEPEUSDT": -52.79018386968357,
+            "BCHUSDT": 15.067224151343662,
+            "CLUSDT": -12.02924446412585,
+            "HYPEUSDT": -1.5466961555765357,
+            "NEARUSDT": -55.983903468406915,
+            "SOXLUSDT": -26.029981580310515,
+            "SUIUSDT": -3.6548961790522267,
+            "XAUUSDT": -2.020471747852173,
+            "ZECUSDT": 2.6884533529958325
+          },
+          "tail_loss_r": -1.0530981800027095,
+          "total_net_pnl": -136.29969996066828,
+          "trades": 20,
+          "turnover": 39974.57374814059
+        },
+        "severe_plausible": {
+          "day_concentration": 0.9252518431472683,
+          "fees": 16.468128461146552,
+          "funding": -1.451703621707508,
+          "gross_pnl": -53.205315357635115,
+          "max_drawdown_pct": 0.9444159258477732,
+          "mean_gross_r": -0.2860908169558388,
+          "mean_net_r": -0.42076525857397395,
+          "regime_net_pnl": {
+            "sideways": -41.21120675744134,
+            "up": -37.134049055160574
+          },
+          "rejections": {
+            "ASSUMED_MISSED_FILL": 10,
+            "PORTFOLIO_SLOTS": 1,
+            "SYMBOL_ALREADY_OPEN": 1
+          },
+          "slippage": 7.485496157678818,
+          "spread": 2.638019457848928,
+          "symbol_concentration": 0.31076302527842087,
+          "symbol_net_pnl": {
+            "1000PEPEUSDT": 7.859923219319468,
+            "BCHUSDT": 6.2726135534227625,
+            "CLUSDT": -12.834758449344516,
+            "HYPEUSDT": -13.887072581455543,
+            "NEARUSDT": -33.13054847724777,
+            "SUIUSDT": -1.4172120070167145,
+            "XAUUSDT": -1.2913188448790998,
+            "XRPUSDT": -13.858836346007708,
+            "ZECUSDT": -16.058045879392793
+          },
+          "tail_loss_r": -1.1229676567519238,
+          "total_net_pnl": -78.3452558126019,
+          "trades": 15,
+          "turnover": 14971.025873769595
+        },
+        "wide_costs": {
+          "day_concentration": 0.87254864434933,
+          "fees": 32.957259233066296,
+          "funding": -3.3906952921559537,
+          "gross_pnl": -108.74454352422292,
+          "max_drawdown_pct": 2.081426568063049,
+          "mean_gross_r": -0.21828917902684095,
+          "mean_net_r": -0.3143230017035413,
+          "regime_net_pnl": {
+            "sideways": -90.71704690100064,
+            "up": -65.88532356903572
+          },
+          "rejections": {
+            "PORTFOLIO_SLOTS": 6,
+            "SYMBOL_ALREADY_OPEN": 1
+          },
+          "slippage": 11.984442823057266,
+          "spread": 6.306820181845835,
+          "symbol_concentration": 0.3309765759204555,
+          "symbol_net_pnl": {
+            "1000PEPEUSDT": -56.74655836950852,
+            "BCHUSDT": 11.369846338725058,
+            "CLUSDT": -15.165581234939587,
+            "HYPEUSDT": -2.593287910730316,
+            "NEARUSDT": -60.01671811571083,
+            "SOXLUSDT": -26.785769419575058,
+            "SUIUSDT": -4.696404016807294,
+            "XAUUSDT": -2.962977430760572,
+            "ZECUSDT": 0.9950796892707459
+          },
+          "tail_loss_r": -1.0880294414200173,
+          "total_net_pnl": -156.60237047003636,
+          "trades": 20,
+          "turnover": 39948.19300977733
+        }
+      },
+      "fold": 1,
+      "neighbor": {
+        "day_concentration": 0.7297989104671725,
+        "fees": 29.605767569816027,
+        "funding": -3.5668503012594885,
+        "gross_pnl": -84.6789719426962,
+        "max_drawdown_pct": 2.4418362275388503,
+        "mean_gross_r": -0.12505869743545195,
+        "mean_net_r": -0.1793725188895273,
+        "regime_net_pnl": {
+          "sideways": -72.80893309262099,
+          "up": -48.39536439486112
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 29,
+          "SYMBOL_ALREADY_OPEN": 2
+        },
+        "slippage": 5.38286489739427,
+        "spread": 5.103543378835094,
+        "symbol_concentration": 0.22415461766252148,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": -52.84759970283962,
+          "ADAUSDT": 11.469238741205999,
+          "BCHUSDT": 15.0930473709581,
+          "BTCUSDT": 1.4334579946451105,
+          "CLUSDT": -12.02924446412585,
+          "ENAUSDT": 3.692114984911891,
+          "HYPEUSDT": -1.5466961555765357,
+          "MUBARAKUSDT": -31.514389601082158,
+          "NEARUSDT": -56.14666190008351,
+          "SOXLUSDT": -26.05681661286754,
+          "SUIUSDT": -3.6811903961677106,
+          "UNIUSDT": 30.26246064839607,
+          "XAUUSDT": -2.020471747852173,
+          "ZECUSDT": 2.6884533529958325
+        },
+        "tail_loss_r": -1.0530981800027095,
+        "total_net_pnl": -121.2042974874821,
+        "trades": 27,
+        "turnover": 53828.66830875641
+      },
+      "selected_threshold": 0.0001
+    },
+    {
+      "arms": {
+        "base_taker": {
+          "day_concentration": 0.7496556399145006,
+          "fees": 27.348399378574307,
+          "funding": -1.3354492953639399,
+          "gross_pnl": -161.367431213102,
+          "max_drawdown_pct": 2.4042121894215036,
+          "mean_gross_r": -0.2601227551855753,
+          "mean_net_r": -0.3172701618202127,
+          "regime_net_pnl": {
+            "down": -38.08506797870633,
+            "sideways": -57.74676604096338,
+            "up": -100.9307237129142
+          },
+          "rejections": {
+            "PORTFOLIO_SLOTS": 21,
+            "SYMBOL_ALREADY_OPEN": 6
+          },
+          "slippage": 4.9724344568422545,
+          "spread": 4.409741979429259,
+          "symbol_concentration": 0.19875472347820158,
+          "symbol_net_pnl": {
+            "1000PEPEUSDT": 4.9895005469461395,
+            "ADAUSDT": 21.570972742484447,
+            "CLUSDT": -43.211678813263646,
+            "ENAUSDT": -41.33038139835179,
+            "HYPEUSDT": 5.083252777833845,
+            "MUBARAKUSDT": 1.4330519064954066,
+            "NEARUSDT": -52.2558194724524,
+            "SNDKUSDT": -5.37361255620472,
+            "UNIUSDT": -26.017492191051424,
+            "XAUUSDT": -9.548927742353392,
+            "ZECUSDT": -52.10142353266636
+          },
+          "tail_loss_r": -1.0558167542744503,
+          "total_net_pnl": -196.7625577325839,
+          "trades": 25,
+          "turnover": 49724.36250649874
+        },
+        "severe_plausible": {
+          "day_concentration": 0.7427457755350847,
+          "fees": 28.40625478287672,
+          "funding": -0.4674207188372003,
+          "gross_pnl": -63.09827236972216,
+          "max_drawdown_pct": 1.2607730371766013,
+          "mean_gross_r": -0.19706449067945922,
+          "mean_net_r": -0.3426952204434429,
+          "regime_net_pnl": {
+            "down": -7.798613788776741,
+            "sideways": -29.997630648550114,
+            "up": -72.0822512747191
+          },
+          "rejections": {
+            "ASSUMED_MISSED_FILL": 14,
+            "PORTFOLIO_SLOTS": 8,
+            "SYMBOL_ALREADY_OPEN": 4
+          },
+          "slippage": 12.911917546825572,
+          "spread": 5.929471731458706,
+          "symbol_concentration": 0.2829651452698094,
+          "symbol_net_pnl": {
+            "1000PEPEUSDT": 0.9771268462779138,
+            "ADAUSDT": 8.40021907284729,
+            "BTCUSDT": -4.698216277620154,
+            "CLUSDT": -18.760637972249242,
+            "ENAUSDT": -29.47919093641198,
+            "HYPEUSDT": 3.0886492182611174,
+            "MUBARAKUSDT": -20.864936735290755,
+            "NEARUSDT": 5.1409917223351265,
+            "SNDKUSDT": -2.580817222515787,
+            "SOLUSDT": -4.789655198090103,
+            "XAUUSDT": -5.255916539352754,
+            "ZECUSDT": -41.056111690236634
+          },
+          "tail_loss_r": -1.1330465357585187,
+          "total_net_pnl": -109.87849571204596,
+          "trades": 26,
+          "turnover": 25823.86798443338
+        },
+        "wide_costs": {
+          "day_concentration": 0.7276148805186556,
+          "fees": 40.98460643455818,
+          "funding": -1.3344382834559274,
+          "gross_pnl": -158.35566587874274,
+          "max_drawdown_pct": 2.5830371422081684,
+          "mean_gross_r": -0.2555437038915075,
+          "mean_net_r": -0.3579497073199238,
+          "regime_net_pnl": {
+            "down": -46.2319739920083,
+            "sideways": -63.678116224502006,
+            "up": -111.80921216611716
+          },
+          "rejections": {
+            "PORTFOLIO_SLOTS": 21,
+            "SYMBOL_ALREADY_OPEN": 6
+          },
+          "slippage": 14.90347811174828,
+          "spread": 8.809990241034187,
+          "symbol_concentration": 0.19399190423270188,
+          "symbol_net_pnl": {
+            "1000PEPEUSDT": 3.855035177210965,
+            "ADAUSDT": 20.189438058149957,
+            "CLUSDT": -48.15297113026457,
+            "ENAUSDT": -43.86643808947685,
+            "HYPEUSDT": 4.036791020272094,
+            "MUBARAKUSDT": -4.633816760699878,
+            "NEARUSDT": -53.906825526776046,
+            "SNDKUSDT": -8.35342784939722,
+            "UNIUSDT": -26.778803679251265,
+            "XAUUSDT": -10.497077511999148,
+            "ZECUSDT": -53.611206090395505
+          },
+          "tail_loss_r": -1.09466104910971,
+          "total_net_pnl": -221.71930238262746,
+          "trades": 25,
+          "turnover": 49678.31082976749
+        }
+      },
+      "fold": 2,
+      "neighbor": {
+        "day_concentration": 0.7030940045413279,
+        "fees": 18.60894381775246,
+        "funding": -1.3417252716364538,
+        "gross_pnl": -117.19420600698655,
+        "max_drawdown_pct": 1.7404434551273302,
+        "mean_gross_r": -0.27787240095328536,
+        "mean_net_r": -0.33293383270057497,
+        "regime_net_pnl": {
+          "down": -11.814562367524438,
+          "sideways": -32.21042426840765,
+          "up": -96.4243975374039
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 1,
+          "SYMBOL_ALREADY_OPEN": 1
+        },
+        "slippage": 3.3834433030604862,
+        "spread": 2.604516317172965,
+        "symbol_concentration": 0.32157937845362133,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 5.041416568987943,
+          "CLUSDT": -43.25584396247785,
+          "HYPEUSDT": -12.92657855196451,
+          "MUBARAKUSDT": 46.60888430925728,
+          "NEARUSDT": -78.38496897339253,
+          "SNDKUSDT": -5.37361255620472,
+          "ZECUSDT": -52.15868100754162
+        },
+        "tail_loss_r": -1.0530981800027095,
+        "total_net_pnl": -140.449384173336,
+        "trades": 17,
+        "turnover": 33834.443305004475
+      },
+      "selected_threshold": 5e-05
+    },
+    {
+      "arms": {
+        "base_taker": {
+          "day_concentration": 0.8462287222484876,
+          "fees": 29.655941588436015,
+          "funding": -1.3466489744475754,
+          "gross_pnl": -146.8047636735191,
+          "max_drawdown_pct": 2.433064635673995,
+          "mean_gross_r": -0.21862587416071286,
+          "mean_net_r": -0.2786084190104237,
+          "regime_net_pnl": {
+            "down": -100.1033156198222,
+            "sideways": -54.084439282210745,
+            "up": -32.92422408535608
+          },
+          "rejections": {
+            "PORTFOLIO_SLOTS": 58,
+            "SYMBOL_ALREADY_OPEN": 8
+          },
+          "slippage": 5.391986968567352,
+          "spread": 6.605935731314139,
+          "symbol_concentration": 0.3740611490857027,
+          "symbol_net_pnl": {
+            "1000PEPEUSDT": 22.50975982775297,
+            "ADAUSDT": -75.58270369205266,
+            "ARBUSDT": -16.7786902859256,
+            "BCHUSDT": 62.73198850311346,
+            "ENAUSDT": -133.76257452915894,
+            "MUBARAKUSDT": -20.066143324691502,
+            "NEARUSDT": -26.163615486426743
+          },
+          "tail_loss_r": -1.0567355160837437,
+          "total_net_pnl": -187.11197898738902,
+          "trades": 27,
+          "turnover": 53919.893797156394
+        },
+        "severe_plausible": {
+          "day_concentration": 0.6554845358560633,
+          "fees": 30.640872188901714,
+          "funding": -0.5704121408191989,
+          "gross_pnl": -87.56404344347568,
+          "max_drawdown_pct": 1.4665233589134503,
+          "mean_gross_r": -0.2524249278877994,
+          "mean_net_r": -0.3961710633312419,
+          "regime_net_pnl": {
+            "down": -45.86143559352878,
+            "sideways": -36.52364588091,
+            "up": -55.04820107931306
+          },
+          "rejections": {
+            "ASSUMED_MISSED_FILL": 20,
+            "PORTFOLIO_SLOTS": 43,
+            "SYMBOL_ALREADY_OPEN": 2
+          },
+          "slippage": 13.927635326721738,
+          "spread": 5.871143735471913,
+          "symbol_concentration": 0.3630108056600642,
+          "symbol_net_pnl": {
+            "ADAUSDT": -28.227237293211868,
+            "ARBUSDT": 23.637226424413974,
+            "BCHUSDT": -0.5985206658243349,
+            "DOGEUSDT": -6.322431604179319,
+            "ENAUSDT": -70.36909898675758,
+            "ETHUSDT": -1.8253118541332967,
+            "HYPEUSDT": -8.876382553177319,
+            "MUBARAKUSDT": -3.144562211274365,
+            "NEARUSDT": -23.324867506792963,
+            "SOLUSDT": 4.570380681351383,
+            "SUIUSDT": -22.952476984166154
+          },
+          "tail_loss_r": -1.128879911027046,
+          "total_net_pnl": -137.43328255375184,
+          "trades": 28,
+          "turnover": 27855.338353547013
+        },
+        "wide_costs": {
+          "day_concentration": 0.8072086188995549,
+          "fees": 44.438395470612654,
+          "funding": -1.3451055453847174,
+          "gross_pnl": -142.57946598688872,
+          "max_drawdown_pct": 2.6641792503506934,
+          "mean_gross_r": -0.21277451272155562,
+          "mean_net_r": -0.32072867735321,
+          "regime_net_pnl": {
+            "down": -105.98223812064586,
+            "sideways": -62.179917806858896,
+            "up": -46.8681966460911
+          },
+          "rejections": {
+            "PORTFOLIO_SLOTS": 58,
+            "SYMBOL_ALREADY_OPEN": 8
+          },
+          "slippage": 16.159398355796068,
+          "spread": 13.198198305683107,
+          "symbol_concentration": 0.3706693086399293,
+          "symbol_net_pnl": {
+            "1000PEPEUSDT": 20.21185357038554,
+            "ADAUSDT": -81.98446343071492,
+            "ARBUSDT": -20.280393927548978,
+            "BCHUSDT": 59.08387220419216,
+            "ENAUSDT": -138.49013582698328,
+            "MUBARAKUSDT": -26.612686362442016,
+            "NEARUSDT": -26.958398800484325
+          },
+          "tail_loss_r": -1.0953061130172415,
+          "total_net_pnl": -215.03035257359582,
+          "trades": 27,
+          "turnover": 53864.72178256079
+        }
+      },
+      "fold": 3,
+      "neighbor": {
+        "day_concentration": 0.7355230638309816,
+        "fees": 25.257220488572507,
+        "funding": -1.0289530958713426,
+        "gross_pnl": -35.205968223900626,
+        "max_drawdown_pct": 1.738762853989338,
+        "mean_gross_r": -0.06028547731877063,
+        "mean_net_r": -0.11878767026203932,
+        "regime_net_pnl": {
+          "down": -6.7653718983256095,
+          "sideways": -18.543185539283225,
+          "up": -43.452098067274974
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 36
+        },
+        "slippage": 4.59222070402239,
+        "spread": 4.73419918425962,
+        "symbol_concentration": 0.346595469733274,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 22.544977989326092,
+          "ADAUSDT": -76.03753572506281,
+          "ARBUSDT": 10.433327236835307,
+          "BCHUSDT": 36.3258894351794,
+          "BTCUSDT": 4.361186890804543,
+          "DOGEUSDT": 1.6463414651159134,
+          "HYPEUSDT": -15.515670922642828,
+          "NEARUSDT": -26.35161751387412,
+          "SUIUSDT": -26.1675543605653
+        },
+        "tail_loss_r": -1.056735516083744,
+        "total_net_pnl": -68.7606555048838,
+        "trades": 23,
+        "turnover": 45922.21907013183
+      },
+      "selected_threshold": 5e-05
+    }
+  ],
+  "forward_mean_gross_r": -0.2338720319053945,
+  "forward_mean_net_r": -0.2905455867190185,
+  "forward_trades": 72,
+  "frozen_candidate": null,
+  "max_day_concentration": 0.8462287222484876,
+  "max_symbol_concentration": 0.3740611490857027,
+  "mechanism": "Two consecutive same-sign settled funding rates may indicate persistent demand to hold the paying side; taking the receiving side may collect the next settlement.",
+  "neighbor_positive_folds": 0,
+  "positive_folds": 0,
+  "preregistration_sha256": "b8294974f6b484cfe8bba94d8b7112289af7341d2d248c990a33b7489a700501",
+  "promotion": "NONE; discovery-only cannot satisfy fresh validation",
+  "schema_version": 1,
+  "search_id": "TRADEV2_DISCOVERY_005",
+  "status": "REJECTED_DISCOVERY_ONLY",
+  "trial_count": 2,
+  "trials": [
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "base_taker",
+      "fold": 1,
+      "period": [
+        288,
+        384
+      ],
+      "result": {
+        "day_concentration": 1.0,
+        "fees": 14.173731945792765,
+        "funding": -0.23757708248558065,
+        "gross_pnl": 29.52784578161524,
+        "max_drawdown_pct": 0.7788841449187349,
+        "mean_gross_r": 0.09250092382001401,
+        "mean_net_r": 0.03444774977631498,
+        "regime_net_pnl": {
+          "sideways": 10.766249642105265
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 13
+        },
+        "slippage": 2.5770424558308482,
+        "spread": 2.248398820371944,
+        "symbol_concentration": 0.20014411009698596,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": -8.620507950601612,
+          "ADAUSDT": 4.023607041813158,
+          "ARBUSDT": 31.621903601633885,
+          "BCHUSDT": 22.80390135919555,
+          "CLUSDT": -8.723239235775342,
+          "MUBARAKUSDT": -26.35992402414869,
+          "SNDKUSDT": 1.2250884724477709,
+          "SUIUSDT": -3.7560895945245423,
+          "UNIUSDT": 24.706461420234714,
+          "ZECUSDT": -26.154951448169626
+        },
+        "tail_loss_r": -1.0517780587006353,
+        "total_net_pnl": 10.766249642105265,
+        "trades": 13,
+        "turnover": 25770.42171962321
+      },
+      "stage": "SELECTION",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00010",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 0.0001
+      },
+      "cost": "base_taker",
+      "fold": 1,
+      "period": [
+        288,
+        384
+      ],
+      "result": {
+        "day_concentration": 1.0,
+        "fees": 7.6615272003438735,
+        "funding": -0.3163513691179372,
+        "gross_pnl": 41.931361,
+        "max_drawdown_pct": 0.14635738206664226,
+        "mean_gross_r": 0.23985806196973455,
+        "mean_net_r": 0.18356268441783713,
+        "regime_net_pnl": {
+          "sideways": 32.09350025886986
+        },
+        "rejections": {},
+        "slippage": 1.3930056007,
+        "spread": 1.0996793092042059,
+        "symbol_concentration": 0.6432757120919543,
+        "symbol_net_pnl": {
+          "ADAUSDT": 4.046463635570565,
+          "ARBUSDT": 31.828926970761483,
+          "BCHUSDT": 3.6859949143563657,
+          "CLUSDT": -8.692973734266326,
+          "SNDKUSDT": 1.2250884724477709
+        },
+        "tail_loss_r": -0.3636947365718913,
+        "total_net_pnl": 32.09350025886986,
+        "trades": 7,
+        "turnover": 13930.04945517068
+      },
+      "stage": "SELECTION",
+      "threshold": 0.0001
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00010",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 0.0001
+      },
+      "cost": "base_taker",
+      "fold": 1,
+      "period": [
+        384,
+        576
+      ],
+      "result": {
+        "day_concentration": 0.8286442371879242,
+        "fees": 21.986015561477323,
+        "funding": -3.393072098378309,
+        "gross_pnl": -110.55352240128909,
+        "max_drawdown_pct": 1.9743156241167912,
+        "mean_gross_r": -0.2216409407604886,
+        "mean_net_r": -0.2732550442491287,
+        "regime_net_pnl": {
+          "sideways": -73.95811363613412,
+          "up": -62.34158632453418
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 6,
+          "SYMBOL_ALREADY_OPEN": 1
+        },
+        "slippage": 3.997455372240129,
+        "spread": 3.155778724040044,
+        "symbol_concentration": 0.3258457581696066,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": -52.79018386968357,
+          "BCHUSDT": 15.067224151343662,
+          "CLUSDT": -12.02924446412585,
+          "HYPEUSDT": -1.5466961555765357,
+          "NEARUSDT": -55.983903468406915,
+          "SOXLUSDT": -26.029981580310515,
+          "SUIUSDT": -3.6548961790522267,
+          "XAUUSDT": -2.020471747852173,
+          "ZECUSDT": 2.6884533529958325
+        },
+        "tail_loss_r": -1.0530981800027095,
+        "total_net_pnl": -136.29969996066828,
+        "trades": 20,
+        "turnover": 39974.57374814059
+      },
+      "stage": "FORWARD",
+      "threshold": 0.0001
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00010",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 0.0001
+      },
+      "cost": "wide_costs",
+      "fold": 1,
+      "period": [
+        384,
+        576
+      ],
+      "result": {
+        "day_concentration": 0.87254864434933,
+        "fees": 32.957259233066296,
+        "funding": -3.3906952921559537,
+        "gross_pnl": -108.74454352422292,
+        "max_drawdown_pct": 2.081426568063049,
+        "mean_gross_r": -0.21828917902684095,
+        "mean_net_r": -0.3143230017035413,
+        "regime_net_pnl": {
+          "sideways": -90.71704690100064,
+          "up": -65.88532356903572
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 6,
+          "SYMBOL_ALREADY_OPEN": 1
+        },
+        "slippage": 11.984442823057266,
+        "spread": 6.306820181845835,
+        "symbol_concentration": 0.3309765759204555,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": -56.74655836950852,
+          "BCHUSDT": 11.369846338725058,
+          "CLUSDT": -15.165581234939587,
+          "HYPEUSDT": -2.593287910730316,
+          "NEARUSDT": -60.01671811571083,
+          "SOXLUSDT": -26.785769419575058,
+          "SUIUSDT": -4.696404016807294,
+          "XAUUSDT": -2.962977430760572,
+          "ZECUSDT": 0.9950796892707459
+        },
+        "tail_loss_r": -1.0880294414200173,
+        "total_net_pnl": -156.60237047003636,
+        "trades": 20,
+        "turnover": 39948.19300977733
+      },
+      "stage": "FORWARD",
+      "threshold": 0.0001
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00010",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 0.0001
+      },
+      "cost": "severe_plausible",
+      "fold": 1,
+      "period": [
+        384,
+        576
+      ],
+      "result": {
+        "day_concentration": 0.9252518431472683,
+        "fees": 16.468128461146552,
+        "funding": -1.451703621707508,
+        "gross_pnl": -53.205315357635115,
+        "max_drawdown_pct": 0.9444159258477732,
+        "mean_gross_r": -0.2860908169558388,
+        "mean_net_r": -0.42076525857397395,
+        "regime_net_pnl": {
+          "sideways": -41.21120675744134,
+          "up": -37.134049055160574
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 10,
+          "PORTFOLIO_SLOTS": 1,
+          "SYMBOL_ALREADY_OPEN": 1
+        },
+        "slippage": 7.485496157678818,
+        "spread": 2.638019457848928,
+        "symbol_concentration": 0.31076302527842087,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 7.859923219319468,
+          "BCHUSDT": 6.2726135534227625,
+          "CLUSDT": -12.834758449344516,
+          "HYPEUSDT": -13.887072581455543,
+          "NEARUSDT": -33.13054847724777,
+          "SUIUSDT": -1.4172120070167145,
+          "XAUUSDT": -1.2913188448790998,
+          "XRPUSDT": -13.858836346007708,
+          "ZECUSDT": -16.058045879392793
+        },
+        "tail_loss_r": -1.1229676567519238,
+        "total_net_pnl": -78.3452558126019,
+        "trades": 15,
+        "turnover": 14971.025873769595
+      },
+      "stage": "FORWARD",
+      "threshold": 0.0001
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "base_taker",
+      "fold": 1,
+      "period": [
+        384,
+        576
+      ],
+      "result": {
+        "day_concentration": 0.7297989104671725,
+        "fees": 29.605767569816027,
+        "funding": -3.5668503012594885,
+        "gross_pnl": -84.6789719426962,
+        "max_drawdown_pct": 2.4418362275388503,
+        "mean_gross_r": -0.12505869743545195,
+        "mean_net_r": -0.1793725188895273,
+        "regime_net_pnl": {
+          "sideways": -72.80893309262099,
+          "up": -48.39536439486112
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 29,
+          "SYMBOL_ALREADY_OPEN": 2
+        },
+        "slippage": 5.38286489739427,
+        "spread": 5.103543378835094,
+        "symbol_concentration": 0.22415461766252148,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": -52.84759970283962,
+          "ADAUSDT": 11.469238741205999,
+          "BCHUSDT": 15.0930473709581,
+          "BTCUSDT": 1.4334579946451105,
+          "CLUSDT": -12.02924446412585,
+          "ENAUSDT": 3.692114984911891,
+          "HYPEUSDT": -1.5466961555765357,
+          "MUBARAKUSDT": -31.514389601082158,
+          "NEARUSDT": -56.14666190008351,
+          "SOXLUSDT": -26.05681661286754,
+          "SUIUSDT": -3.6811903961677106,
+          "UNIUSDT": 30.26246064839607,
+          "XAUUSDT": -2.020471747852173,
+          "ZECUSDT": 2.6884533529958325
+        },
+        "tail_loss_r": -1.0530981800027095,
+        "total_net_pnl": -121.2042974874821,
+        "trades": 27,
+        "turnover": 53828.66830875641
+      },
+      "stage": "NEIGHBOR",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "base_taker",
+      "fold": 2,
+      "period": [
+        576,
+        672
+      ],
+      "result": {
+        "day_concentration": 1.0,
+        "fees": 16.46954429021669,
+        "funding": -0.3748895225315946,
+        "gross_pnl": 23.62248945958956,
+        "max_drawdown_pct": 1.7263898026244644,
+        "mean_gross_r": 0.06407774104442024,
+        "mean_net_r": 0.00781154199964513,
+        "regime_net_pnl": {
+          "down": -39.105790877556736,
+          "up": 41.67239293779981
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 17
+        },
+        "slippage": 2.994462851254041,
+        "spread": 1.9667697804073394,
+        "symbol_concentration": 0.27878298070684127,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": -17.746820177420883,
+          "CLUSDT": 11.151289712429557,
+          "ENAUSDT": 19.25410551168416,
+          "MUBARAKUSDT": -3.911825979623597,
+          "SOXLUSDT": -7.257264012171621,
+          "SUIUSDT": 8.542323105939031,
+          "UNIUSDT": -26.373622483794083,
+          "XAUUSDT": -2.639414450328639,
+          "XRPUSDT": 47.465599866645796,
+          "ZECUSDT": -25.917769033116624
+        },
+        "tail_loss_r": -1.0544721305763802,
+        "total_net_pnl": 2.566602060243097,
+        "trades": 15,
+        "turnover": 29944.62598221216
+      },
+      "stage": "SELECTION",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00010",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 0.0001
+      },
+      "cost": "base_taker",
+      "fold": 2,
+      "period": [
+        576,
+        672
+      ],
+      "result": {
+        "day_concentration": 1.0,
+        "fees": 6.623249322797724,
+        "funding": -0.3803916275456009,
+        "gross_pnl": -3.0426964979966282,
+        "max_drawdown_pct": 0.6109420806499103,
+        "mean_gross_r": -0.018939857418323578,
+        "mean_net_r": -0.07220703471611899,
+        "regime_net_pnl": {
+          "down": -52.71441169470634,
+          "up": 41.67239293779981
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 5
+        },
+        "slippage": 1.2042271516497998,
+        "spread": 0.5522374120079776,
+        "symbol_concentration": 0.46911664489922883,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 8.418317846233016,
+          "CLUSDT": 11.151289712429557,
+          "SOXLUSDT": -7.257264012171621,
+          "UNIUSDT": -26.373622483794083,
+          "XAUUSDT": 3.019260180396603
+        },
+        "tail_loss_r": -1.0505108816793218,
+        "total_net_pnl": -11.042018756906527,
+        "trades": 6,
+        "turnover": 12042.271495995861
+      },
+      "stage": "SELECTION",
+      "threshold": 0.0001
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "base_taker",
+      "fold": 2,
+      "period": [
+        672,
+        864
+      ],
+      "result": {
+        "day_concentration": 0.7496556399145006,
+        "fees": 27.348399378574307,
+        "funding": -1.3354492953639399,
+        "gross_pnl": -161.367431213102,
+        "max_drawdown_pct": 2.4042121894215036,
+        "mean_gross_r": -0.2601227551855753,
+        "mean_net_r": -0.3172701618202127,
+        "regime_net_pnl": {
+          "down": -38.08506797870633,
+          "sideways": -57.74676604096338,
+          "up": -100.9307237129142
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 21,
+          "SYMBOL_ALREADY_OPEN": 6
+        },
+        "slippage": 4.9724344568422545,
+        "spread": 4.409741979429259,
+        "symbol_concentration": 0.19875472347820158,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 4.9895005469461395,
+          "ADAUSDT": 21.570972742484447,
+          "CLUSDT": -43.211678813263646,
+          "ENAUSDT": -41.33038139835179,
+          "HYPEUSDT": 5.083252777833845,
+          "MUBARAKUSDT": 1.4330519064954066,
+          "NEARUSDT": -52.2558194724524,
+          "SNDKUSDT": -5.37361255620472,
+          "UNIUSDT": -26.017492191051424,
+          "XAUUSDT": -9.548927742353392,
+          "ZECUSDT": -52.10142353266636
+        },
+        "tail_loss_r": -1.0558167542744503,
+        "total_net_pnl": -196.7625577325839,
+        "trades": 25,
+        "turnover": 49724.36250649874
+      },
+      "stage": "FORWARD",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "wide_costs",
+      "fold": 2,
+      "period": [
+        672,
+        864
+      ],
+      "result": {
+        "day_concentration": 0.7276148805186556,
+        "fees": 40.98460643455818,
+        "funding": -1.3344382834559274,
+        "gross_pnl": -158.35566587874274,
+        "max_drawdown_pct": 2.5830371422081684,
+        "mean_gross_r": -0.2555437038915075,
+        "mean_net_r": -0.3579497073199238,
+        "regime_net_pnl": {
+          "down": -46.2319739920083,
+          "sideways": -63.678116224502006,
+          "up": -111.80921216611716
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 21,
+          "SYMBOL_ALREADY_OPEN": 6
+        },
+        "slippage": 14.90347811174828,
+        "spread": 8.809990241034187,
+        "symbol_concentration": 0.19399190423270188,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 3.855035177210965,
+          "ADAUSDT": 20.189438058149957,
+          "CLUSDT": -48.15297113026457,
+          "ENAUSDT": -43.86643808947685,
+          "HYPEUSDT": 4.036791020272094,
+          "MUBARAKUSDT": -4.633816760699878,
+          "NEARUSDT": -53.906825526776046,
+          "SNDKUSDT": -8.35342784939722,
+          "UNIUSDT": -26.778803679251265,
+          "XAUUSDT": -10.497077511999148,
+          "ZECUSDT": -53.611206090395505
+        },
+        "tail_loss_r": -1.09466104910971,
+        "total_net_pnl": -221.71930238262746,
+        "trades": 25,
+        "turnover": 49678.31082976749
+      },
+      "stage": "FORWARD",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "severe_plausible",
+      "fold": 2,
+      "period": [
+        672,
+        864
+      ],
+      "result": {
+        "day_concentration": 0.7427457755350847,
+        "fees": 28.40625478287672,
+        "funding": -0.4674207188372003,
+        "gross_pnl": -63.09827236972216,
+        "max_drawdown_pct": 1.2607730371766013,
+        "mean_gross_r": -0.19706449067945922,
+        "mean_net_r": -0.3426952204434429,
+        "regime_net_pnl": {
+          "down": -7.798613788776741,
+          "sideways": -29.997630648550114,
+          "up": -72.0822512747191
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 14,
+          "PORTFOLIO_SLOTS": 8,
+          "SYMBOL_ALREADY_OPEN": 4
+        },
+        "slippage": 12.911917546825572,
+        "spread": 5.929471731458706,
+        "symbol_concentration": 0.2829651452698094,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 0.9771268462779138,
+          "ADAUSDT": 8.40021907284729,
+          "BTCUSDT": -4.698216277620154,
+          "CLUSDT": -18.760637972249242,
+          "ENAUSDT": -29.47919093641198,
+          "HYPEUSDT": 3.0886492182611174,
+          "MUBARAKUSDT": -20.864936735290755,
+          "NEARUSDT": 5.1409917223351265,
+          "SNDKUSDT": -2.580817222515787,
+          "SOLUSDT": -4.789655198090103,
+          "XAUUSDT": -5.255916539352754,
+          "ZECUSDT": -41.056111690236634
+        },
+        "tail_loss_r": -1.1330465357585187,
+        "total_net_pnl": -109.87849571204596,
+        "trades": 26,
+        "turnover": 25823.86798443338
+      },
+      "stage": "FORWARD",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00010",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 0.0001
+      },
+      "cost": "base_taker",
+      "fold": 2,
+      "period": [
+        672,
+        864
+      ],
+      "result": {
+        "day_concentration": 0.7030940045413279,
+        "fees": 18.60894381775246,
+        "funding": -1.3417252716364538,
+        "gross_pnl": -117.19420600698655,
+        "max_drawdown_pct": 1.7404434551273302,
+        "mean_gross_r": -0.27787240095328536,
+        "mean_net_r": -0.33293383270057497,
+        "regime_net_pnl": {
+          "down": -11.814562367524438,
+          "sideways": -32.21042426840765,
+          "up": -96.4243975374039
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 1,
+          "SYMBOL_ALREADY_OPEN": 1
+        },
+        "slippage": 3.3834433030604862,
+        "spread": 2.604516317172965,
+        "symbol_concentration": 0.32157937845362133,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 5.041416568987943,
+          "CLUSDT": -43.25584396247785,
+          "HYPEUSDT": -12.92657855196451,
+          "MUBARAKUSDT": 46.60888430925728,
+          "NEARUSDT": -78.38496897339253,
+          "SNDKUSDT": -5.37361255620472,
+          "ZECUSDT": -52.15868100754162
+        },
+        "tail_loss_r": -1.0530981800027095,
+        "total_net_pnl": -140.449384173336,
+        "trades": 17,
+        "turnover": 33834.443305004475
+      },
+      "stage": "NEIGHBOR",
+      "threshold": 0.0001
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "base_taker",
+      "fold": 3,
+      "period": [
+        864,
+        960
+      ],
+      "result": {
+        "day_concentration": 1.0,
+        "fees": 15.361430010790853,
+        "funding": -0.7726288967339296,
+        "gross_pnl": -202.33737184397546,
+        "max_drawdown_pct": 2.3080734709396964,
+        "mean_gross_r": -0.5825885529499917,
+        "mean_net_r": -0.6399974555068713,
+        "regime_net_pnl": {
+          "sideways": -71.68300278684616,
+          "up": -150.55848875584905
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 36,
+          "SYMBOL_ALREADY_OPEN": 1
+        },
+        "slippage": 2.7929831471843976,
+        "spread": 2.5223354374783993,
+        "symbol_concentration": 0.3536266112751764,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": -52.38051608918899,
+          "ADAUSDT": -78.59050553898408,
+          "ARBUSDT": -37.79549202157615,
+          "CLUSDT": -12.364198364933085,
+          "ENAUSDT": -26.138347211244337,
+          "MUBARAKUSDT": -0.40792771045342613,
+          "XAUUSDT": -14.564504606315124
+        },
+        "tail_loss_r": -1.0567355160837437,
+        "total_net_pnl": -222.24149154269517,
+        "trades": 14,
+        "turnover": 27929.87274689246
+      },
+      "stage": "SELECTION",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00010",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 0.0001
+      },
+      "cost": "base_taker",
+      "fold": 3,
+      "period": [
+        864,
+        960
+      ],
+      "result": {
+        "day_concentration": 1.0,
+        "fees": 13.200699770870742,
+        "funding": -0.774195181027518,
+        "gross_pnl": -179.18470933252777,
+        "max_drawdown_pct": 2.0462096267554575,
+        "mean_gross_r": -0.6012660855771078,
+        "mean_net_r": -0.6578072660107877,
+        "regime_net_pnl": {
+          "sideways": -71.68300278684616,
+          "up": -124.34914350593084
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 23
+        },
+        "slippage": 2.4001233589332527,
+        "spread": 2.0208090114727564,
+        "symbol_concentration": 0.40160770276687086,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": -52.448361593339584,
+          "ADAUSDT": -78.72801994110134,
+          "ARBUSDT": -37.895190268246196,
+          "CLUSDT": -12.372931948319705,
+          "XAUUSDT": -14.587642541770194
+        },
+        "tail_loss_r": -1.0567355160837437,
+        "total_net_pnl": -196.032146292777,
+        "trades": 12,
+        "turnover": 24001.272310674078
+      },
+      "stage": "SELECTION",
+      "threshold": 0.0001
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "base_taker",
+      "fold": 3,
+      "period": [
+        960,
+        1152
+      ],
+      "result": {
+        "day_concentration": 0.8462287222484876,
+        "fees": 29.655941588436015,
+        "funding": -1.3466489744475754,
+        "gross_pnl": -146.8047636735191,
+        "max_drawdown_pct": 2.433064635673995,
+        "mean_gross_r": -0.21862587416071286,
+        "mean_net_r": -0.2786084190104237,
+        "regime_net_pnl": {
+          "down": -100.1033156198222,
+          "sideways": -54.084439282210745,
+          "up": -32.92422408535608
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 58,
+          "SYMBOL_ALREADY_OPEN": 8
+        },
+        "slippage": 5.391986968567352,
+        "spread": 6.605935731314139,
+        "symbol_concentration": 0.3740611490857027,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 22.50975982775297,
+          "ADAUSDT": -75.58270369205266,
+          "ARBUSDT": -16.7786902859256,
+          "BCHUSDT": 62.73198850311346,
+          "ENAUSDT": -133.76257452915894,
+          "MUBARAKUSDT": -20.066143324691502,
+          "NEARUSDT": -26.163615486426743
+        },
+        "tail_loss_r": -1.0567355160837437,
+        "total_net_pnl": -187.11197898738902,
+        "trades": 27,
+        "turnover": 53919.893797156394
+      },
+      "stage": "FORWARD",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "wide_costs",
+      "fold": 3,
+      "period": [
+        960,
+        1152
+      ],
+      "result": {
+        "day_concentration": 0.8072086188995549,
+        "fees": 44.438395470612654,
+        "funding": -1.3451055453847174,
+        "gross_pnl": -142.57946598688872,
+        "max_drawdown_pct": 2.6641792503506934,
+        "mean_gross_r": -0.21277451272155562,
+        "mean_net_r": -0.32072867735321,
+        "regime_net_pnl": {
+          "down": -105.98223812064586,
+          "sideways": -62.179917806858896,
+          "up": -46.8681966460911
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 58,
+          "SYMBOL_ALREADY_OPEN": 8
+        },
+        "slippage": 16.159398355796068,
+        "spread": 13.198198305683107,
+        "symbol_concentration": 0.3706693086399293,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 20.21185357038554,
+          "ADAUSDT": -81.98446343071492,
+          "ARBUSDT": -20.280393927548978,
+          "BCHUSDT": 59.08387220419216,
+          "ENAUSDT": -138.49013582698328,
+          "MUBARAKUSDT": -26.612686362442016,
+          "NEARUSDT": -26.958398800484325
+        },
+        "tail_loss_r": -1.0953061130172415,
+        "total_net_pnl": -215.03035257359582,
+        "trades": 27,
+        "turnover": 53864.72178256079
+      },
+      "stage": "FORWARD",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00005",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 5e-05
+      },
+      "cost": "severe_plausible",
+      "fold": 3,
+      "period": [
+        960,
+        1152
+      ],
+      "result": {
+        "day_concentration": 0.6554845358560633,
+        "fees": 30.640872188901714,
+        "funding": -0.5704121408191989,
+        "gross_pnl": -87.56404344347568,
+        "max_drawdown_pct": 1.4665233589134503,
+        "mean_gross_r": -0.2524249278877994,
+        "mean_net_r": -0.3961710633312419,
+        "regime_net_pnl": {
+          "down": -45.86143559352878,
+          "sideways": -36.52364588091,
+          "up": -55.04820107931306
+        },
+        "rejections": {
+          "ASSUMED_MISSED_FILL": 20,
+          "PORTFOLIO_SLOTS": 43,
+          "SYMBOL_ALREADY_OPEN": 2
+        },
+        "slippage": 13.927635326721738,
+        "spread": 5.871143735471913,
+        "symbol_concentration": 0.3630108056600642,
+        "symbol_net_pnl": {
+          "ADAUSDT": -28.227237293211868,
+          "ARBUSDT": 23.637226424413974,
+          "BCHUSDT": -0.5985206658243349,
+          "DOGEUSDT": -6.322431604179319,
+          "ENAUSDT": -70.36909898675758,
+          "ETHUSDT": -1.8253118541332967,
+          "HYPEUSDT": -8.876382553177319,
+          "MUBARAKUSDT": -3.144562211274365,
+          "NEARUSDT": -23.324867506792963,
+          "SOLUSDT": 4.570380681351383,
+          "SUIUSDT": -22.952476984166154
+        },
+        "tail_loss_r": -1.128879911027046,
+        "total_net_pnl": -137.43328255375184,
+        "trades": 28,
+        "turnover": 27855.338353547013
+      },
+      "stage": "FORWARD",
+      "threshold": 5e-05
+    },
+    {
+      "candidate": {
+        "candidate_id": "SEARCH005_FUNDING_CARRY_0.00010",
+        "family": "funding_settlement_carry",
+        "holding_bars": 32,
+        "lookback": 2,
+        "reference": null,
+        "stop_pct": 0.025,
+        "target_r": 10.0,
+        "threshold": 0.0001
+      },
+      "cost": "base_taker",
+      "fold": 3,
+      "period": [
+        960,
+        1152
+      ],
+      "result": {
+        "day_concentration": 0.7355230638309816,
+        "fees": 25.257220488572507,
+        "funding": -1.0289530958713426,
+        "gross_pnl": -35.205968223900626,
+        "max_drawdown_pct": 1.738762853989338,
+        "mean_gross_r": -0.06028547731877063,
+        "mean_net_r": -0.11878767026203932,
+        "regime_net_pnl": {
+          "down": -6.7653718983256095,
+          "sideways": -18.543185539283225,
+          "up": -43.452098067274974
+        },
+        "rejections": {
+          "PORTFOLIO_SLOTS": 36
+        },
+        "slippage": 4.59222070402239,
+        "spread": 4.73419918425962,
+        "symbol_concentration": 0.346595469733274,
+        "symbol_net_pnl": {
+          "1000PEPEUSDT": 22.544977989326092,
+          "ADAUSDT": -76.03753572506281,
+          "ARBUSDT": 10.433327236835307,
+          "BCHUSDT": 36.3258894351794,
+          "BTCUSDT": 4.361186890804543,
+          "DOGEUSDT": 1.6463414651159134,
+          "HYPEUSDT": -15.515670922642828,
+          "NEARUSDT": -26.35161751387412,
+          "SUIUSDT": -26.1675543605653
+        },
+        "tail_loss_r": -1.056735516083744,
+        "total_net_pnl": -68.7606555048838,
+        "trades": 23,
+        "turnover": 45922.21907013183
+      },
+      "stage": "NEIGHBOR",
+      "threshold": 0.0001
+    }
+  ]
+}

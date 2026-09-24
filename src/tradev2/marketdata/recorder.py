@@ -3,6 +3,7 @@ import time
 import uuid
 from typing import Any
 
+from websockets.exceptions import ConnectionClosed
 from websockets.sync.client import connect
 
 from tradev2.domain.evidence import EvidenceEnvelope
@@ -100,7 +101,7 @@ def record_public(journal: Journal, run_id: str, symbols: tuple[str, ...],
                     counts["messages"] += 1
                     counts["books"] += payload["kind"] == "orderbook"
                     counts["trades"] += len(payload.get("trades", []))
-        except (OSError, TimeoutError, ConnectionError) as exc:
+        except (OSError, TimeoutError, ConnectionError, ConnectionClosed) as exc:
             now = time.time_ns() // 1_000_000
             journal.append(EvidenceEnvelope(event_id=uuid.uuid4().hex, run_id=run_id,
                 kind="source_failure", recorded_ms=now, source="recorder",

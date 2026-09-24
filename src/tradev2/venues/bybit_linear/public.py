@@ -12,8 +12,9 @@ from tradev2.venues.bybit_linear.endpoints import PUBLIC_PATHS, PUBLIC_REST
 class PublicBybit:
     """GET-only, public-path-only client. No secrets, signing, or order methods."""
 
-    def __init__(self, *, transport: httpx.BaseTransport | None = None) -> None:
-        self._client = httpx.Client(base_url=PUBLIC_REST, timeout=15, transport=transport,
+    def __init__(self, *, transport: httpx.BaseTransport | None = None,
+                 timeout: float = 15) -> None:
+        self._client = httpx.Client(base_url=PUBLIC_REST, timeout=timeout, transport=transport,
                                     follow_redirects=False, trust_env=False)
 
     def close(self) -> None:
@@ -103,4 +104,3 @@ class PublicBybit:
             source="bybit_settled_funding_history",
             status="KNOWN_ZERO" if Decimal(row["fundingRate"]) == 0 else "KNOWN")
             for row in body["result"]["list"]]
-

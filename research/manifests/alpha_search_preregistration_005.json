@@ -1,0 +1,115 @@
+{
+  "candles_sha256": "1db34b03ef7c8a457e454be50c3e51cfdece39370dd510eda83fe0cd715153b6",
+  "costs": [
+    {
+      "fee_multiplier": 1.0,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "base_taker",
+      "slippage_bps_per_side": 1.0,
+      "spread_multiplier": 1.0
+    },
+    {
+      "fee_multiplier": 1.5,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "wide_costs",
+      "slippage_bps_per_side": 3.0,
+      "spread_multiplier": 2.0
+    },
+    {
+      "fee_multiplier": 2.0,
+      "fill_fraction": 0.5,
+      "latency_bars": 1,
+      "miss_every": 3,
+      "name": "severe_plausible",
+      "slippage_bps_per_side": 5.0,
+      "spread_multiplier": 3.0
+    }
+  ],
+  "dataset_id": "BYBIT_PUBLIC_POST003_004",
+  "dataset_manifest_sha256": "49be39451e466790c7a7f48c82e616b8b2ae144265de3db72ab188f96717f9b4",
+  "dataset_prior_consumption": "Consumed by Search 004; reused for discovery only",
+  "discovery_candidate_gates": {
+    "base_wide_severe_aggregate_net_positive": true,
+    "max_day_absolute_share": 0.3,
+    "max_symbol_absolute_share": 0.35,
+    "min_forward_trades": 60,
+    "neighbor_positive_folds": 2,
+    "positive_forward_folds": 3
+  },
+  "economics_sha256": "c91db44af170657e1d64d2dcfd367da9213d8586507e941f2ed0d6240df7d0fd",
+  "evidence_role": "DISCOVERY_ONLY_NOT_FRESH_VALIDATION",
+  "folds": [
+    {
+      "fold": 1,
+      "forward_start": 384,
+      "forward_stop": 576,
+      "selection_start": 288,
+      "selection_stop": 384,
+      "train_start": 0,
+      "train_stop": 288
+    },
+    {
+      "fold": 2,
+      "forward_start": 672,
+      "forward_stop": 864,
+      "selection_start": 576,
+      "selection_stop": 672,
+      "train_start": 0,
+      "train_stop": 576
+    },
+    {
+      "fold": 3,
+      "forward_start": 960,
+      "forward_stop": 1152,
+      "selection_start": 864,
+      "selection_stop": 960,
+      "train_start": 0,
+      "train_stop": 864
+    }
+  ],
+  "frozen_at": "2026-09-24T09:09:06.208846+00:00",
+  "hypothesis": {
+    "execution": "next-bar taker entry and taker exit after 32 bars",
+    "failure": "price drift and round-trip friction exceed the received funding",
+    "family": "funding_settlement_carry",
+    "holding_bars": 32,
+    "horizon": "through the next expected eight-hour settlement",
+    "lookback": 2,
+    "mechanism": "Two consecutive same-sign settled funding rates may indicate persistent demand to hold the paying side; taking the receiving side may collect the next settlement.",
+    "observable": "two consecutive settled funding signs and the latest absolute settled rate",
+    "stop_pct": 0.025,
+    "target_r": 10.0,
+    "thresholds": [
+      5e-05,
+      0.0001
+    ]
+  },
+  "limitations": [
+    "Current spread, rules and fee schedule are not historical time series",
+    "REST book is a collection snapshot, not historical queue depth",
+    "OHLCV volume is not aggressor-signed trade flow",
+    "Funding uses settlement rates and entry-notional approximation",
+    "reused consumed data is not fresh validation",
+    "only six forward days are evaluated",
+    "settled funding persistence does not reveal the next funding rate",
+    "current spread, fee and instrument rules are not historical snapshots",
+    "taker execution only; no queue or maker-fill inference"
+  ],
+  "multiple_testing": "one family, two thresholds; descriptive only, no inferential claim",
+  "planned_evaluations": {
+    "base": 3,
+    "neighbor": 3,
+    "selection": 6,
+    "severe": 3,
+    "total": 18,
+    "wide": 3
+  },
+  "schema_version": 1,
+  "search_id": "TRADEV2_DISCOVERY_005",
+  "selection": "highest one-day base-cost mean net R; tie lower threshold",
+  "trial_budget": 2
+}
