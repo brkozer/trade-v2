@@ -15,8 +15,9 @@ evidence gate; sealed per-search artifacts remain authoritative for exact result
 | `TRADEV2_DISCOVERY_008` | One low-volume dislocation-reversal family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_008.md) |
 | `TRADEV2_DISCOVERY_009` | One idiosyncratic-MAX family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_009.md) |
 | `TRADEV2_DISCOVERY_010` | One downside-beta-defensiveness family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_010.md) |
+| `TRADEV2_DISCOVERY_011` | One volume-weighted close-pressure family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_011.md) |
 
-Totals through 010: **70 distinct searched configurations** and **750 recorded
+Totals through 011: **72 distinct searched configurations** and **774 recorded
 replay evaluations**, including the consumed 002 abort. These are search-footprint
 counts, not independent tests. There is **no promoted candidate** and no live,
 testnet or authenticated paper authority granted by any search.
@@ -31,7 +32,8 @@ and low-beta residual trend, plus 005 persistent funding-settlement carry and
 006 UTC-hour cross-sectional seasonality and 007 cross-sectional low
 idiosyncratic volatility, 008 low-volume range-dislocation reversal and 009
 cross-sectional idiosyncratic MAX, plus 010 cross-sectional downside-beta
-defensiveness. These are not eligible for minor
+defensiveness and 011 cross-sectional volume-weighted close pressure. These are
+not eligible for minor
 parameter, buffer or calendar-bin retuning, nor repetition under a fresh
 identity without a materially new causal mechanism and evidence source.
 
@@ -845,6 +847,41 @@ failed the frozen 0.30 limit, while symbol concentration of 0.372/0.479 failed
 the 0.35 limit. The longer variant's loss was especially concentrated in one
 symbol. Lower severe losses reflect reduced size and missed fills rather than
 robustness. No parameter retuning, candidate freeze or promotion is authorized.
+
+### Discovery-only Search 011 — 2026-09-24 10:47 UTC
+
+The invocation's single closed-chain read-back accepted two additional candle
+chunks and two additional OI chunks. Full content, continuity, schema,
+availability and SHA-256 checks verified 30 candle chunks/1,940 symbol-bars and
+nine OI chunks/1,160 symbol-points, both through timestamp `1790244000000`.
+The latest datasets are `BYBIT_PUBLIC_FORWARD_1790243100000_1790244000000`
+with hash `75dcf54c4f256cca97d7a3875dae96f0ae4d81401a7e23ec9016386a1a49074e`
+and `BYBIT_PUBLIC_OI_FORWARD_1790243100000_1790244000000` with hash
+`069590653acd5c473f91afb8dad424d6369fc63b638f9d089c91b41a5d442762`.
+The synchronized chain touches two UTC calendar days, so the exact prospective
+condition remains **WAITING_FOR_DATA** until 28 forward calendar days of
+registered, closed, contiguous and integrity-accepted candle/OI evidence are
+available. No open journal or supervisor was inspected.
+
+Search 011 tested a signed-flow proxy distinct from raw-volume shock/reversal,
+low-volume dislocation reversal and price momentum. Each UTC day it ranked
+non-BTC/ETH symbols by trailing volume-weighted candle close location, bought
+the two highest-pressure and sold the two lowest-pressure symbols, then held
+one day. Frozen 7/14-day windows ran in four disjoint 30-day folds under all
+three cost schedules. A preregistered rank-overlap gate rejected any substantial
+relabeling of trailing price momentum. All 24 evaluations were retained as
+`DISCOVERY_ONLY_NOT_FRESH_VALIDATION`.
+
+The result is **REJECTED_DISCOVERY_ONLY**. The 7-day window earned 269.69 USDT
+gross and 52.28 USDT at base cost but lost -103.86/-123.45 USDT under
+wide/severe costs, had only two positive folds and derived 172.71 USDT of its
+base result from the final fold. Its seven-day block interval crossed zero and
+Holm-adjusted p was 0.820. The 14-day neighbor was gross-negative, lost 305.26
+USDT at base cost, had one positive fold and Holm p=0.930. Both windows passed
+the momentum-overlap, BTC-attribution and concentration safeguards; the failure
+is therefore cost fragility and temporal non-replication rather than a rejected
+momentum relabel. No parameter retuning, candidate freeze or promotion is
+authorized.
 
 ## New hypothesis queue — not a frozen search
 
