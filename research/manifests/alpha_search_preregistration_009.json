@@ -1,0 +1,173 @@
+{
+  "costs": [
+    {
+      "fee_multiplier": 1.0,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "base_taker",
+      "slippage_bps_per_side": 1.0,
+      "spread_multiplier": 1.0
+    },
+    {
+      "fee_multiplier": 1.5,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "wide_costs",
+      "slippage_bps_per_side": 3.0,
+      "spread_multiplier": 2.0
+    },
+    {
+      "fee_multiplier": 2.0,
+      "fill_fraction": 0.5,
+      "latency_bars": 1,
+      "miss_every": 3,
+      "name": "severe_plausible",
+      "slippage_bps_per_side": 5.0,
+      "spread_multiplier": 3.0
+    }
+  ],
+  "dataset": {
+    "candles_sha256": "07ee53a6daea51eeb810b03ee1d309dd1846950c96274d52d05eb68bd0ef1672",
+    "economics_sha256": "d941484205acd1353b8b415011c8e0d3ec4192d866d496dc1af03dd88f0eb628",
+    "first_open_ms": 1770761700000,
+    "id": "BYBIT_PUBLIC_REUSED_39_OHLCV_210D",
+    "last_open_ms": 1788903900000,
+    "manifest_sha256": "941cd5ded018cb0eea5f68caeb50c5a38e666a2b527e8b3651ec4f0f6a79f30a",
+    "prior_consumption": "Original 37-symbol data consumed in legacy and initial campaigns; BTC/ETH historical download is not a fresh holdout",
+    "role": "REUSED_HISTORICAL_DISCOVERY",
+    "symbols": [
+      "1000PEPEUSDT",
+      "AAVEUSDT",
+      "APTUSDT",
+      "ARBUSDT",
+      "ASTERUSDT",
+      "BTCUSDT",
+      "CRVUSDT",
+      "DASHUSDT",
+      "DOGEUSDT",
+      "DOTUSDT",
+      "ENAUSDT",
+      "ETHUSDT",
+      "FARTCOINUSDT",
+      "FFUSDT",
+      "FILUSDT",
+      "HEMIUSDT",
+      "HYPEUSDT",
+      "INJUSDT",
+      "LDOUSDT",
+      "LINKUSDT",
+      "LITUSDT",
+      "ONDOUSDT",
+      "OPUSDT",
+      "PENGUUSDT",
+      "PUMPFUNUSDT",
+      "SHIB1000USDT",
+      "SKRUSDT",
+      "SUIUSDT",
+      "TAOUSDT",
+      "UNIUSDT",
+      "USELESSUSDT",
+      "VIRTUALUSDT",
+      "VVVUSDT",
+      "WLDUSDT",
+      "WLFIUSDT",
+      "XMRUSDT",
+      "XPLUSDT",
+      "XRPUSDT",
+      "ZROUSDT"
+    ]
+  },
+  "discovery_candidate_gates": {
+    "base_wide_severe_aggregate_net_positive": true,
+    "bootstrap_lower_above_zero": true,
+    "holm_pvalue_max": 0.05,
+    "max_absolute_btc_daily_beta": 0.25,
+    "max_absolute_btc_daily_correlation": 0.3,
+    "max_day_absolute_share": 0.2,
+    "max_symbol_absolute_share": 0.35,
+    "minimum_forward_trades": 200,
+    "minimum_symbols": 10,
+    "other_lookback_positive_folds": 3,
+    "positive_forward_folds": 3
+  },
+  "evidence_role": "DISCOVERY_ONLY_NOT_FRESH_VALIDATION",
+  "folds": [
+    {
+      "fold": 1,
+      "forward_start": 8551,
+      "forward_stop": 11431,
+      "start_ms": 1778457600000,
+      "stop_ms": 1781049600000
+    },
+    {
+      "fold": 2,
+      "forward_start": 11431,
+      "forward_stop": 14311,
+      "start_ms": 1781049600000,
+      "stop_ms": 1783641600000
+    },
+    {
+      "fold": 3,
+      "forward_start": 14311,
+      "forward_stop": 17191,
+      "start_ms": 1783641600000,
+      "stop_ms": 1786233600000
+    },
+    {
+      "fold": 4,
+      "forward_start": 17191,
+      "forward_stop": 20071,
+      "start_ms": 1786233600000,
+      "stop_ms": 1788825600000
+    }
+  ],
+  "frozen_at": "2026-09-24T09:46:01.814103+00:00",
+  "hypothesis": {
+    "discriminator": "Search 007 tested variance; this isolates the positive-tail maximum to distinguish lottery demand from a generic low-volatility premium.",
+    "entry": "rank on the prior closed UTC-day bar; execute next open",
+    "failure": "tail-demand premium is absent, unstable, market-exposed, concentrated or consumed by daily turnover",
+    "family": "cross_sectional_idiosyncratic_max_effect",
+    "feature": "maximum 15-minute residual return over a rolling causal BTC/ETH regression window",
+    "holding_bars": 96,
+    "lookbacks": [
+      1344,
+      2688
+    ],
+    "mechanism": "Lottery-seeking demand may overprice altcoins with extreme recent positive idiosyncratic returns even when total residual variance has little predictive value.",
+    "portfolio": "daily long two lowest- and short two highest-MAX non-BTC/ETH symbols at equal risk settings"
+  },
+  "inference": {
+    "circular_block_days": 7,
+    "draws": 2000,
+    "multiplicity": "Holm correction across both frozen lookback variants",
+    "seed": 20260924
+  },
+  "limitations": [
+    "universe selected in September 2026, survivorship/selection bias",
+    "no historical L2, queue, trade-side flow or point-in-time instrument rules",
+    "OHLCV volume is total base volume, not aggressive buy volume",
+    "fee tiers are a dated observed account schedule, not a historical fee time series",
+    "instrument minimums are current snapshots, not point-in-time historical rules",
+    "spread assumptions are max(3bps, old snapshot median), not observed historical spreads",
+    "funding uses settled historical rates and entry-notional approximation; historical mark missing",
+    "BTC/ETH fees are conservative explicit proxies, not measured account-specific history",
+    "BTC/ETH spread is max(3bps, one current snapshot); not historical L2 spread",
+    "reused consumed data is not fresh validation",
+    "current universe selection creates survivorship bias",
+    "15-minute maximum return can include unobserved microstructure and liquidation effects",
+    "current fees, spreads and instrument rules approximate history",
+    "daily taker turnover is deliberately charged; no maker or queue inference"
+  ],
+  "planned_evaluations": {
+    "base": 8,
+    "severe": 8,
+    "total": 24,
+    "wide": 8
+  },
+  "schema_version": 1,
+  "search_id": "TRADEV2_DISCOVERY_009",
+  "selection": "no within-search winner selection; both lookbacks evaluated on every forward fold and Holm-corrected",
+  "trial_budget": 2
+}
