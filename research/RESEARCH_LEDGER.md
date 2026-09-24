@@ -10,8 +10,9 @@ evidence gate; sealed per-search artifacts remain authoritative for exact result
 | `TRADEV2_FINAL_ALPHA_003` | 14 families, 28 configurations, 336 replays | 14 rejected, zero promoted | Reused 39-symbol history; [report](results/FINAL_ALPHA_SEARCH.md) |
 | `TRADEV2_ALPHA_SEARCH_004` | Six new tested families, 12 configurations, 108 evaluations; 18 more ideas explicitly unsupported | Six tested rejected, zero promoted | Newly acquired 20-symbol history, mostly predating the 003 completion; [report](results/ALPHA_SEARCH_004.md) |
 | `TRADEV2_DISCOVERY_005` | One funding-carry family, two configurations, 18 evaluations | Rejected discovery-only; zero candidates | Reused consumed 004 panel; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_005.md) |
+| `TRADEV2_DISCOVERY_006` | One UTC-hour seasonality family, two configurations, 24 evaluations | Rejected discovery-only; zero candidates | Reused consumed 39-symbol history; `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`; [report](results/DISCOVERY_SEARCH_006.md) |
 
-Totals through 005: **60 distinct searched configurations** and **630 recorded
+Totals through 006: **62 distinct searched configurations** and **654 recorded
 replay evaluations**, including the consumed 002 abort. These are search-footprint
 counts, not independent tests. There is **no promoted candidate** and no live,
 testnet or authenticated paper authority granted by any search.
@@ -22,9 +23,10 @@ reversion, volume shock/reversal, trend persistence/pullback, short/medium
 reversal, cross-sectional momentum/reversal, volatility expansion, BTC lead-lag,
 funding crowding, ridge OHLCV, and 004 breadth transition, dispersion exhaustion,
 volatility-term release, funding-price disagreement, volume-breadth confirmation
-and low-beta residual trend, plus 005 persistent funding-settlement carry. These
-are not eligible for repeated tuning under a
-fresh identity without a materially new causal mechanism and evidence source.
+and low-beta residual trend, plus 005 persistent funding-settlement carry and
+006 UTC-hour cross-sectional seasonality. These are not eligible for minor
+parameter, buffer or calendar-bin retuning, nor repetition under a fresh
+identity without a materially new causal mechanism and evidence source.
 
 What 004 taught: a positive base-cost dispersion-exhaustion estimate can be an
 isolated spike. Its severe-cost arm lost money, adjacent threshold failed in all
@@ -682,6 +684,30 @@ same timestamp. Their latest payload hashes are respectively
 `5e0a99a56e6c104df3eec5ae45852dc9754f092e9142684d1a2eff02cc845493`
 and `5df2e4bb83909b20353ff066e276eeb838aaa5219f2c10ea4a406312dcc59eb7`.
 This remains one prospective calendar day and cannot satisfy fresh acceptance.
+
+### Discovery-only Search 006 — 2026-09-24 09:19 UTC
+
+Search 006 tested a distinct calendar/liquidity mechanism on the reused 210-day,
+39-symbol panel. Training-only mean next-hour return by symbol and UTC entry hour
+was cross-sectionally demeaned, then admitted only when its predicted gross edge
+cleared each symbol's base taker/spread/slippage hurdle plus a frozen zero or
+10 bp buffer. Four nested expanding folds used 30-day inner selections and four
+disjoint 30-day forward periods. All 24 planned evaluations were retained and
+labeled `DISCOVERY_ONLY_NOT_FRESH_VALIDATION`.
+
+The result is **REJECTED_DISCOVERY_ONLY**: 2,726 trades across 21 symbols, mean
+gross/net R −0.0015/−0.0753, one of four positive folds, zero neighbor-positive
+folds and a 2/2 split in selected buffers. Base/wide/severe aggregate PnL was
+−4,482.21/−7,222.81/−4,093.00 USDT. Gross PnL was already −35.52 USDT; fees,
+spread and slippage consumed 4,452.96 USDT while funding receipts offset only
+6.26 USDT. Maximum fold drawdown was 28.90%. The seven-day block bootstrap
+daily-PnL interval was wholly negative [−58.38, −16.62] USDT with p=1.0.
+
+The high-buffer arm's single positive 90-trade fold did not repeat in the next
+fold, while every neighboring-buffer fold lost money. This discriminates
+against a stable UTC liquidity-handoff premium: neither gross structure,
+parameter stability nor net costs passed. No candidate was frozen or promoted;
+no calendar-bin or buffer retuning is authorized under this identity.
 
 ## New hypothesis queue — not a frozen search
 
