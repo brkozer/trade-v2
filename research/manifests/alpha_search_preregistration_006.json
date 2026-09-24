@@ -1,0 +1,188 @@
+{
+  "costs": [
+    {
+      "fee_multiplier": 1.0,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "base_taker",
+      "slippage_bps_per_side": 1.0,
+      "spread_multiplier": 1.0
+    },
+    {
+      "fee_multiplier": 1.5,
+      "fill_fraction": 1.0,
+      "latency_bars": 0,
+      "miss_every": 0,
+      "name": "wide_costs",
+      "slippage_bps_per_side": 3.0,
+      "spread_multiplier": 2.0
+    },
+    {
+      "fee_multiplier": 2.0,
+      "fill_fraction": 0.5,
+      "latency_bars": 1,
+      "miss_every": 3,
+      "name": "severe_plausible",
+      "slippage_bps_per_side": 5.0,
+      "spread_multiplier": 3.0
+    }
+  ],
+  "dataset": {
+    "candles_sha256": "07ee53a6daea51eeb810b03ee1d309dd1846950c96274d52d05eb68bd0ef1672",
+    "economics_sha256": "d941484205acd1353b8b415011c8e0d3ec4192d866d496dc1af03dd88f0eb628",
+    "first_open_ms": 1770761700000,
+    "id": "BYBIT_PUBLIC_REUSED_39_OHLCV_210D",
+    "last_open_ms": 1788903900000,
+    "manifest_sha256": "941cd5ded018cb0eea5f68caeb50c5a38e666a2b527e8b3651ec4f0f6a79f30a",
+    "prior_consumption": "Original 37-symbol data consumed in legacy and initial campaigns; BTC/ETH historical download is not a fresh holdout",
+    "role": "REUSED_HISTORICAL_DISCOVERY",
+    "symbols": [
+      "1000PEPEUSDT",
+      "AAVEUSDT",
+      "APTUSDT",
+      "ARBUSDT",
+      "ASTERUSDT",
+      "BTCUSDT",
+      "CRVUSDT",
+      "DASHUSDT",
+      "DOGEUSDT",
+      "DOTUSDT",
+      "ENAUSDT",
+      "ETHUSDT",
+      "FARTCOINUSDT",
+      "FFUSDT",
+      "FILUSDT",
+      "HEMIUSDT",
+      "HYPEUSDT",
+      "INJUSDT",
+      "LDOUSDT",
+      "LINKUSDT",
+      "LITUSDT",
+      "ONDOUSDT",
+      "OPUSDT",
+      "PENGUUSDT",
+      "PUMPFUNUSDT",
+      "SHIB1000USDT",
+      "SKRUSDT",
+      "SUIUSDT",
+      "TAOUSDT",
+      "UNIUSDT",
+      "USELESSUSDT",
+      "VIRTUALUSDT",
+      "VVVUSDT",
+      "WLDUSDT",
+      "WLFIUSDT",
+      "XMRUSDT",
+      "XPLUSDT",
+      "XRPUSDT",
+      "ZROUSDT"
+    ]
+  },
+  "discovery_candidate_gates": {
+    "base_wide_severe_aggregate_net_positive": true,
+    "bootstrap_lower_above_zero": true,
+    "bootstrap_pvalue_max": 0.05,
+    "max_day_absolute_share": 0.2,
+    "max_symbol_absolute_share": 0.35,
+    "minimum_forward_trades": 200,
+    "minimum_symbols": 10,
+    "neighbor_positive_folds": 3,
+    "positive_forward_folds": 3,
+    "same_buffer_selected_folds": 3
+  },
+  "evidence_role": "DISCOVERY_ONLY_NOT_FRESH_VALIDATION",
+  "folds": [
+    {
+      "discovery_start": 7,
+      "discovery_stop": 5671,
+      "fold": 1,
+      "forward_start": 8551,
+      "forward_stop": 11431,
+      "refit_start": 7,
+      "refit_stop": 8551,
+      "selection_start": 5671,
+      "selection_stop": 8551
+    },
+    {
+      "discovery_start": 7,
+      "discovery_stop": 8551,
+      "fold": 2,
+      "forward_start": 11431,
+      "forward_stop": 14311,
+      "refit_start": 7,
+      "refit_stop": 11431,
+      "selection_start": 8551,
+      "selection_stop": 11431
+    },
+    {
+      "discovery_start": 7,
+      "discovery_stop": 11431,
+      "fold": 3,
+      "forward_start": 14311,
+      "forward_stop": 17191,
+      "refit_start": 7,
+      "refit_stop": 14311,
+      "selection_start": 11431,
+      "selection_stop": 14311
+    },
+    {
+      "discovery_start": 7,
+      "discovery_stop": 14311,
+      "fold": 4,
+      "forward_start": 17191,
+      "forward_stop": 20071,
+      "refit_start": 7,
+      "refit_stop": 17191,
+      "selection_start": 14311,
+      "selection_stop": 17191
+    }
+  ],
+  "frozen_at": "2026-09-24T09:18:49.593295+00:00",
+  "hypothesis": {
+    "cost_buffers": [
+      0.0,
+      0.001
+    ],
+    "entry": "one signal at each UTC hour boundary; execute next open",
+    "failure": "seasonality is unstable, beta-like, concentrated, or smaller than friction",
+    "family": "utc_hour_cross_sectional_seasonality",
+    "feature": "training-only mean next-hour return by symbol and UTC entry hour, demeaned across symbols at that hour",
+    "holding_bars": 4,
+    "mechanism": "Recurring global liquidity handoffs may create stable symbol-specific one-hour excess returns by UTC hour.",
+    "minimum_hour_samples": 45
+  },
+  "inference": {
+    "circular_block_days": 7,
+    "draws": 2000,
+    "multiplicity": "one family path; both threshold trials retained",
+    "seed": 20260924
+  },
+  "limitations": [
+    "universe selected in September 2026, survivorship/selection bias",
+    "no historical L2, queue, trade-side flow or point-in-time instrument rules",
+    "OHLCV volume is total base volume, not aggressive buy volume",
+    "fee tiers are a dated observed account schedule, not a historical fee time series",
+    "instrument minimums are current snapshots, not point-in-time historical rules",
+    "spread assumptions are max(3bps, old snapshot median), not observed historical spreads",
+    "funding uses settled historical rates and entry-notional approximation; historical mark missing",
+    "BTC/ETH fees are conservative explicit proxies, not measured account-specific history",
+    "BTC/ETH spread is max(3bps, one current snapshot); not historical L2 spread",
+    "reused consumed data is not fresh validation",
+    "calendar effects may be nonstationary and exchange-specific",
+    "current fee, spread and instrument rules are historical approximations",
+    "taker execution only; no maker or queue inference"
+  ],
+  "planned_evaluations": {
+    "base": 4,
+    "inner_selection": 8,
+    "neighbor": 4,
+    "severe": 4,
+    "total": 24,
+    "wide": 4
+  },
+  "schema_version": 1,
+  "search_id": "TRADEV2_DISCOVERY_006",
+  "selection": "highest 30-day inner mean net R with at least 30 trades; tie lower buffer",
+  "trial_budget": 2
+}
