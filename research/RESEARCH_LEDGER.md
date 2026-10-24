@@ -920,6 +920,29 @@ They do not survive a reboot. No search identity was consumed and nothing was sc
   succession and schema-2 candle availability. They cannot extend these chains and fail
   closed if run; do not start them against this data.
 
+### Collection moved to an always-on host — 2026-10-24 UTC
+
+The workstation sleeps and restarts, and every interruption resets the gap-free run,
+so collection moved to an always-on Ubuntu 20.04 host on the local network (clock
+NTP-synchronized). Nothing needed root access.
+
+- **Local stop.** Both workstation supervisors were stopped between rounds at 12:45 UTC.
+  No round was interrupted, and their status records read `STOPPED_FOR_SERVER_MIGRATION`.
+- **Host runtime.** User-space CPython 3.12.11 installed with `uv`; a dedicated virtual
+  environment holds numpy 2.2.6, pydantic 2.14.1, httpx 0.28.1 and portalocker 3.2.0.
+  The code is an archive of commit `d45db6b` with a `COLLECTOR_COMMIT` marker.
+- **Chain hand-over.** All 51 chain directories, the Search 004 universe manifest and
+  the 004 result were copied unchanged. The host's own read-back reproduced the
+  workstation summary before any new round ran.
+- **Rounds.** A user crontab runs `ops/collection_round.py` at minutes 7 and 37 of every
+  hour; it survives reboots and opens no window. A manual round at 12:50 UTC and the
+  first cron round at 13:07 UTC both collected a candle and an `OI_CHAIN_002` chunk
+  (`..._1792845000000_...` and `..._1792845900000_...`) with no failure.
+- **Source of truth.** The host's data root now holds the authoritative chains. This
+  checkout's copy changes only through `ops/pull_prospective.py`, which adds absent
+  chunks, refuses divergent ones and re-verifies. A first pull added two chunks, found
+  51 identical, and reported 0.05 of 28 gap-free contemporaneous days.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective

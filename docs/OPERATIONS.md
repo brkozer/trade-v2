@@ -104,6 +104,27 @@ code from one checkout (for example a pinned collector worktree) while writing
 evidence, status and logs under another; each status file records the code root,
 its Git SHA and the data root.
 
+### Collecting on an always-on host
+
+A home PC sleeps and restarts, and any interruption resets the gap-free run. Prefer an
+always-on host and a scheduler instead of long-lived supervisors. `ops/collection_round.py`
+runs one locked round of both collectors and exits; a user crontab such as
+`7,37 * * * *` needs no root and survives reboots. It records `OK`, `NOT_DUE` (nothing
+newly closed), `FAILED`, `SKIPPED_ROUND_IN_PROGRESS` or `STOPPED_BY_REQUEST` under
+`<data root>/runtime/collector/` (`status.json`, `rounds.jsonl`) and never starts an OI
+successor chain itself; an unrecoverable OI gap is reported as `action_required`.
+Create `runtime/collector/stop.request` under the data root to pause it.
+
+Copy new chunks back to a workstation whenever needed; existing chunks are never
+overwritten, any divergent chunk aborts the copy, and the chains are re-verified:
+
+```powershell
+.\.venv\Scripts\python.exe ops\pull_prospective.py --host <user>@<host> --remote-root "~/trade-v2-collector/data" --identity <private key>
+```
+
+Only one collector may extend a chain. After moving collection to another host,
+stop every local supervisor first and treat the host's data root as the source.
+
 ## Historical and new research
 
 ```powershell
