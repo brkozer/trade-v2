@@ -883,6 +883,43 @@ Disclosed limitations of consumed searches (not rerun, not relabelled):
   cannot succeed yet. This is one more unmet item of authenticated testnet
   acceptance, not a reachable trading path.
 
+### Public-only collection restarted — 2026-10-24 UTC
+
+On operator instruction, public-only collection resumed. Code runs from a detached
+collector checkout pinned at `98aa9ca` (ignored `runtime/collector-checkout-98aa9ca`);
+evidence, status and logs are written under this checkout. The supervisors were
+started as independent processes so they do not end with an interactive session.
+They do not survive a reboot. No search identity was consumed and nothing was scored.
+
+- **Candles.** One labelled backfill chunk, `BYBIT_PUBLIC_FORWARD_1790252100000_1792842300000`,
+  closed the gap: 2,879 bars per symbol, `BACKFILL_LATER_OBSERVED`, schema-2
+  availability. These bars are later-observed context and never count toward the gate.
+  The chain stays contiguous and continues every 30 minutes.
+- **Open interest.** `OI_CHAIN_001` is closed at its 2026-09-24 12:00 UTC point.
+  `OI_CHAIN_002` began with `BYBIT_PUBLIC_OI_FORWARD2_1792841400000_1792842300000`. Its
+  genesis manifest names the predecessor's last chunk and payload hash and records an
+  unobserved gap of 2,877 points per symbol (2026-09-24 12:15 to 2026-10-24 11:15 UTC),
+  `backfilled: false`, with the stop reason. A plain continuation of chain 1 was refused
+  first, as designed.
+- **Supervisors.** Candle `bars-continuation-20261024T120845Z` and OI
+  `oi-continuation-20261024T120845Z`: up to 2,880 rounds of 30 minutes, a 100 GiB disk
+  floor, and a stop after three consecutive failures. The first candle round after the
+  backfill was a benign "no new closed bar yet" refusal. The first steady-state rounds at
+  12:38 UTC both succeeded: candle chunk `BYBIT_PUBLIC_FORWARD_1792843200000_1792844100000`
+  and OI chunk `BYBIT_PUBLIC_OI_FORWARD2_1792843200000_1792844100000`, after which the
+  independent read-back verified both chains and the gate stood at 0.04 days.
+- **Superseded launch.** A first launch from `f70d45d` wrote status under the code
+  checkout. It was stopped between rounds, with no round interrupted, and its records
+  were moved here as `SUPERSEDED_BY_RELAUNCH`.
+- **Gate.** Directly after the restart: 0.02 of 28 gap-free contemporaneous joint days
+  (newest run 11:30 to 12:00 UTC). Under the same stricter rule the pre-restart chain
+  held 0.15 days, because 36 of its bars were themselves backfilled. If every round
+  succeeds, the forward-day requirement can first be met around 2026-11-21. Meeting it
+  authorizes nothing by itself.
+- **Compatibility.** Collectors on `research/prospective-evidence-005` predate chain
+  succession and schema-2 candle availability. They cannot extend these chains and fail
+  closed if run; do not start them against this data.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective
