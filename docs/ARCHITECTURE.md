@@ -32,8 +32,10 @@ and semantics with runtime evaluation. Replay prices occur after signal availabi
 
 PublicBybit exposes a GET-only allowlist of built-in public endpoints. It has no credentials,
 signer, private endpoints, order, cancel or position mutation methods. Simulation runtimes
-receive this public client and a simulator only. Live is disabled at the runtime boundary;
-testnet is a preflight boundary and cannot construct an authenticated transport.
+receive this public client and a simulator only. Live is disabled at the runtime boundary.
+The simulation runtime refuses testnet mode; the separate signed testnet transport is
+host-pinned, import-isolated from simulation and requires dedicated config, environment
+and startup-proof authorization (see the safety model).
 
 ## Evidence and recovery
 

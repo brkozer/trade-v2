@@ -1,4 +1,3 @@
-import hashlib
 import json
 import sqlite3
 import subprocess
@@ -12,8 +11,15 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
 from tradev2.domain.evidence import EvidenceEnvelope
-from tradev2.evidence.journal import open_reader, read_events, verify_connection
-from tradev2.marketdata.recording_audit import inspect_recording
+from tradev2.evidence.journal import latest_activity_ns, open_reader, read_kinds, verify_connection
+from tradev2.evidence.sealed_research import SealedSearch, load_sealed_searches
+from tradev2.marketdata.recording_audit import (
+    RecordingIncompleteError,
+    RecordingIntegrityError,
+    completion_events,
+    inspect_recording,
+)
+from tradev2.research.prospective_chain import summarize_prospective_evidence
 
 
 class RuntimeView(BaseModel):
@@ -32,10 +38,13 @@ class RuntimeView(BaseModel):
 
 
 class EvidenceView(BaseModel):
+    """Journal integrity and sealed-research integrity are separate observations."""
     integrity: str
     errors: list[str]
     journals: int
     window_limit_per_kind: int = 1000
+    research_integrity: Literal["VERIFIED", "FAILED", "UNKNOWN"] = "UNKNOWN"
+    research_errors: list[str] = []
 
 
 class Workstation(BaseModel):
@@ -47,9 +56,11 @@ class Workstation(BaseModel):
     manifests: list[dict[str, Any]]
     campaign: dict[str, Any] | None
     searches: list[dict[str, Any]] = []
+    candidates: list[dict[str, Any]] = []
     experiments: list[dict[str, Any]] = []
     symbols: list[dict[str, Any]] = []
     performance: dict[str, Any] = {}
+    prospective: dict[str, Any] = {}
     evidence: EvidenceView
     system: dict[str, Any]
 
@@ -58,80 +69,37 @@ KINDS = ("runtime", "account", "opportunity", "decision", "rejection", "order", 
 
 
 def _campaigns(root: Path, errors: list[str],
-               selected_search_id: str | None = None) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
-    campaigns: list[dict[str, Any]] = []
-    for name, marker in (("campaign.json", "initial_campaign_completion.json"),
-                         ("FINAL_ALPHA_SEARCH_003.json", "final_search_completion_003.json"),
-                         ("ALPHA_SEARCH_004.json", "alpha_search_completion_004.json")):
-        path = root / "research/results" / name
-        completion = root / "research/manifests" / marker
-        if not path.exists():
-            continue
-        try:
-            if not path.resolve().is_relative_to(root.resolve()) or not completion.is_file():
-                raise ValueError("research artifact outside target or completion missing")
-            evidence = json.loads(path.read_text(encoding="utf-8"))
-            seal = json.loads(completion.read_text(encoding="utf-8"))
-            if (not isinstance(evidence, dict) or evidence.get("complete") is not True
-                    or hashlib.sha256(path.read_bytes()).hexdigest() != seal["result_sha256"]):
-                raise ValueError("campaign checksum or completeness invalid")
-            campaigns.append(evidence)
-        except (OSError, ValueError, KeyError, json.JSONDecodeError):
-            errors.append(f"CAMPAIGN_INTEGRITY_FAILED:{name}")
-    active = (next((c for c in campaigns if c.get("search_id") == selected_search_id), None)
-              if selected_search_id else campaigns[-1] if campaigns else None)
+               selected_search_id: str | None = None) -> tuple[SealedSearch | None, list[dict[str, Any]]]:
+    """Verified sealed searches; the latest completed one is active unless one is selected."""
+    sealed = load_sealed_searches(root, errors)
+    active = (next((item for item in sealed if item.search_id == selected_search_id), None)
+              if selected_search_id else sealed[-1] if sealed else None)
     if selected_search_id and active is None:
         errors.append("SEARCH_NOT_FOUND_OR_UNVERIFIED")
-    summaries = [{"search_id": c.get("search_id"), "generated_at": c.get("generated_at") or c.get("finished_at"),
-                  "dataset": (c.get("dataset") or {}).get("id") or (c.get("dataset") or {}).get("dataset_id"),
-                  "configurations": (c.get("search_budget") or {}).get("configurations") or c.get("trial_count"),
-                  "evaluations": (c.get("search_budget") or {}).get("total_replays") or c.get("evaluation_count"),
-                  "promoted": len(c.get("promoted_candidates") or []),
-                  "holdout_state": c.get("final_holdout_state") or c.get("promotion_note"), "complete": True}
-                 for c in campaigns]
-    return active, summaries
-
-
-def _experiments(campaign: dict[str, Any] | None) -> list[dict[str, Any]]:
-    if campaign is None:
-        return []
-    if campaign.get("search_id") == "TRADEV2_ALPHA_SEARCH_004":
-        return [{"hypothesis": row["family"], "baseline": "preregistered_thresholds",
-                 "treatment": row["cost"], "sample_unit": "chronological_fold_replay",
-                 "n": row["result"]["trades"], "mean_paired_delta": None,
-                 "ci": None, "multiple_testing_family": campaign["search_id"],
-                 "checkpoint": row["fold"], "status": row["status"],
-                 "trial_id": row["trial_id"], "net_r": row["result"]["mean_net_r"]}
-                for row in campaign.get("trials", [])]
-    rows: list[dict[str, Any]] = []
-    for family in campaign.get("families", []):
-        for fold in family.get("folds", []):
-            for treatment, result in fold.get("stress", {}).items():
-                paired = result.get("paired")
-                if not isinstance(paired, dict):
-                    continue
-                rows.append({"hypothesis": family["family"], "baseline": "base_taker",
-                             "treatment": treatment, "sample_unit": "common_opportunity_intent",
-                             "n": paired.get("common_opportunities"),
-                             "paired_net_delta": paired.get("paired_net_delta"),
-                             "mean_paired_delta": paired.get("mean_paired_delta"),
-                             "ci": None, "multiple_testing_family": campaign.get("search_id"),
-                             "checkpoint": fold.get("fold"), "status": "DESCRIPTIVE_ONLY",
-                             "unpaired_portfolio_delta": paired.get("unpaired_portfolio_delta")})
-    return rows
+    return active, [item.summary() for item in sealed]
 
 
 def _recording_status(root: Path) -> dict[str, Any]:
-    paths = sorted((root / "runtime/recorder").glob("*/journal.sqlite"),
-                   key=lambda path: path.stat().st_mtime_ns)
+    """Latest recorder journal by actual write activity; integrity is not acceptance."""
+    paths = sorted((root / "runtime/recorder").glob("*/journal.sqlite"), key=latest_activity_ns)
+    unknown: dict[str, Any] = {"messages": None, "books": None, "trades": None}
     if not paths:
-        return {"status": "UNKNOWN", "messages": None, "books": None, "trades": None}
+        return {"status": "UNKNOWN", "run_id": None, "reason": None, **unknown}
     path = paths[-1]
+    run_id = path.parent.name
     try:
-        audit = inspect_recording(path, path.parent.name)
-        return {"status": "RECORDED_STOPPED", **audit}
-    except (ValueError, OSError, sqlite3.Error):
-        return {"status": "INTEGRITY_FAILED", "messages": None, "books": None, "trades": None}
+        audit = inspect_recording(path, run_id)
+        return {"status": "RECORDED_STOPPED", "reason": None, **audit}
+    except RecordingIntegrityError as exc:
+        return {"status": "INTEGRITY_FAILED", "run_id": run_id, "reason": str(exc), **unknown}
+    except RecordingIncompleteError as exc:
+        return {"status": "NOT_COMPLETED", "run_id": run_id, "reason": str(exc), **unknown}
+    except ValueError as exc:
+        # An open run can fail an acceptance check before its completion is written.
+        status = "NOT_COMPLETED" if completion_events(path, run_id) == 0 else "UNACCEPTED"
+        return {"status": status, "run_id": run_id, "reason": str(exc), **unknown}
+    except (OSError, sqlite3.Error) as exc:
+        return {"status": "UNAVAILABLE", "run_id": run_id, "reason": type(exc).__name__, **unknown}
 
 
 def _sum_known(events: list[EvidenceEnvelope], field: str) -> str | None:
@@ -202,12 +170,14 @@ def snapshot(root: Path, mode: str, run_id: str | None = None,
     events: dict[str, list[EvidenceEnvelope]] = {kind: [] for kind in KINDS}
     manifests: list[dict[str, Any]] = []
     errors: list[str] = []
+    research_errors: list[str] = []
     paths = sorted((root / "runtime" / mode).glob("*/journal.sqlite"))
     if run_id:
         paths = [path for path in paths if path.parent.name == run_id]
     # A workstation observes one run; never sum unrelated accounts across sessions.
+    # WAL commits touch the -wal sidecar, so the main file's mtime alone is not recency.
     if paths:
-        paths = [max(paths, key=lambda path: path.stat().st_mtime_ns)]
+        paths = [max(paths, key=latest_activity_ns)]
     for path in paths:
         if not path.resolve().is_relative_to(root.resolve()):
             errors.append("JOURNAL_OUTSIDE_ROOT")
@@ -215,15 +185,23 @@ def snapshot(root: Path, mode: str, run_id: str | None = None,
         try:
             connection = open_reader(path)
             try:
+                # One read transaction: verification and every kind see the same snapshot.
+                connection.execute("BEGIN")
                 if not verify_connection(connection):
                     errors.append("JOURNAL_INTEGRITY_FAILED")
                     continue
-                manifests.extend(json.loads(row[0]) for row in connection.execute("SELECT manifest FROM runs"))
+                loaded_manifests = [json.loads(row[0])
+                                    for row in connection.execute("SELECT manifest FROM runs")]
+                loaded = {kind: [EvidenceEnvelope.model_validate(row) for row in rows]
+                          for kind, rows in read_kinds(connection, KINDS).items()}
             finally:
                 connection.close()
-            for kind in KINDS:
-                events[kind] = [EvidenceEnvelope.model_validate(row) for row in read_events(path, kind)]
+            manifests.extend(loaded_manifests)
+            events.update(loaded)
         except (sqlite3.Error, ValueError, OSError):
+            # Fail closed: never serve a partially read journal as runtime truth.
+            events = {kind: [] for kind in KINDS}
+            manifests = []
             errors.append("JOURNAL_UNAVAILABLE")
     runtime = RuntimeView(mode=mode, status="UNKNOWN" if errors else "NOT_RUNNING")
     if events["runtime"]:
@@ -239,7 +217,7 @@ def snapshot(root: Path, mode: str, run_id: str | None = None,
                               age_ms=age, source_ms=latest.source_ms,
                               source_freshness="UNKNOWN" if source_age is None else "FRESH"
                               if 0 <= source_age <= 30_000 else "STALE")
-    campaign, searches = _campaigns(root, errors, search_id)
+    active, searches = _campaigns(root, research_errors, search_id)
     latest_market = events["market"][0] if events["market"] else None
     if latest_market is None or latest_market.source_ms is None:
         public_market = "UNKNOWN"
@@ -257,17 +235,32 @@ def snapshot(root: Path, mode: str, run_id: str | None = None,
         software_sha = None
     return Workstation(generated_ms=now, runtime=runtime,
                        account=events["account"][0].payload if events["account"] else None,
-                       events=events, manifests=manifests, campaign=campaign,
-                       searches=searches, experiments=_experiments(campaign),
+                       events=events, manifests=manifests,
+                       campaign=active.evidence if active else None,
+                       searches=searches,
+                       candidates=active.candidate_rows() if active else [],
+                       experiments=active.experiment_rows() if active else [],
                        symbols=_symbol_rows(events, now), performance=_performance(events),
+                       prospective=summarize_prospective_evidence(root, now_ms=now),
                        evidence=EvidenceView(integrity="FAILED" if errors else "VERIFIED" if paths else "UNKNOWN",
-                                             errors=errors, journals=len(paths)),
+                                             errors=errors, journals=len(paths),
+                                             research_integrity="FAILED" if research_errors
+                                             else "VERIFIED" if searches else "UNKNOWN",
+                                             research_errors=research_errors),
                        system={"api": "AVAILABLE", "authority": "READ_ONLY", "live": "LIVE_DISABLED",
                                "git_sha": software_sha,
                                "public_market": public_market,
                                "reconciliation": None, "protection": None,
                                "testnet": "DEDICATED_AUTHORIZATION_REQUIRED",
                                "public_recorder": _recording_status(root)})
+
+
+def _integrity(view: Workstation) -> dict[str, Any]:
+    """Every resource envelope states which evidence it was derived from and its checks."""
+    return {"journal": view.evidence.integrity, "journal_errors": view.evidence.errors,
+            "research": view.evidence.research_integrity,
+            "research_errors": view.evidence.research_errors,
+            "search_id": (view.campaign or {}).get("search_id")}
 
 
 def create_app(root: Path | None = None) -> FastAPI:
@@ -278,22 +271,25 @@ def create_app(root: Path | None = None) -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "AVAILABLE", "live": "LIVE_DISABLED"}
 
+    def checked(mode: str, run_id: str | None, search_id: str | None) -> Workstation:
+        view = snapshot(project, mode, run_id, search_id)
+        if search_id and view.campaign is None:
+            raise HTTPException(404, "Sealed research search not found")
+        if run_id and view.evidence.journals == 0:
+            raise HTTPException(404, "Simulation run not found")
+        return view
+
     @app.get("/api/v1/workstation", response_model=Workstation)
     def workstation(mode: Literal["paper", "shadow"] = "paper",
                     run_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_-]+$"),
                     search_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_]+$")) -> Workstation:
-        view = snapshot(project, mode, run_id, search_id)
-        if search_id and view.campaign is None:
-            raise HTTPException(404, "Sealed research search not found")
-        return view
+        return checked(mode, run_id, search_id)
 
     @app.get("/api/v1/{resource}")
     def resource_view(resource: str, mode: Literal["paper", "shadow"] = "paper",
                       run_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_-]+$"),
                       search_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_]+$")) -> dict[str, Any]:
-        view = snapshot(project, mode, run_id, search_id)
-        if search_id and view.campaign is None:
-            raise HTTPException(404, "Sealed research search not found")
+        view = checked(mode, run_id, search_id)
         aliases = {"positions": "position", "orders": "order", "fills": "fill", "trades": "trade",
                    "opportunities": "opportunity", "decisions": "decision",
                    "rejections": "rejection"}
@@ -303,10 +299,11 @@ def create_app(root: Path | None = None) -> FastAPI:
         elif resource == "symbols":
             result = view.symbols
         elif resource in {"runtime", "account", "system-health", "evidence-health", "run-manifests",
-                          "system-info", "reconciliation", "recorder-status", "accounting"}:
+                          "system-info", "reconciliation", "recorder-status", "accounting",
+                          "prospective-evidence"}:
             key = {"system-health": "system", "system-info": "system",
                    "evidence-health": "evidence", "run-manifests": "manifests",
-                   "accounting": "account"}.get(resource, resource)
+                   "accounting": "account", "prospective-evidence": "prospective"}.get(resource, resource)
             if resource == "reconciliation":
                 result = view.system["reconciliation"]
             elif resource == "recorder-status":
@@ -314,23 +311,27 @@ def create_app(root: Path | None = None) -> FastAPI:
             else:
                 result = view.model_dump(mode="json")[key]
         elif resource in {"candidates", "searches", "search-runs", "experiments", "research-results"}:
-            result = (view.campaign or {}).get("families", []) if resource == "candidates" else (
+            result = view.candidates if resource == "candidates" else (
                 view.searches if resource in {"searches", "search-runs"} else
                 view.campaign if resource == "research-results" else view.experiments)
         elif resource == "performance":
             result = {"account": view.account, "curve": [event.model_dump(mode="json") for event in reversed(view.events["account"])], **view.performance}
         else:
             raise HTTPException(404, "Unknown evidence resource")
-        return {"schema_version": 1, "generated_ms": view.generated_ms, "data": result}
+        return {"schema_version": 1, "generated_ms": view.generated_ms,
+                "integrity": _integrity(view), "data": result}
 
     @app.get("/api/v1/candidates/{family}")
     def candidate_detail(family: str, search_id: str | None = Query(None, pattern=r"^[A-Za-z0-9_]+$")) -> dict[str, Any]:
-        view = snapshot(project, "paper", search_id=search_id)
-        candidate = next((row for row in (view.campaign or {}).get("families", [])
-                          if row.get("family") == family), None)
-        if candidate is None:
+        view = checked("paper", None, search_id)
+        rows = [row for row in view.candidates if row.get("family") == family]
+        if not rows:
             raise HTTPException(404, "Candidate family not present in sealed research")
-        return {"schema_version": 1, "generated_ms": view.generated_ms, "data": candidate}
+        data: dict[str, Any] = rows[0] if len(rows) == 1 else {
+            "family": family, "search_id": (view.campaign or {}).get("search_id"),
+            "configurations": rows}
+        return {"schema_version": 1, "generated_ms": view.generated_ms,
+                "integrity": _integrity(view), "data": data}
 
     return app
 

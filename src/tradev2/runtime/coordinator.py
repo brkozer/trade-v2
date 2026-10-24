@@ -267,11 +267,15 @@ class SimulationRuntime:
             "startup_phase": "SIMULATION_READY", "authority": "LOCAL_SIMULATION_LOCK"}, latest)
         self.checkpoint()
 
-    def close(self, failed: bool = False) -> None:
+    def close(self, failed: bool = False, *, failure: dict[str, str] | None = None,
+              stop_requested: bool = False) -> None:
+        """Emit exactly one terminal runtime event, carrying the failure reason if known."""
         try:
             self.checkpoint()
             self.emit("runtime", {"status": "FAILED" if failed else "STOPPED",
-                "engine_alive": False, "open_positions": len(self.broker.positions)})
+                "engine_alive": False, "open_positions": len(self.broker.positions),
+                "stop_requested": stop_requested,
+                **({"error": failure["error"], "detail": failure["detail"]} if failure else {})})
         finally:
             self.journal.close()
             self.authority.release()

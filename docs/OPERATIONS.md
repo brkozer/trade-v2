@@ -64,8 +64,16 @@ not distributed cross-host locking.
 
 The public recorder preserves raw and normalized L2/trade events in the journal.
 The read-back audit checks sequence and timing after reopening. A short acceptance
-session proves the pipeline, not stable economics or queue fills. Long-horizon
-microstructure evidence is `PROSPECTIVE_DATA_COLLECTION_ACTIVE`.
+session proves the pipeline, not stable economics or queue fills. Collection is never
+assumed active: `inspect-prospective` (and `/api/v1/prospective-evidence`) re-verifies
+the candle and OI chunk chains on each call and reports coverage, the unmet forward-day
+gate and collector recency as `RECENT`, `STALE` or `UNKNOWN`. A stale chain cannot be
+silently resumed: candle backfill is later-observed context, and the OI collector refuses
+gaps beyond its 200-point recovery bound.
+
+```powershell
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-prospective
+```
 
 ## Historical and new research
 
@@ -73,8 +81,15 @@ microstructure evidence is `PROSPECTIVE_DATA_COLLECTION_ACTIVE`.
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search initial
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search final
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search 004
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search 009
 .\.venv\Scripts\python.exe -m tradev2.cli replay-parity
 ```
+
+`inspect-candidates --search` accepts `initial`, `final`, a numeric suffix such as `004`
+or `009`, or a full identity. Every sealed result is discovered from disk and served only
+when its SHA-256 matches its completion manifest; any seal failure stops the command.
+Discovery searches 005-009 are consumed `DISCOVERY_ONLY_NOT_FRESH_VALIDATION` identities.
+Their runners refuse to start once a result exists; do not rerun or relabel them.
 
 `research --search final` and `research --search 004` are one-shot commands, but
 both identities and completion records are consumed in this checkout. Search 004

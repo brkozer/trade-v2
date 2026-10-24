@@ -22,6 +22,20 @@ mostly predates the 003 completion even though it was newly downloaded; it is no
 an independent post-search holdout. Its raw hashed dataset is target-local under
 ignored `data/public/alpha_search_004/`.
 
+Five further discovery-only searches (005 funding carry, 006 UTC-hour seasonality,
+007 low idiosyncratic volatility, 008 low-volume dislocation reversal, 009 idiosyncratic
+MAX) reused consumed history and were all **rejected**; none froze a candidate. Through
+009 the [research ledger](research/RESEARCH_LEDGER.md) counts 68 searched configurations
+and 726 replay evaluations, with zero promotions. Reports:
+[005](research/results/DISCOVERY_SEARCH_005.md), [006](research/results/DISCOVERY_SEARCH_006.md),
+[007](research/results/DISCOVERY_SEARCH_007.md), [008](research/results/DISCOVERY_SEARCH_008.md),
+[009](research/results/DISCOVERY_SEARCH_009.md).
+
+**There is no profitable strategy in this repository.** Every tested mechanism lost
+money after realistic costs on historical data. The only path to a candidate is new,
+independently dated prospective evidence: at least 28 forward days of public data,
+then a new preregistered search. `inspect-prospective` reports how far that gate is.
+
 ## Local setup
 
 From this directory, use Python 3.11+ and Node 20+:
@@ -71,6 +85,8 @@ Run finite public-data simulations and inspect their evidence separately:
 ```powershell
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search final
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search 004
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search 009
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-prospective
 .\.venv\Scripts\python.exe -m tradev2.cli replay-parity
 .\.venv\Scripts\python.exe -m tradev2.cli run --config configs/paper.json --cycles 1
 .\.venv\Scripts\python.exe -m tradev2.cli run --config configs/shadow.json --cycles 1
@@ -108,3 +124,4 @@ records the exact read-only revisions; [migration map](docs/migration/SOURCE_TO_
 states what was adapted or rejected. [Live acceptance](docs/LIVE_ACCEPTANCE.md)
 describes unmet gates, not a request to enable live trading. [Completion audit](docs/FINAL_COMPLETION_AUDIT.md)
 distinguishes implemented software from scientific and external acceptance.
+Bounded research-cycle reports are in [research/cycles](research/cycles/).

@@ -1,7 +1,9 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 20:43 UTC. This ledger tracks search consumption and the next
-evidence gate; sealed per-search artifacts remain authoritative for exact results.
+Snapshot: 2026-10-24 UTC (read-only prospective chain audit, below). The newest
+research section is 2026-09-24 09:47 UTC. This ledger tracks search consumption and
+the next evidence gate; sealed per-search artifacts remain authoritative for exact
+results. Bounded research-cycle reports are in [cycles/](cycles/).
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
 | --- | --- | --- | --- |
@@ -41,7 +43,11 @@ Formal BTC/ETH/general-market beta attribution and defensible multiple-test
 inference were unavailable at that independent-day count. These are unresolved
 research-evidence requirements, never assumed to pass.
 
-## Prospective collection in progress
+## Prospective collection log (historical; liveness is observed, never assumed)
+
+The entries below record collection as it was observed at each dated check. Current
+chain coverage and collector recency come only from `tradev2.cli inspect-prospective`
+or `/api/v1/prospective-evidence`, which re-verify every chunk on each call.
 
 The existing public-only WebSocket recorder began a bounded 30-minute BTCUSDT/
 ETHUSDT session on 2026-09-23 about 10:02 UTC. Target-local run ID:
@@ -813,6 +819,35 @@ the primary explanation. The positive-tail feature did not supply enough gross
 edge to fund daily turnover, and the longer lookback reversed sign. No candidate
 was frozen or promoted; lookback, cadence and holding-period retuning are not
 authorized under this identity.
+
+### Read-only prospective chain audit — 2026-10-24 UTC
+
+No search identity was consumed and nothing was scored. The new read-only
+`inspect-prospective` summary re-verified the primary checkout's ignored
+`data/public/prospective_*` chunks (paths, dataset identities, payload hashes,
+per-symbol timestamp coverage, contiguity, `safe_available_ms` rule and the fixed
+Search 004 source-universe hash):
+
+| Chain | Chunks | Points per symbol | Coverage | Last collection |
+| --- | ---: | ---: | --- | --- |
+| 20-symbol 15m candles | 34 | 105 | 2026-09-23 10:00 to 2026-09-24 12:15 UTC (26.25 h) | 2026-09-24 12:27 UTC |
+| 20-symbol open interest | 13 | 66 | 2026-09-23 19:45 to 2026-09-24 12:15 UTC (16.5 h) | 2026-09-24 12:27 UTC |
+
+Sixty-six feature timestamps have both a candle and an OI point; 64 have a
+completed execution bar strictly after both availability bounds. Covered forward
+time is **1.09 of the 28 required days**. No collector process was running and the
+newest chunk was about 29 days old, so the collector state is `STALE`. The
+supervisors that were relaunched on 2026-09-24 09:26 UTC therefore stopped after
+their 12:27 UTC rounds; their exit cause was not inspected.
+
+Consequences, stated before any restart: the candle chain can only continue by
+REST backfill, and every backfilled bar would carry the backfill time as its
+`safe_available_ms`, making it later-observed context rather than contemporaneous
+evidence. The OI chain cannot continue under its current collector because the
+gap (about 2,880 points per symbol) exceeds its deliberate 200-point single-page
+recovery bound. Resuming OI requires either a new, explicitly disclosed chain
+identity or a separately reviewed bounded-recovery change. Neither was done here.
+The forward-day gate remains `WAITING_FOR_DATA`. LIVE remains disabled.
 
 ## New hypothesis queue — not a frozen search
 

@@ -12,13 +12,37 @@ from tradev2.evidence.journal import open_reader, verify_connection
 from tradev2.evidence.manifests import digest
 
 
+class RecordingIntegrityError(ValueError):
+    """The journal itself is unreadable or its hash chain does not verify."""
+
+
+class RecordingIncompleteError(ValueError):
+    """No completion event: the recording is still open or was interrupted."""
+
+
+def completion_events(path: Path, run_id: str) -> int | None:
+    """Count completion events without acceptance checks; None when unreadable."""
+    try:
+        connection = open_reader(path)
+    except sqlite3.Error:
+        return None
+    try:
+        return int(connection.execute(
+            "SELECT count(*) FROM events WHERE run_id=? AND kind='recorder_complete'", (run_id,)
+        ).fetchone()[0])
+    except sqlite3.Error:
+        return None
+    finally:
+        connection.close()
+
+
 def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
     if not path.is_file():
         raise FileNotFoundError(path)
     connection = open_reader(path)
     try:
         if not verify_connection(connection):
-            raise ValueError("recording journal integrity failed")
+            raise RecordingIntegrityError("recording journal integrity failed")
         manifest = connection.execute("SELECT manifest FROM runs WHERE run_id=?", (run_id,)).fetchone()
         if manifest is None:
             raise ValueError("recorder run manifest missing")
@@ -100,6 +124,9 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
         completion_rows = connection.execute(
             "SELECT body FROM events WHERE run_id=? AND kind='recorder_complete'", (run_id,)
         ).fetchall()
+        if not completion_rows:
+            raise RecordingIncompleteError(
+                "recording needs exactly one completion event; none found (open or interrupted)")
         if len(completion_rows) != 1:
             raise ValueError("recording needs exactly one completion event")
         completed = json.loads(completion_rows[0][0])["payload"]
@@ -141,6 +168,6 @@ def inspect_recording(path: Path, run_id: str) -> dict[str, Any]:
                 "last_book_sequence": last_seq, "book_quality": book_quality,
                 **counts}
     except sqlite3.Error as exc:
-        raise ValueError("recorder database unreadable") from exc
+        raise RecordingIntegrityError("recorder database unreadable") from exc
     finally:
         connection.close()

@@ -102,6 +102,28 @@ def verify_connection(connection: sqlite3.Connection) -> bool:
     return True
 
 
+def read_kinds(connection: sqlite3.Connection, kinds: tuple[str, ...],
+               limit: int = 1000) -> dict[str, list[dict[str, Any]]]:
+    """Newest-first events per kind from one already verified connection and snapshot."""
+    bounded = max(1, min(limit, 10000))
+    result: dict[str, list[dict[str, Any]]] = {}
+    for kind in kinds:
+        rows = connection.execute(
+            "SELECT body FROM events WHERE kind=? ORDER BY sequence DESC LIMIT ?", (kind, bounded))
+        result[kind] = [json.loads(row[0]) for row in rows]
+    return result
+
+
+def latest_activity_ns(path: Path) -> int:
+    """WAL commits change the -wal sidecar, not the main file, until checkpoint/close."""
+    stamps = [path.stat().st_mtime_ns]
+    for suffix in ("-wal", "-shm"):
+        sidecar = path.with_name(path.name + suffix)
+        if sidecar.is_file():
+            stamps.append(sidecar.stat().st_mtime_ns)
+    return max(stamps)
+
+
 def read_events(path: Path, kind: str | None = None, limit: int = 1000) -> list[dict[str, Any]]:
     connection = open_reader(path)
     try:

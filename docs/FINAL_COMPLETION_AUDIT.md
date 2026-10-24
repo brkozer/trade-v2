@@ -7,6 +7,8 @@ acceptance. Negative alpha evidence is not a software test failure.
 | Capability | Evidence | Boundary |
 | --- | --- | --- |
 | Historical Alpha Factory | 14-family final search, 28 configs, 112 inner trials, 336 replays | All rejected; reused history is not a fresh holdout |
+| Discovery track | Searches 005-009, one family and two configurations each, 114 evaluations | All rejected discovery-only; no frozen candidate |
+| Prospective gate | Hash-verified candle/OI chains, `inspect-prospective`, workstation panel | 1.09 of 28 forward days observed; collectors stale since 2026-09-24 |
 | Costs and robustness | Base/wide/severe replays, Holm, block bootstrap | Historical maker queue and future slippage unknown |
 | Candidate governance | Evidence-gated lifecycle, zero promotions | No approved alpha for prospective shadow |
 | Public data | 550-message BTC/ETH recorder smoke, read-back, sequences | Short sample cannot establish edge |

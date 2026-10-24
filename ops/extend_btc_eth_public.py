@@ -13,7 +13,7 @@ from typing import Any
 
 import numpy as np
 
-from tradev2.research.datasets import BAR_MS, json_write, load_panel, sha256_file
+from tradev2.research.datasets import BAR_MS, FloatArray, json_write, load_panel, sha256_file
 from tradev2.venues.bybit_linear.public import PublicBybit
 
 SYMBOLS = ("BTCUSDT", "ETHUSDT")
@@ -97,7 +97,7 @@ def build(root: Path, source: Path, target: Path) -> dict[str, Any]:
                                  "book_event_ms": book.exchange_event_ms}
     finally:
         client.close()
-    arrays: dict[str, np.ndarray] = {symbol: panel.values[:, index, :]
+    arrays: dict[str, FloatArray] = {symbol: panel.values[:, index, :]
                                      for index, symbol in enumerate(panel.symbols)}
     economics = deepcopy(original_economics)
     manifest = deepcopy(panel.manifest)

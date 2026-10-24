@@ -30,6 +30,10 @@ WRITE_PATHS = frozenset({"/v5/order/create", "/v5/order/amend", "/v5/order/cance
                          "/v5/position/trading-stop"})
 
 
+class TestnetTransportError(RuntimeError):
+    """Transport failure carrying only status, path and class; never request headers."""
+
+
 class TestnetCredentials:
     def __init__(self, key: str, secret: str) -> None:
         if not key or not secret:
@@ -109,11 +113,21 @@ class TestnetLinear:
         headers = {"X-BAPI-API-KEY": self._credentials.key, "X-BAPI-TIMESTAMP": timestamp,
                    "X-BAPI-RECV-WINDOW": window, "X-BAPI-SIGN": signature,
                    "X-BAPI-SIGN-TYPE": "2", "Content-Type": "application/json"}
-        response = self._client.request(method, path, params=query if method == "GET" else None,
-                                        content=encoded if method == "POST" else None,
-                                        headers=headers)
-        response.raise_for_status()
-        payload: dict[str, Any] = response.json()
+        # httpx errors keep the request, whose headers hold the API key and signature.
+        # Re-raise without chaining so no credential reaches logs or journals.
+        failure: str | None = None
+        try:
+            response = self._client.request(method, path, params=query if method == "GET" else None,
+                                            content=encoded if method == "POST" else None,
+                                            headers=headers)
+            response.raise_for_status()
+            payload: dict[str, Any] = response.json()
+        except httpx.HTTPStatusError as exc:
+            failure = f"testnet HTTP {exc.response.status_code} on {path}; state remains unresolved"
+        except httpx.HTTPError as exc:
+            failure = f"testnet {type(exc).__name__} on {path}; state remains unresolved"
+        if failure is not None:
+            raise TestnetTransportError(failure) from None
         if payload.get("retCode") != 0:
             raise ValueError(f"testnet returned retCode={payload.get('retCode')}; state remains unresolved")
         return payload
@@ -157,7 +171,8 @@ class TestnetLinear:
                           price: Decimal, purpose: str) -> dict[str, Any]:
         if not self._identity_verified or intent.owner_id != run_id:
             raise PermissionError("verified testnet account and order ownership required")
-        if price <= 0 or intent.quantity <= 0 or purpose not in {"stop", "target", "exit"}:
+        if (not price.is_finite() or price <= 0 or intent.quantity <= 0
+                or purpose not in {"stop", "target", "exit"}):
             raise ValueError("invalid owned reduce-only order")
         link = order_link_id(run_id, intent.decision_id, purpose)
         result = self._request("POST", "/v5/order/create", body={
@@ -177,7 +192,8 @@ class TestnetLinear:
                 "exchange_ack": result.get("result")}
 
     def amend_owned(self, symbol: str, link_id: str, price: Decimal) -> dict[str, Any]:
-        if not self._identity_verified or link_id not in self._owned_links or price <= 0:
+        if (not self._identity_verified or link_id not in self._owned_links
+                or not price.is_finite() or price <= 0):
             raise PermissionError("cannot amend unverified or foreign order")
         result = self._request("POST", "/v5/order/amend", body={
             "category": "linear", "symbol": symbol, "orderLinkId": link_id, "price": str(price)})
@@ -196,7 +212,8 @@ class TestnetLinear:
         owned = [position for position in proof.exchange_positions
                  if position.symbol == symbol and position.owner_id == proof.owner_id
                  and position.quantity > 0]
-        if (not self._identity_verified or stop <= 0 or position_index not in {0, 1, 2}
+        if (not self._identity_verified or not stop.is_finite() or stop <= 0
+                or position_index not in {0, 1, 2}
                 or not owned or set(result.missing) - allowed_missing):
             raise PermissionError("verified owned position and complete reconciliation required")
         ack = self._request("POST", "/v5/position/trading-stop", body={
