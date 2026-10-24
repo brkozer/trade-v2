@@ -30,7 +30,7 @@ $firstChunk = Get-ChildItem -LiteralPath (Join-Path $dataRoot 'data\public') -Di
     Select-Object -First 1
 if ($null -eq $firstChunk) { throw 'A verified first OI chunk is required' }
 
-$campaign = Join-Path $root ('runtime\recorder\oi-continuation-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))
+$campaign = Join-Path $dataRoot ('runtime\recorder\oi-continuation-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))
 New-Item -ItemType Directory -Path $campaign -ErrorAction Stop | Out-Null
 $statusPath = Join-Path $campaign 'status.json'
 $metadata = [ordered]@{

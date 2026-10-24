@@ -63,7 +63,7 @@ if ($isCampaignHandoff) {
           $prior.CommandLine -notmatch 'tradev2\.cli record-public --symbols BTCUSDT ETHUSDT') {
     throw 'WaitPid is not the expected active public recorder'
 }
-$campaign = Join-Path $root ('runtime\recorder\bars-continuation-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))
+$campaign = Join-Path $dataRoot ('runtime\recorder\bars-continuation-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))
 New-Item -ItemType Directory -Path $campaign -ErrorAction Stop | Out-Null
 $statusPath = Join-Path $campaign 'status.json'
 $metadata = [ordered]@{
