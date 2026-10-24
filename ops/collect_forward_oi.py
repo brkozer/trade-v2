@@ -40,6 +40,10 @@ def dataset_prefix(number: int) -> str:
     return "BYBIT_PUBLIC_OI_FORWARD_" if number == 1 else f"BYBIT_PUBLIC_OI_FORWARD{number}_"
 
 
+class NotDueError(ValueError):
+    """No newly closed OI point exists yet; nothing was written."""
+
+
 def _write_new(path: Path, value: dict[str, Any]) -> None:
     with path.open("x", encoding="utf-8", newline="\n") as handle:
         json.dump(value, handle, indent=2, sort_keys=True, allow_nan=False)
@@ -199,6 +203,8 @@ def collect(root: Path, client: PublicBybit, *, first_timestamp_ms: int | None =
             first = first_timestamp_ms
         else:
             first = next_ms if next_ms is not None else last - BAR_MS
+            if next_ms is not None and last < next_ms:
+                raise NotDueError("no newly closed OI point yet")
         if (first % BAR_MS or first < earliest or (next_ms is not None and first != next_ms)
                 or last < first):
             raise ValueError("OI must start at the next nonoverlapping post-004 timestamp")

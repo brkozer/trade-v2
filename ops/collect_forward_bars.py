@@ -21,6 +21,10 @@ CONTEMPORANEOUS_LAG_MS = 3_600_000
 AVAILABILITY_BUFFER_MS = 5_000
 
 
+class NotDueError(ValueError):
+    """No newly closed, safety-lagged interval exists yet; nothing was written."""
+
+
 def _write_new(path: Path, value: dict[str, Any]) -> None:
     with path.open("x", encoding="utf-8", newline="\n") as handle:
         json.dump(value, handle, indent=2, sort_keys=True, allow_nan=False)
@@ -95,7 +99,7 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
     latest_response_server_ms = server_ms
     last_open_ms = ((server_ms - SAFETY_LAG_MS) // BAR_MS - 1) * BAR_MS
     if last_open_ms < first_open_ms:
-        raise ValueError("no safety-lagged, confirmed prospective bars yet")
+        raise NotDueError("no safety-lagged, confirmed prospective bars yet")
     expected = list(range(first_open_ms, last_open_ms + BAR_MS, BAR_MS))
     bars: dict[str, Any] = {}
     for symbol in symbols:
