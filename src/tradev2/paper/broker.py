@@ -9,6 +9,10 @@ from tradev2.domain.positions import Position
 from tradev2.execution.lifecycle import OrderLifecycle
 from tradev2.strategies.reference import REFERENCE_PARAMS
 
+# Paper/shadow evidence records funding as a signed cashflow: positive was received.
+# Research Trade.funding is the opposite (positive was paid); both nets are correct.
+FUNDING_CONVENTION = "SIGNED_CASHFLOW_POSITIVE_RECEIVED"
+
 
 @dataclass
 class SimPosition:
@@ -48,6 +52,8 @@ class PaperBroker:
         self.fees = Decimal(0)
         self.funding = Decimal(0)
         self.last_book_ms: dict[str, int] = {}
+        self.last_exit_ms: dict[str, int] = {}
+        self.funding_unknown: set[tuple[str, int | None, str]] = set()
 
     def submit(self, intent: OrderIntent, rules: InstrumentRules) -> str:
         if intent.reduce_only:
@@ -162,14 +168,39 @@ class PaperBroker:
             "protection": "SIMULATED_PROTECTED" if item.position.protection_healthy else "UNSAFE",
             "simulated": True}))
 
-    def exit(self, book: OrderBookSnapshot, now_ms: int, reason: str) -> None:
+    def _cancel_entry(self, order: OrderLifecycle) -> None:
+        if order.unresolved:
+            order.request_cancel()
+            order.confirm_cancel(order.filled)
+            self._order_event(order)
+
+    def cancel_unresolved(self) -> int:
+        """Cancel every resting entry, journaling each transition (used by a latched halt)."""
+        pending = [order for order in self.orders.values() if order.unresolved]
+        for order in pending:
+            self._cancel_entry(order)
+        return len(pending)
+
+    def exit(self, book: OrderBookSnapshot, now_ms: int, reason: str) -> str:
+        """Reduce a simulated position; the returned outcome is journaled by the caller.
+
+        One book snapshot can serve at most one exit per symbol, so the 25% visible
+        depth cap cannot be spent twice on the same quote.
+        """
         item = self.positions.get(book.symbol)
-        if item is None or book.spread_bps is None or book.exchange_event_ms is None:
-            return
+        if item is None:
+            return "UNEXECUTED_NO_POSITION"
+        # Once an exit is requested no further entry quantity may accumulate.
+        self._cancel_entry(self.orders[item.position.position_id])
+        if book.spread_bps is None or book.exchange_event_ms is None:
+            return "UNEXECUTED_BOOK_UNKNOWN"
         if not item.opened_ms < book.exchange_event_ms <= now_ms:
-            return
+            return "UNEXECUTED_BOOK_NOT_AFTER_ENTRY"
         if now_ms - book.exchange_event_ms > 15000:
-            return
+            return "UNEXECUTED_BOOK_STALE"
+        if book.exchange_event_ms <= self.last_exit_ms.get(book.symbol, -1):
+            return "UNEXECUTED_BOOK_ALREADY_USED"
+        self.last_exit_ms[book.symbol] = book.exchange_event_ms
         rules = self.rules[book.symbol]
         opposite_depth = book.bids[0][1] if item.position.side == "Buy" else book.asks[0][1]
         capacity = (opposite_depth * Decimal("0.25") / rules.qty_step).to_integral_value(
@@ -178,11 +209,7 @@ class PaperBroker:
         if quantity <= 0:
             self.events.append(("rejection", {"symbol": book.symbol,
                                                "reason": "EXIT_UNRESOLVED_DEPTH"}))
-            return
-        # Any residual entry is cancelled before reducing this simulated position.
-        order = self.orders[item.position.position_id]
-        order.request_cancel()
-        order.confirm_cancel(order.filled)
+            return "UNEXECUTED_DEPTH"
         direction = Decimal(1) if item.position.side == "Buy" else Decimal(-1)
         mark = book.bids[0][0] if direction == 1 else book.asks[0][0]
         price = mark * (Decimal(1) - direction * Decimal("0.0002"))  # 2bps adverse exit
@@ -200,7 +227,8 @@ class PaperBroker:
             "symbol": book.symbol, "side": item.position.side, "quantity": str(quantity),
             "entry_price": str(item.position.entry_price), "exit_price": str(price),
             "gross_pnl": str(gross), "fees": str(entry_fee + exit_fee),
-            "funding": str(funding), "net_pnl": str(net), "reason": reason,
+            "funding": str(funding), "funding_convention": FUNDING_CONVENTION,
+            "net_pnl": str(net), "reason": reason,
             "opened_ms": item.opened_ms, "closed_ms": book.exchange_event_ms,
             "canonical_live_net": None, "net_completeness": "SIMULATED_ESTIMATE",
             "simulated": True}))
@@ -211,9 +239,17 @@ class PaperBroker:
         self._position_event(item)
         if residual == 0:
             del self.positions[book.symbol]
+            return "EXECUTED"
+        return "PARTIAL"
 
     def apply_funding(self, snapshot: FundingSnapshot) -> None:
         if snapshot.funding_ms is None or snapshot.rate is None or snapshot.status == "UNKNOWN":
+            unknown_key = (snapshot.symbol, snapshot.observed_ms, snapshot.source)
+            if unknown_key not in self.funding_unknown:
+                self.funding_unknown.add(unknown_key)
+                self.events.append(("rejection", {"symbol": snapshot.symbol,
+                    "reason": "FUNDING_UNKNOWN", "source": snapshot.source,
+                    "observed_ms": snapshot.observed_ms, "simulated": True}))
             return
         if snapshot.observed_ms is None or snapshot.funding_ms > snapshot.observed_ms:
             raise ValueError("funding event is not yet observable")
@@ -232,7 +268,8 @@ class PaperBroker:
         self.funding += amount
         self.events.append(("funding", {"symbol": snapshot.symbol, "amount": str(amount),
             "source": snapshot.source, "source_ms": snapshot.funding_ms,
-            "status": "ESTIMATED_ENTRY_NOTIONAL", "simulated": True}))
+            "status": "ESTIMATED_ENTRY_NOTIONAL", "funding_convention": FUNDING_CONVENTION,
+            "simulated": True}))
 
     def account(self, marks: dict[str, Decimal]) -> dict[str, Any]:
         complete = all(symbol in marks for symbol in self.positions)
@@ -244,6 +281,9 @@ class PaperBroker:
                 "equity_delta": str(self.cash + unrealized - self.initial_equity) if complete else None,
                 "realized_pnl": str(self.realized), "unrealized_pnl": str(unrealized) if complete else None,
                 "known_fees": str(self.fees), "funding": str(self.funding),
+                "funding_convention": FUNDING_CONVENTION,
+                "funding_completeness": ("INCOMPLETE_UNKNOWN_SETTLEMENT" if self.funding_unknown
+                                         else "OBSERVED_SETTLEMENTS_ONLY"),
                 "open_risk": str(sum((abs(item.position.entry_price-item.stop)*item.position.quantity
                                       for item in self.positions.values()), Decimal(0))),
                 "net_completeness": "SIMULATED_ESTIMATE", "source": "paper_broker",
@@ -259,6 +299,8 @@ class PaperBroker:
             "target_r": str(self.target_r), "maker_wait_ms": self.maker_wait_ms,
             "realized": str(self.realized), "fees": str(self.fees), "funding": str(self.funding),
             "funding_seen": sorted(self.funding_seen), "last_book_ms": self.last_book_ms,
+            "last_exit_ms": self.last_exit_ms,
+            "funding_unknown": sorted([list(item) for item in self.funding_unknown], key=str),
             "rules": {s: r.model_dump(mode="json") for s, r in self.rules.items()},
             "orders": {key: {"intent": o.intent.model_dump(mode="json"),
                 "fills": [f.model_dump(mode="json") for f in o.fills.values()], "status": o.status.value}
@@ -280,6 +322,9 @@ class PaperBroker:
             setattr(result, field, Decimal(state[field]))
         result.funding_seen = {(str(s), int(t)) for s, t in state["funding_seen"]}
         result.last_book_ms = {s: int(t) for s, t in state["last_book_ms"].items()}
+        result.last_exit_ms = {s: int(t) for s, t in state.get("last_exit_ms", {}).items()}
+        result.funding_unknown = {(str(s), None if t is None else int(t), str(src))
+                                  for s, t, src in state.get("funding_unknown", [])}
         result.rules = {s: InstrumentRules.model_validate(r) for s, r in state["rules"].items()}
         for key, raw in state["orders"].items():
             order = OrderLifecycle(OrderIntent.model_validate(raw["intent"]))

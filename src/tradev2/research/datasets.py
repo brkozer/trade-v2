@@ -99,6 +99,10 @@ def ingest_legacy_public(source_cache: Path, target: Path, source_sha: str) -> d
     if timestamps is None:
         raise ValueError("empty dataset")
     target.mkdir(parents=True, exist_ok=True)
+    # Create-only: hashes of an ingested dataset are frozen in preregistrations.
+    for existing in (target / "candles_15m.npz", target / "manifest.json"):
+        if existing.exists():
+            raise FileExistsError(f"ingested dataset is immutable: {existing}")
     np.savez_compressed(target / "candles_15m.npz", timestamps=timestamps,
                         symbols=np.asarray(symbols), values=np.stack(arrays, axis=1))
     manifest = {"schema_version": 1, "dataset_id": "BYBIT_PUBLIC_REUSED_37_OHLCV_210D",

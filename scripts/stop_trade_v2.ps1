@@ -1,5 +1,16 @@
 . (Join-Path $PSScriptRoot 'workstation_common.ps1')
-$state = Get-TradeV2State
+try {
+    $state = Get-TradeV2State
+} catch {
+    # Without readable state no process can be proven ours, so none is stopped.
+    Remove-Item -LiteralPath $TradeV2StateFile -Force
+    $listeners = @(8000, 5173 | ForEach-Object { Get-TradeV2Listeners -Port $_ })
+    Write-Warning "Unreadable launcher state was removed; no process was stopped."
+    if ($listeners.Count -gt 0) {
+        Write-Warning "Ports 8000/5173 are still served by PID $($listeners -join ', '); stop them deliberately if they are Trade v2."
+    }
+    return
+}
 if ($null -eq $state) {
     Write-Host 'Trade v2 launcher is already stopped.'
     return

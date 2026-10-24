@@ -111,3 +111,13 @@ def test_rejects_historical_oi_revision_without_mutating_prior_chunk(tmp_path: P
                               revised_anchor=symbols[-1]))
     assert hashlib.sha256(prior.read_bytes()).hexdigest() == prior_hash
     assert len(list((root / "data/public").glob("prospective_oi_*"))) == 1
+
+
+
+def test_rejects_gap_after_existing_chunk_without_writing(tmp_path: Path) -> None:
+    root, _ = _root(tmp_path)
+    collect(root, _client(server_ms=FIRST + 2 * BAR_MS + 120_000))
+    with pytest.raises(ValueError, match="nonoverlapping"):
+        collect(root, _client(server_ms=FIRST + 6 * BAR_MS + 120_000),
+                first_timestamp_ms=FIRST + 3 * BAR_MS)
+    assert len(list((root / "data/public").glob("prospective_oi_*"))) == 1

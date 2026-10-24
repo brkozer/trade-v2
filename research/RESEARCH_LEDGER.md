@@ -849,6 +849,40 @@ recovery bound. Resuming OI requires either a new, explicitly disclosed chain
 identity or a separately reviewed bounded-recovery change. Neither was done here.
 The forward-day gate remains `WAITING_FOR_DATA`. LIVE remains disabled.
 
+### Engine corrections and disclosed limitations — 2026-10-24 UTC
+
+A read-only code audit (eleven review dimensions, adversarially verified where the
+budget allowed) found no defect that changes any sealed search conclusion: every
+consumed search remains rejected, and no result artifact or manifest was edited.
+Consumed runners refuse a rerun, and each sealed result records the Git SHA that
+reproduces it. The following corrections therefore apply only to future searches:
+
+- Replay now fails closed on a funding settlement off the 15-minute bar grid. All
+  126,298 settlements in the three existing economics files are on the grid, so
+  past replays were unaffected.
+- A bar that opens beyond the target exits at the target (`TARGET_AT_OPEN`) before
+  the stop-first rule applies; a zero-quantity sizing result is rejected.
+- The descriptive regime label now uses an equal-weight return index; before, a mean
+  of price levels made it effectively BTC's 24-hour return. Sealed `regime_net_pnl`
+  values use the old label and are descriptive only.
+- Simulation time stops now count from the entry bar like the replay; before they
+  fired one bar late. Reference signal strength now matches the research ranking.
+
+Disclosed limitations of consumed searches (not rerun, not relabelled):
+
+- Search 005's frozen 0.30 day-share gate was unsatisfiable: each two-day forward fold
+  spans at most three UTC days, so its day share is at least one third. The search was
+  rejected on gross economics in every fold, so the gate did not decide the outcome.
+- The final 003 descriptive `pnl_slope_per_unit_market_return` mixes a sample
+  covariance with a population variance, overstating the slope by n/(n-1), about 0.8%.
+  It was never a gate.
+- The merged 39-symbol economics file uses the limit-order cap (`maxOrderQty`) for
+  BTC/ETH and the market-order cap for the other 37 symbols as `max_qty`.
+- The testnet transport's 36-character `tv2_` order-link identity cannot match the
+  32-character `tv2-` journal client identity, so journal-based ownership recovery
+  cannot succeed yet. This is one more unmet item of authenticated testnet
+  acceptance, not a reachable trading path.
+
 ## New hypothesis queue — not a frozen search
 
 These are mechanisms to preregister **only after** enough independent prospective

@@ -28,7 +28,10 @@ nothing in research, paper, shadow or the UI infers it.
   canonical settled amounts. Funding payment times determine attribution.
 - Engine liveness, heartbeat freshness and source freshness are separate observations.
   A frozen journal, dead engine or unreadable source cannot establish CURRENT_SAFE.
-  A pending halt is latched; failed reads cannot clear it.
+  A pending halt is latched; failed reads cannot clear it. An account-level risk HALT
+  (unknown equity, equity floor, or a loss beyond the daily limit measured from the
+  first observation of the UTC day) latches, cancels resting entries and persists
+  across resume; only a new run starts without it.
 - Runtime databases and state are separated by mode and immutable run ID. Account
   authority is shared across configurations for the same resolved profile in this installation.
 

@@ -58,13 +58,17 @@ def normalize_message(message: dict[str, Any], books: dict[str, OrderBook],
     return payload, source_ms
 
 
+class SourceIntegrityBreak(ConnectionError):
+    """A message failed integrity checks; its source_failure is already journaled."""
+
+
 def record_public(journal: Journal, run_id: str, symbols: tuple[str, ...],
                   duration_seconds: float = 30) -> dict[str, int]:
     if not symbols or len(symbols) > 10 or not 0 < duration_seconds <= 3600:
         raise ValueError("bounded recorder needs 1..10 symbols and duration <=3600 seconds")
     deadline = time.monotonic() + duration_seconds
     counts = {"messages": 0, "books": 0, "trades": 0,
-              "reconnects": 0, "invalid_books": 0}
+              "reconnects": 0, "invalid_books": 0, "invalid_messages": 0}
     books = {symbol: OrderBook(symbol) for symbol in symbols}
     while time.monotonic() < deadline:
         try:
@@ -80,10 +84,22 @@ def record_public(journal: Journal, run_id: str, symbols: tuple[str, ...],
                     except TimeoutError:
                         websocket.send('{"op":"ping"}')
                         continue
-                    message: dict[str, Any] = json.loads(raw)
+                    now = time.time_ns() // 1_000_000
+                    try:
+                        decoded = json.loads(raw)
+                        if not isinstance(decoded, dict):
+                            raise TypeError("public frame is not a JSON object")
+                    except (ValueError, TypeError) as exc:
+                        counts["invalid_messages"] += 1
+                        journal.append(EvidenceEnvelope(
+                            event_id=uuid.uuid4().hex, run_id=run_id, kind="source_failure",
+                            recorded_ms=now, source="bybit_public_websocket",
+                            payload={"status": "RESEED_REQUIRED", "reason": type(exc).__name__,
+                                     "topic": None}))
+                        raise SourceIntegrityBreak("malformed public frame") from exc
+                    message: dict[str, Any] = decoded
                     if "topic" not in message:
                         continue
-                    now = time.time_ns() // 1_000_000
                     try:
                         payload, source_ms = normalize_message(message, books, now)
                     except (ValueError, KeyError, TypeError) as exc:
@@ -93,7 +109,7 @@ def record_public(journal: Journal, run_id: str, symbols: tuple[str, ...],
                             recorded_ms=now, source="bybit_public_websocket",
                             payload={"status": "RESEED_REQUIRED", "reason": type(exc).__name__,
                                      "topic": message.get("topic")}))
-                        raise ConnectionError("public message integrity failure") from exc
+                        raise SourceIntegrityBreak("public message integrity failure") from exc
                     journal.append(EvidenceEnvelope(
                         event_id=uuid.uuid4().hex, run_id=run_id, kind="microstructure",
                         recorded_ms=now, source_ms=source_ms,
@@ -102,10 +118,11 @@ def record_public(journal: Journal, run_id: str, symbols: tuple[str, ...],
                     counts["books"] += payload["kind"] == "orderbook"
                     counts["trades"] += len(payload.get("trades", []))
         except (OSError, TimeoutError, ConnectionError, ConnectionClosed) as exc:
-            now = time.time_ns() // 1_000_000
-            journal.append(EvidenceEnvelope(event_id=uuid.uuid4().hex, run_id=run_id,
-                kind="source_failure", recorded_ms=now, source="recorder",
-                payload={"reason": type(exc).__name__, "status": "SOURCE_UNKNOWN"}))
+            if not isinstance(exc, SourceIntegrityBreak):
+                now = time.time_ns() // 1_000_000
+                journal.append(EvidenceEnvelope(event_id=uuid.uuid4().hex, run_id=run_id,
+                    kind="source_failure", recorded_ms=now, source="recorder",
+                    payload={"reason": type(exc).__name__, "status": "SOURCE_UNKNOWN"}))
             counts["reconnects"] += 1
             if counts["reconnects"] >= 3:
                 raise RuntimeError("recorder retry budget exhausted") from exc

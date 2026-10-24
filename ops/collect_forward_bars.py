@@ -26,9 +26,15 @@ def _write_new(path: Path, value: dict[str, Any]) -> None:
 
 
 def safe_available_ms(manifest: dict[str, Any]) -> int:
-    """Conservative local availability bound, including pre-field v1 chunks."""
+    """Conservative availability bound, including pre-field v1 chunks.
+
+    Schema 1 used local receipt only; schema 2 also waits for the latest exchange
+    response time, matching the OI chain, because the host clock may lag the venue.
+    """
     stored = manifest.get("safe_available_ms")
     collected = int(datetime.fromisoformat(manifest["collected_at"]).timestamp() * 1000)
+    if int(manifest.get("schema_version", 1)) >= 2:
+        collected = max(collected, int(manifest["latest_response_server_ms"]))
     expected = collected + AVAILABILITY_BUFFER_MS
     if stored is not None and int(stored) != expected:
         raise ValueError("prospective candle availability timestamp mismatch")
@@ -81,7 +87,10 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
     # Cross-clock event lag cannot be interpreted without a contemporaneous
     # offset bound; the host wall clock may not be synchronized.
     clock_probe = observe_public_clock(client)
+    if clock_probe["status"] != "WALL_CLOCK_STABLE":
+        raise ValueError("candle collection clock unstable during server-time request")
     server_ms = int(clock_probe["server_ms"])
+    latest_response_server_ms = server_ms
     last_open_ms = ((server_ms - SAFETY_LAG_MS) // BAR_MS - 1) * BAR_MS
     if last_open_ms < first_open_ms:
         raise ValueError("no safety-lagged, confirmed prospective bars yet")
@@ -110,6 +119,8 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
                     row: list[str | int] = [opened, str(candle.open), str(candle.high),
                                             str(candle.low), str(candle.close),
                                             str(candle.volume), candle.ingested_ms]
+                    latest_response_server_ms = max(latest_response_server_ms,
+                                                    int(candle.ingested_ms))
                     if opened in by_start and by_start[opened][:6] != row[:6]:
                         raise ValueError(f"conflicting candle: {symbol} {opened}")
                     by_start[opened] = row
@@ -125,8 +136,9 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
     _write_new(target / "bars.json", {"symbols": bars})
     bar_hash = hashlib.sha256((target / "bars.json").read_bytes()).hexdigest()
     collected_at = datetime.now(UTC)
+    collected_ms = int(collected_at.timestamp() * 1000)
     manifest: dict[str, Any] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "dataset_id": f"BYBIT_PUBLIC_FORWARD_{first_open_ms}_{last_open_ms}",
         "evidence_role": "PROSPECTIVE_POST004_UNSCORED",
         "source": "Bybit public V5 REST /v5/market/kline",
@@ -137,7 +149,8 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
         "server_time_ms": server_ms,
         "clock_probe": clock_probe,
         "collected_at": collected_at.isoformat(),
-        "safe_available_ms": int(collected_at.timestamp() * 1000) + AVAILABILITY_BUFFER_MS,
+        "latest_response_server_ms": latest_response_server_ms,
+        "safe_available_ms": max(collected_ms, latest_response_server_ms) + AVAILABILITY_BUFFER_MS,
         "availability_buffer_ms": AVAILABILITY_BUFFER_MS,
         "bar_row_fields": ["open_ms", "open", "high", "low", "close", "volume",
                            "bybit_response_server_ms"],

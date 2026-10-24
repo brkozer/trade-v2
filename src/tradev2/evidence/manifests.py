@@ -20,11 +20,18 @@ def digest(value: Any) -> str:
     return hashlib.sha256(canonical(value).encode()).hexdigest()
 
 
-def create_manifest(root: Path, config: RuntimeConfig, parameters: dict[str, Any],
-                    dataset: str | None = None) -> RunManifest:
+def software_identity(root: Path) -> dict[str, Any]:
+    """The checkout and interpreter that produce subsequent evidence."""
     sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
     dirty = bool(subprocess.check_output(
         ["git", "--no-optional-locks", "status", "--porcelain"], cwd=root, text=True).strip())
+    return {"git_sha": sha, "dirty": dirty, "python_version": platform.python_version()}
+
+
+def create_manifest(root: Path, config: RuntimeConfig, parameters: dict[str, Any],
+                    dataset: str | None = None) -> RunManifest:
+    identity = software_identity(root)
+    sha, dirty = str(identity["git_sha"]), bool(identity["dirty"])
     normalized = config.model_dump(mode="json")
     return RunManifest(
         run_id=uuid.uuid4().hex, git_sha=sha, dirty=dirty, mode=config.mode.value,

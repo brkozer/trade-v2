@@ -41,5 +41,8 @@ protection. Neither HTTP acknowledgement nor an empty stale snapshot proves flat
 
 Ledger amounts retain source and source time. Unknown and estimated fees/funding cannot
 produce canonical net PnL. Known zero is explicit. Net PnL is gross minus entry/exit fees
-plus signed funding. Duplicate immutable ledger events do nothing; conflicts fail. Later
+plus signed funding. Paper and shadow trade, funding and account records label this
+`SIGNED_CASHFLOW_POSITIVE_RECEIVED`; research replay trades label the opposite
+`POSITIVE_IS_PAID`. Both nets are correct; compare signs only through these labels.
+Duplicate immutable ledger events do nothing; conflicts fail. Later
 corrections require a distinct evidence event instead of overwriting historical evidence.

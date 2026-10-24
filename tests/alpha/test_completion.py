@@ -102,3 +102,62 @@ def test_nested_family_search_records_all_trials_on_synthetic_data(family: str) 
     assert result["forward"]["days"] == 120
     assert all(row["selection_eligible"] is not None for row in result["folds"])
     assert json.loads(_json_bytes(result))["family"] == family
+
+
+
+def _passing_row() -> dict:
+    return {"forward": {"trades": 300, "total_net_pnl": 50., "mean_net_r": .02,
+                        "max_fold_drawdown_pct": 5.},
+            "folds": [{"forward": {"total_net_pnl": 10.}, "selection_eligible": True}] * 4,
+            "bootstrap": {"lower_95": .1},
+            "concentration": {"best_symbol_absolute_share": .2},
+            "stress_total_net_pnl": {"wide_costs": 5., "severe_plausible": 1.},
+            "parameter_stability": {"neighbor_positive_folds": 3}}
+
+
+def test_gate_passes_only_a_row_that_clears_every_gate() -> None:
+    row = _passing_row()
+    _gate(row, .05)
+    assert row["status"] == "PROSPECTIVE_SHADOW" and row["historical_gates_passed"] is True
+    assert row["reasons"] == ["previously consumed source history is not an untouched final holdout"]
+
+
+@pytest.mark.parametrize("mutation,reason", [
+    (lambda r: r["forward"].update(total_net_pnl=0.), "nonpositive forward net economics"),
+    (lambda r: r["forward"].update(mean_net_r=0.), "nonpositive forward net economics"),
+    (lambda r: r.update(folds=[{"forward": {"total_net_pnl": 10.}, "selection_eligible": True}] * 2
+                        + [{"forward": {"total_net_pnl": 0.}, "selection_eligible": True}] * 2),
+     "fewer than three positive forward folds"),
+    (lambda r: r["bootstrap"].update(lower_95=0.), "day-block lower confidence bound not positive"),
+    (lambda r: r["bootstrap"].update(lower_95=None), "day-block lower confidence bound not positive"),
+    (lambda r: r["forward"].update(max_fold_drawdown_pct=10.0001), "fold drawdown above 10%"),
+    (lambda r: r["concentration"].update(best_symbol_absolute_share=.3501),
+     "symbol contribution concentrated"),
+    (lambda r: r["stress_total_net_pnl"].update(severe_plausible=0.),
+     "wide or severe execution stress loses money"),
+    (lambda r: r["parameter_stability"].update(neighbor_positive_folds=2),
+     "neighboring parameter/model not positive in three folds"),
+    (lambda r: r.update(folds=[{"forward": {"total_net_pnl": 10.}, "selection_eligible": True}] * 3
+                        + [{"forward": {"total_net_pnl": 10.}, "selection_eligible": False}]),
+     "inner selection lacks minimum trades"),
+])
+def test_each_gate_blocks_at_its_boundary(mutation, reason: str) -> None:
+    row = _passing_row()
+    mutation(row)
+    _gate(row, .05)
+    assert row["status"] == "REJECTED" and row["historical_gates_passed"] is False
+    assert reason in row["reasons"]
+
+
+def test_gate_significance_and_trade_count_boundaries() -> None:
+    row = _passing_row()
+    _gate(row, .0500001)
+    assert row["status"] == "REJECTED"
+    assert "Holm-adjusted family test not significant" in row["reasons"]
+    row = _passing_row()
+    _gate(row, None)
+    assert row["status"] == "REJECTED"
+    row = _passing_row()
+    row["forward"]["trades"] = 199
+    _gate(row, .01)
+    assert row["status"] == "INSUFFICIENT_EVIDENCE" and row["historical_gates_passed"] is False

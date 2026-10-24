@@ -124,3 +124,11 @@ def test_owned_writes_reject_non_finite_prices(monkeypatch) -> None:
         with pytest.raises(PermissionError):
             client.amend_owned("BTCUSDT", link, Decimal("Infinity"))
     assert len(sent) == 1
+
+
+
+def test_testnet_mode_without_dedicated_authorization_is_refused(monkeypatch) -> None:
+    monkeypatch.setenv("TRADEV2_TESTNET_ENABLE", "1")
+    with pytest.raises(PermissionError, match="authorization"):
+        LinearTransport(RuntimeConfig(mode=Mode.TESTNET, testnet_authorized=False),
+                        credentials=Credentials("fake-key", "fake-secret"))

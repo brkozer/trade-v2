@@ -236,8 +236,9 @@ def test_wal_activity_selects_the_run_still_writing(tmp_path: Path) -> None:
                                  recorded_ms=time.time_ns() // 1_000_000, source="simulation",
                                  payload={"status": "RUNNING"}))
     assert (tmp_path / "runtime/paper/older/journal.sqlite-wal").is_file()
-    # The open run's main file has not been checkpointed since creation.
+    # The open run's main file looks oldest; only its journaled events show it is current.
     os.utime(tmp_path / "runtime/paper/older/journal.sqlite", ns=(1, 1))
+    os.utime(tmp_path / "runtime/paper/newer/journal.sqlite")
     try:
         body = TestClient(create_app(tmp_path)).get("/api/v1/workstation").json()
     finally:
@@ -267,3 +268,24 @@ def test_recorder_status_separates_integrity_from_acceptance(tmp_path: Path) -> 
     broken.connection.commit()
     broken.close()
     assert _recording_status(tmp_path)["status"] == "INTEGRITY_FAILED"
+
+
+
+def test_closed_trade_totals_stay_unknown_when_any_value_is_unknown(tmp_path: Path) -> None:
+    def trades(root: Path, values: list[str | None]) -> dict:
+        journal = Journal(root / "runtime/paper/run1/journal.sqlite")
+        register(journal)
+        for index, value in enumerate(values):
+            journal.append(EvidenceEnvelope(event_id=f"t{index}", run_id="run1", kind="trade",
+                recorded_ms=index + 1, source="simulation",
+                payload={"symbol": "BTCUSDT", "net_pnl": value, "closed_ms": 1_800_000_000_000}))
+        journal.close()
+        return TestClient(create_app(root)).get("/api/v1/workstation").json()
+
+    body = trades(tmp_path / "unknown", ["1.5", None])
+    assert body["symbols"][0]["closed_trades"] == 2
+    assert body["symbols"][0]["net_usdt"] is None
+    assert body["performance"]["net_usdt"] is None
+    known = trades(tmp_path / "known", ["1.5", "1.5"])
+    assert known["symbols"][0]["net_usdt"] == "3.0"
+    assert known["performance"]["net_usdt"] == "3.0"

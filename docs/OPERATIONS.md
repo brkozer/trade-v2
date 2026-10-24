@@ -30,7 +30,10 @@ After the README setup, from the Trade v2 directory:
 .\scripts\stop_trade_v2.ps1
 ```
 
-`start_trade_v2.ps1 -OpenBrowser` also opens the browser. The UI is at
+`start_trade_v2.ps1 -OpenBrowser` also opens the browser. Start refuses when ports 8000
+or 5173 are already served, and only reports ready when the listening processes are
+the ones it started (or their interpreter child). Stop removes an unreadable state
+file without stopping any process it cannot prove it owns. The UI is at
 `http://127.0.0.1:5173/`; API documentation is at `http://127.0.0.1:8000/docs`.
 Both services bind to loopback. The launcher stores owned PID/start-time pairs and
 logs under ignored `runtime/operator/`. A repeat start or stop is safe. A partial
@@ -59,7 +62,12 @@ sealed paper acceptance record. Unknown/rejected candidates fail closed. Shadow
 consumes public Bybit data and simulates execution without an
 authenticated transport. `run --cycles` is finite. Request a clean stop with
 `stop-runtime --mode paper --run-id <id>`; the loop checks the sentinel after a
-poll and checkpoints before closing. The venue/profile authority lock is local,
+poll, consumes it and checkpoints before closing. `stop-runtime` refuses a run that is
+already STOPPED or FAILED and a second pending request; `run --resume` refuses while an
+unconsumed request exists. Resume also refuses a checkpoint that is not chain-bound or
+that evidence was journaled after (a hard kill mid-cycle), and records the resuming
+software identity in its STARTING event. A latched risk HALT survives resume; start a
+new run to clear it. The terminal runtime event carries the failure reason. The venue/profile authority lock is local,
 not distributed cross-host locking.
 
 The public recorder preserves raw and normalized L2/trade events in the journal.

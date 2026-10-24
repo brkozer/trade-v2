@@ -37,6 +37,16 @@ def approved_factor(root: Path, candidate_id: str,
         if (not paper_path.is_file() or selection.get("paper_acceptance_sha256") !=
                 hashlib.sha256(paper_path.read_bytes()).hexdigest()):
             raise PermissionError("paper acceptance evidence missing or changed")
+        # The hash pins the file; its content must also be an acceptance of this candidate.
+        acceptance: Any = json.loads(paper_path.read_text(encoding="utf-8"))
+        run_id = acceptance.get("run_id") if isinstance(acceptance, dict) else None
+        journal_sha = acceptance.get("journal_sha256") if isinstance(acceptance, dict) else None
+        if (not isinstance(acceptance, dict) or acceptance.get("candidate_id") != candidate_id
+                or acceptance.get("status") != "PAPER_EXECUTION_ACCEPTED"
+                or not isinstance(run_id, str) or not run_id
+                or not isinstance(journal_sha, str) or len(journal_sha) != 64
+                or any(char not in "0123456789abcdef" for char in journal_sha)):
+            raise PermissionError("paper acceptance does not accept this candidate")
     results = root / "research/results"
     for path in sorted(results.glob("FINAL_ALPHA_SEARCH_*.json")):
         suffix = path.stem.removeprefix("FINAL_ALPHA_SEARCH_")

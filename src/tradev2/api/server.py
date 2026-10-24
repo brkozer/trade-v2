@@ -11,7 +11,7 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
 from tradev2.domain.evidence import EvidenceEnvelope
-from tradev2.evidence.journal import latest_activity_ns, open_reader, read_kinds, verify_connection
+from tradev2.evidence.journal import latest_activity_ms, open_reader, read_kinds, verify_connection
 from tradev2.evidence.sealed_research import SealedSearch, load_sealed_searches
 from tradev2.marketdata.recording_audit import (
     RecordingIncompleteError,
@@ -32,6 +32,8 @@ class RuntimeView(BaseModel):
     age_ms: int | None = None
     source_ms: int | None = None
     source_freshness: Literal["FRESH", "STALE", "UNKNOWN"] = "UNKNOWN"
+    pending_halt: bool | None = None
+    halt_reason: str | None = None
     engine: Literal["ENGINE_UNKNOWN"] = "ENGINE_UNKNOWN"
     safety: Literal["ENTRY_BLOCKED"] = "ENTRY_BLOCKED"
     live: Literal["LIVE_DISABLED"] = "LIVE_DISABLED"
@@ -81,7 +83,7 @@ def _campaigns(root: Path, errors: list[str],
 
 def _recording_status(root: Path) -> dict[str, Any]:
     """Latest recorder journal by actual write activity; integrity is not acceptance."""
-    paths = sorted((root / "runtime/recorder").glob("*/journal.sqlite"), key=latest_activity_ns)
+    paths = sorted((root / "runtime/recorder").glob("*/journal.sqlite"), key=latest_activity_ms)
     unknown: dict[str, Any] = {"messages": None, "books": None, "trades": None}
     if not paths:
         return {"status": "UNKNOWN", "run_id": None, "reason": None, **unknown}
@@ -175,9 +177,9 @@ def snapshot(root: Path, mode: str, run_id: str | None = None,
     if run_id:
         paths = [path for path in paths if path.parent.name == run_id]
     # A workstation observes one run; never sum unrelated accounts across sessions.
-    # WAL commits touch the -wal sidecar, so the main file's mtime alone is not recency.
+    # Recency is the newest journaled event, not a file modification time.
     if paths:
-        paths = [max(paths, key=latest_activity_ns)]
+        paths = [max(paths, key=latest_activity_ms)]
     for path in paths:
         if not path.resolve().is_relative_to(root.resolve()):
             errors.append("JOURNAL_OUTSIDE_ROOT")
@@ -215,6 +217,10 @@ def snapshot(root: Path, mode: str, run_id: str | None = None,
                               candidate_stage=latest.payload.get("candidate_stage"),
                               freshness="FRESH" if 0 <= age <= 30_000 else "STALE",
                               age_ms=age, source_ms=latest.source_ms,
+                              pending_halt=(latest.payload["pending_halt"]
+                                            if isinstance(latest.payload.get("pending_halt"), bool)
+                                            else None),
+                              halt_reason=latest.payload.get("halt_reason"),
                               source_freshness="UNKNOWN" if source_age is None else "FRESH"
                               if 0 <= source_age <= 30_000 else "STALE")
     active, searches = _campaigns(root, research_errors, search_id)

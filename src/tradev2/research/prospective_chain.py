@@ -59,8 +59,8 @@ def load_chunk(path: Path, *, kind: Kind) -> Chunk:
         name, dataset = f"prospective_oi_{first}_{last}", f"BYBIT_PUBLIC_OI_FORWARD_{first}_{last}"
         payload_name, hash_key = "oi.json", "oi_sha256"
     collected = _iso_ms(str(manifest["collected_at"]))
-    if kind == "bars":
-        expected_safe = collected + AVAILABILITY_BUFFER_MS
+    if kind == "bars" and int(manifest.get("schema_version", 1)) < 2:
+        expected_safe = collected + AVAILABILITY_BUFFER_MS  # legacy local-receipt rule
     else:
         expected_safe = (max(collected, int(manifest["latest_response_server_ms"]))
                          + AVAILABILITY_BUFFER_MS)

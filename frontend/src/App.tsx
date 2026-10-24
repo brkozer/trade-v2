@@ -20,6 +20,8 @@ export type Snapshot = {
     candidate_stage: string | null;
     freshness: string;
     source_freshness: string;
+    pending_halt?: boolean | null;
+    halt_reason?: string | null;
     engine: string;
     safety: string;
     age_ms: number | null;
@@ -79,6 +81,7 @@ const WARNING_TONE = new RegExp([
   "UNKNOWN", "STALE", "INSUFFICIENT", "REJECT", "FAIL", "DISABLED", "BLOCKED", "STOPPED",
   "UNVERIFIED", "UNAVAILABLE", "UNSUPPORTED", "NOT_RUNNING", "NOT_COMPLETED", "UNACCEPTED",
   "STARTING", "NO PROMOTION", "NO_PROSPECTIVE", "WAITING", "DISCOVERY_ONLY", "INTEGRITY",
+  "LATCHED", "INCOMPLETE",
 ].join("|"), "i");
 /** Healthy styling is never the fallback for an unrecognised or adverse state. */
 export function badgeTone(text: string): "amber" | "" {
@@ -783,6 +786,8 @@ export function App() {
                     values={[
                       ["Selected candidate", runtime?.candidate_id],
                       ["Candidate stage", runtime?.candidate_stage],
+                      ["Halt latch", runtime?.pending_halt == null ? null
+                        : runtime.pending_halt ? `LATCHED · ${display(runtime.halt_reason)}` : "CLEAR"],
                       ["Public market", data.system.public_market],
                       ["Equity · USDT", account?.equity],
                       ["Start equity", account?.start_equity],
@@ -791,6 +796,7 @@ export function App() {
                       ["Unrealized PnL", account?.unrealized_pnl],
                       ["Known fees", account?.known_fees ?? account?.fees],
                       ["Funding", account?.funding],
+                      ["Funding completeness", account?.funding_completeness],
                       ["Drawdown", account?.drawdown],
                       ["Open risk", account?.open_risk],
                       [

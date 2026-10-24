@@ -39,10 +39,12 @@ def _candles(client: PublicBybit, symbol: str, first_ms: int, last_ms: int) -> l
             raise ValueError("candle pagination failed to advance")
         end = oldest - 1
         time.sleep(.12)
-    ordered = [by_start[timestamp] for timestamp in range(first_ms, last_ms + BAR_MS, BAR_MS)]
-    if len(ordered) != (last_ms - first_ms) // BAR_MS + 1:
-        raise ValueError("public candle range incomplete")
-    return ordered
+    expected = range(first_ms, last_ms + BAR_MS, BAR_MS)
+    missing = [timestamp for timestamp in expected if timestamp not in by_start]
+    if missing:
+        raise ValueError(f"{symbol} public candle range incomplete: {len(missing)} missing, "
+                         f"first {missing[0]}")
+    return [by_start[timestamp] for timestamp in expected]
 
 
 def _funding(client: PublicBybit, symbol: str, first_ms: int, last_ms: int) -> list[dict[str, str]]:
@@ -116,7 +118,8 @@ def build(root: Path, source: Path, target: Path) -> dict[str, Any]:
             "maker_rate": .0002, "taker_rate": .00055, "spread_bps": spread,
             "spread_observed_median_bps": None,
             "qty_step": lot["qtyStep"], "min_qty": lot["minOrderQty"],
-            "min_notional": lot["minNotionalValue"], "max_qty": lot["maxOrderQty"],
+            # Taker-style replays need the market-order cap, as the original universe uses.
+            "min_notional": lot["minNotionalValue"], "max_qty": lot["maxMktOrderQty"],
             "funding": [[int(row["fundingRateTimestamp"]), float(row["fundingRate"])]
                         for row in evidence["funding"]],
             "instrument": instrument,

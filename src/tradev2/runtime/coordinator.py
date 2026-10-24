@@ -1,4 +1,3 @@
-import json
 import time
 import uuid
 from decimal import ROUND_DOWN, ROUND_UP, Decimal
@@ -14,8 +13,8 @@ from tradev2.domain.evidence import EvidenceEnvelope, RunManifest
 from tradev2.domain.instruments import InstrumentRules
 from tradev2.domain.market import Candle, FundingSnapshot, OrderBookSnapshot
 from tradev2.domain.orders import OrderIntent
-from tradev2.evidence.journal import Journal
-from tradev2.evidence.manifests import create_manifest, digest
+from tradev2.evidence.journal import Journal, bound_checkpoint, events_after
+from tradev2.evidence.manifests import create_manifest, digest, software_identity
 from tradev2.marketdata.integrity import confirmed_window
 from tradev2.paper.broker import PaperBroker
 from tradev2.research.costs import SymbolEconomics
@@ -38,7 +37,11 @@ class SimulationRuntime:
         self.last_bars: dict[str, int] = {}
         self.marks: dict[str, Decimal] = {}
         self.pending_halt = False
+        self.halt_reason: str | None = None
+        # (UTC day, equity at the first observation of that day) for the daily loss limit.
+        self.day_baseline: tuple[int, Decimal] | None = None
         self.journal: Journal
+        startup: dict[str, Any] = {}
         try:
             if resume is None:
                 self.manifest = create_manifest(self.root, config, params)
@@ -63,16 +66,30 @@ class SimulationRuntime:
                 if (self.manifest.config_hash != digest(config.model_dump(mode="json"))
                         or self.manifest.parameter_hash != digest(params)):
                     raise ValueError("resume configuration/parameter mismatch")
-                latest = self.journal.connection.execute(
-                    "SELECT body FROM checkpoints WHERE run_id=? ORDER BY recorded_ms DESC LIMIT 1",
-                    (resume,)).fetchone()
-                if latest is None:
-                    raise ValueError("resume checkpoint missing")
-                state = json.loads(latest[0])
+                bound = bound_checkpoint(self.journal.connection, resume)
+                if bound is None:
+                    raise ValueError("resume checkpoint missing or not bound to the evidence chain")
+                checkpoint_id, state, binding_sequence = bound
+                # Anything but the terminal runtime record after the checkpoint means the
+                # journal holds evidence the restored state does not; resuming would diverge.
+                for later in events_after(self.journal.connection, binding_sequence):
+                    if not (later["kind"] == "runtime"
+                            and later["payload"].get("status") in {"STOPPED", "FAILED"}):
+                        raise ValueError("evidence was journaled after the last checkpoint; "
+                                         "resume would diverge from the journal")
                 self.broker = PaperBroker.restore(state["broker"])
                 self.last_bars = state["last_bars"]
                 self.pending_halt = state["pending_halt"]
-            self.emit("runtime", {"status": "STARTING", "startup_phase": "PUBLIC_DATA_PENDING"})
+                self.halt_reason = state.get("halt_reason")
+                baseline = state.get("day_baseline")
+                self.day_baseline = ((int(baseline[0]), Decimal(baseline[1]))
+                                     if baseline is not None else None)
+                software = software_identity(self.root)
+                startup = {"resumed_from_checkpoint": checkpoint_id, "software": software,
+                           "software_matches_manifest": software["git_sha"] == self.manifest.git_sha
+                           and software["dirty"] == self.manifest.dirty}
+            self.emit("runtime", {"status": "STARTING", "startup_phase": "PUBLIC_DATA_PENDING",
+                                  **startup})
         except Exception:
             if hasattr(self, "journal"):
                 self.journal.close()
@@ -88,7 +105,7 @@ class SimulationRuntime:
                 "candidate_stage": self.candidate.stage,
                 "candidate_family": self.candidate.family,
                 "heartbeat_ms": now, "source_ms": source_ms,
-                "pending_halt": self.pending_halt, **payload}
+                "pending_halt": self.pending_halt, "halt_reason": self.halt_reason, **payload}
         self.journal.append(EvidenceEnvelope(event_id=uuid.uuid4().hex,
             run_id=self.manifest.run_id, kind=kind, recorded_ms=now,
             source="public_shadow_simulation", source_ms=source_ms, payload=payload))
@@ -97,7 +114,8 @@ class SimulationRuntime:
                  rules: InstrumentRules, now_ms: int, candidate_signal: CandidateSignal,
                  candidate_rank: int | None = None) -> None:
         self.broker.observe(book, now_ms)
-        if book.bids:
+        # A one-sided book leaves the previous mark in place rather than raising.
+        if book.bids and book.asks:
             position_item = self.broker.positions.get(book.symbol)
             self.marks[book.symbol] = (book.asks[0][0] if position_item is not None
                                        and position_item.position.side == "Sell" else book.bids[0][0])
@@ -135,10 +153,20 @@ class SimulationRuntime:
             "simulated": True}
         item = self.broker.positions.get(book.symbol)
         if item is not None:
-            held = max(0, (current.close_ms-item.opened_ms)//current.interval_ms)
+            # Count from the open of the bar in which the fill happened, as the research
+            # replay counts from the entry bar; flooring from the fill time is one bar late.
+            entry_bar_start = (item.opened_ms // current.interval_ms) * current.interval_ms
+            held = max(0, (current.close_ms - entry_bar_start) // current.interval_ms)
             exit_reason = self.candidate.exit_reason(closes, held)
             if exit_reason:
-                self.broker.exit(book, now_ms, exit_reason)
+                outcome = self.broker.exit(book, now_ms, exit_reason)
+                exit_payload = {"symbol": book.symbol, "decision": "EXIT",
+                                "exit_reason": exit_reason, "exit_outcome": outcome,
+                                "held_bars": held, "candle_close_ms": current.close_ms,
+                                "simulated": True}
+                self.emit("decision", exit_payload, current.close_ms)
+                if outcome not in {"EXECUTED", "PARTIAL"}:
+                    self.emit("rejection", exit_payload | {"reason": outcome}, current.close_ms)
         reason = "NO_SIGNAL"
         if signal:
             reason = "EXPOSURE_EXISTS" if book.symbol in self.broker.positions else "PENDING_EXISTS"
@@ -163,10 +191,12 @@ class SimulationRuntime:
                     intent = OrderIntent(owner_id=self.manifest.run_id, decision_id=opportunity,
                         symbol=book.symbol, side=side, quantity=self.config.initial_equity / price,
                         reference_price=price, stop_price=stop, available_ms=now_ms)
-                    allocation = self._risk(intent, rules)
+                    allocation = self._risk(intent, rules, now_ms)
                     payload["risk"] = allocation
                     reason = str(allocation["reason"])
-                    if allocation["action"] in {"ALLOW", "RESIZE"}:
+                    if allocation["action"] == "HALT":
+                        self._latch_halt(reason)
+                    elif allocation["action"] in {"ALLOW", "RESIZE"}:
                         self.broker.submit(intent.model_copy(update={"quantity": Decimal(allocation["quantity"])}), rules)
                         reason = "SIMULATED_MAKER_SUBMITTED"
         payload["reason"] = reason
@@ -176,9 +206,30 @@ class SimulationRuntime:
         if payload["decision"] == "NO_TRADE":
             self.emit("rejection", payload, current.close_ms)
 
-    def _risk(self, intent: OrderIntent, rules: InstrumentRules) -> dict[str, Any]:
+    def _latch_halt(self, reason: str) -> None:
+        """An account-level HALT persists (also across resume) and cancels resting entries."""
+        if not self.pending_halt:
+            self.pending_halt = True
+            self.halt_reason = reason
+            self.broker.cancel_unresolved()
+            self.emit("runtime", {"status": "RUNNING", "engine_alive": True,
+                                  "startup_phase": "HALT_LATCHED"})
+
+    def _roll_day(self, now_ms: int) -> None:
+        """Record equity at the first observation of each UTC day; unknown stays unknown."""
+        day = now_ms // 86_400_000
+        if self.day_baseline is not None and self.day_baseline[0] == day:
+            return
+        equity = self.broker.account(self.marks)["equity"]
+        self.day_baseline = (day, Decimal(equity)) if equity is not None else None
+
+    def _risk(self, intent: OrderIntent, rules: InstrumentRules, now_ms: int) -> dict[str, Any]:
+        self._roll_day(now_ms)
         account = self.broker.account(self.marks)
         equity = Decimal(account["equity"]) if account["equity"] is not None else None
+        baseline = self.day_baseline
+        daily_pnl = (equity - baseline[1] if equity is not None and baseline is not None
+                     and baseline[0] == now_ms // 86_400_000 else None)
         notional = sum((p.position.quantity*p.position.entry_price for p in self.broker.positions.values()), Decimal(0))
         pending_risk = sum(((o.intent.quantity-o.filled)*abs(o.intent.reference_price-o.intent.stop_price)
                             for o in self.broker.orders.values() if o.unresolved), Decimal(0))
@@ -197,7 +248,7 @@ class SimulationRuntime:
             open_risk=Decimal(account["open_risk"]), pending_risk=pending_risk,
             directional_notional=notional+pending_notional,
             correlated_notional=notional+pending_notional,  # unknown correlation => one bucket
-            symbol_notional=Decimal(0), daily_pnl=self.broker.cash-self.broker.initial_equity,
+            symbol_notional=Decimal(0), daily_pnl=daily_pnl,
             reconciled=True, protection_healthy=all(p.position.protection_healthy
                                                    for p in self.broker.positions.values()))
         return assess(intent, rules, portfolio, limits).model_dump(mode="json")
@@ -205,10 +256,13 @@ class SimulationRuntime:
     def checkpoint(self) -> None:
         self.journal.checkpoint(uuid.uuid4().hex, self.manifest.run_id, time.time_ns()//1_000_000,
             {"broker": self.broker.checkpoint(), "last_bars": self.last_bars,
-             "pending_halt": self.pending_halt})
+             "pending_halt": self.pending_halt, "halt_reason": self.halt_reason,
+             "day_baseline": ([self.day_baseline[0], str(self.day_baseline[1])]
+                              if self.day_baseline is not None else None)})
 
     def poll(self, client: PublicBybit) -> None:
-        latest: int | None = None
+        self._roll_day(time.time_ns() // 1_000_000)
+        source_times: list[int | None] = []
         candidate_inputs: dict[str, list[Candle]] = {}
         books: dict[str, OrderBookSnapshot] = {}
         instruments: dict[str, InstrumentRules] = {}
@@ -230,7 +284,10 @@ class SimulationRuntime:
                 candles, now, minimum=self.candidate.required_bars)
             books[symbol], instruments[symbol] = book, rules
             funding_inputs[symbol] = funding_history
-            latest = min(latest, book.exchange_event_ms) if latest is not None and book.exchange_event_ms is not None else book.exchange_event_ms
+            source_times.append(book.exchange_event_ms)
+        # The heartbeat's source time is the oldest observation; any unknown makes it unknown.
+        latest = (None if not source_times or any(value is None for value in source_times)
+                  else min(value for value in source_times if value is not None))
         economics: dict[str, SymbolEconomics] = {}
         if self.candidate.requires_funding:
             for symbol in self.config.symbols:
@@ -271,6 +328,10 @@ class SimulationRuntime:
               stop_requested: bool = False) -> None:
         """Emit exactly one terminal runtime event, carrying the failure reason if known."""
         try:
+            # Journal buffered simulator evidence first so the checkpoint never runs ahead
+            # of the journal (for example fills recorded before a mid-cycle failure).
+            for kind, payload in self.broker.drain():
+                self.emit(kind, payload)
             self.checkpoint()
             self.emit("runtime", {"status": "FAILED" if failed else "STOPPED",
                 "engine_alive": False, "open_positions": len(self.broker.positions),

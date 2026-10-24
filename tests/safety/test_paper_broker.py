@@ -64,7 +64,12 @@ def test_funding_uses_observed_settlement_and_unknown_is_not_zero():
     unknown = FundingSnapshot(symbol="BTCUSDT", rate=None, funding_ms=None,
         observed_ms=200, source="missing", status="UNKNOWN")
     broker.apply_funding(unknown)
-    assert broker.funding == 0
+    broker.apply_funding(unknown)
+    # The unknown settlement is journaled once and the account says funding is incomplete.
+    rejections = [body for kind, body in broker.drain() if kind == "rejection"]
+    assert [row["reason"] for row in rejections] == ["FUNDING_UNKNOWN"]
+    assert broker.account({"BTCUSDT": D(100)})["funding_completeness"] == "INCOMPLETE_UNKNOWN_SETTLEMENT"
+    assert PaperBroker.restore(broker.checkpoint()).funding_unknown == broker.funding_unknown
     future = FundingSnapshot(symbol="BTCUSDT", rate=D(".001"), funding_ms=210,
         observed_ms=200, source="fixture", status="KNOWN")
     with pytest.raises(ValueError, match="not yet observable"):

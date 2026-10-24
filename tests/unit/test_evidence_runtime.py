@@ -43,7 +43,10 @@ def test_journal_idempotence_immutability_and_backup(tmp_path):
     journal.close()
     destination = tmp_path / "restored.sqlite"
     restore_backup(backup, destination, checksum)
-    assert len(read_events(destination)) == 1
+    assert len(read_events(destination, "runtime")) == 1
+    assert [row["kind"] for row in read_events(destination)] == ["runtime", "run_registered"]
+    # The backup is self-contained: no WAL sidecars are needed beside it.
+    assert not (tmp_path / "backup.sqlite-wal").exists()
     with pytest.raises(FileExistsError):
         restore_backup(backup, destination, checksum)
 

@@ -16,7 +16,10 @@ then replay its next 30 days without tuning. Each fold begins flat at 10,000 USD
 so aggregate PnL is not a compounded account return. Training selection requires
 50 trades and penalizes daily volatility. Features use closed bars only; earliest
 execution is the next opening boundary. Same-bar stop/target ambiguity resolves
-to stop first, with adverse opening gaps. Intrabar fill timestamps are unknown.
+to stop first, with adverse opening gaps, unless the bar already opens beyond the
+target, which then fills first at its limit (`TARGET_AT_OPEN`, from 2026-10-24).
+Intrabar fill timestamps are unknown. A funding settlement off the 15-minute bar
+grid fails the replay instead of silently going uncharged.
 
 Circular seven-day blocks generate 2,000 bootstrap draws over daily portfolio
 PnL; Holm adjusts six family path tests. Retain all 18 searched configurations
