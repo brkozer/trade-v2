@@ -77,16 +77,19 @@ def write_bars_chunk(root: Path, first: int, last: int, *, collected_ms: int,
 
 
 def write_oi_chunk(root: Path, first: int, last: int, *, collected_ms: int,
-                   response_ms: int | None = None, store_safe: bool = True) -> Path:
+                   response_ms: int | None = None, store_safe: bool = True,
+                   chain: int = 1, record: dict[str, Any] | None = None) -> Path:
     assert collected_ms % SECOND == 0
     response = response_ms if response_ms is not None else collected_ms - SECOND
-    target = root / "data/public" / f"prospective_oi_{first}_{last}"
+    prefix = "prospective_oi_" if chain == 1 else f"prospective_oi{chain}_"
+    dataset = "BYBIT_PUBLIC_OI_FORWARD_" if chain == 1 else f"BYBIT_PUBLIC_OI_FORWARD{chain}_"
+    target = root / "data/public" / f"{prefix}{first}_{last}"
     target.mkdir(parents=True)
     rows = {symbol: [[stamp, "20.5", "10.25", response]
                      for stamp in range(first, last + BAR_MS, BAR_MS)] for symbol in SYMBOLS}
     _write(target / "oi.json", {"symbols": rows})
     manifest: dict[str, Any] = {
-        "schema_version": 1, "dataset_id": f"BYBIT_PUBLIC_OI_FORWARD_{first}_{last}",
+        "schema_version": 1 if chain == 1 else 2, "dataset_id": f"{dataset}{first}_{last}",
         "evidence_role": "PROSPECTIVE_POST004_UNSCORED",
         "source_universe_manifest_sha256": _source_hash(root) or "unknown",
         "first_timestamp_ms": first, "last_timestamp_ms": last, "interval_ms": BAR_MS,
@@ -95,6 +98,8 @@ def write_oi_chunk(root: Path, first: int, last: int, *, collected_ms: int,
         "oi_sha256": hashlib.sha256((target / "oi.json").read_bytes()).hexdigest()}
     if store_safe:
         manifest["safe_available_ms"] = max(collected_ms, response) + AVAILABILITY_BUFFER_MS
+    if record is not None:
+        manifest["chain"] = record
     _write(target / "manifest.json", manifest)
     return target
 
@@ -180,8 +185,12 @@ def test_synthetic_chain_coverage_alignment_and_staleness(tmp_path: Path) -> Non
     assert summary["alignment"] == {"matched_feature_timestamps": 2,
                                     "executable_feature_timestamps": 2,
                                     "rule": summary["alignment"]["rule"]}
-    assert summary["gate"]["covered_days"] == 0.06
-    assert summary["gate"]["remaining_days"] == 27.94
+    # Only the two joint candle+OI timestamps count, not the six candle-only bars.
+    assert candles["contemporaneous_points_per_symbol"] == 6
+    assert candles["backfilled_points_per_symbol"] == 0
+    assert summary["gate"]["covered_days"] == 0.02
+    assert summary["gate"]["remaining_days"] == 27.98
+    assert summary["gate"]["run_first_utc"] == "2026-09-23T10:15:00+00:00"
     assert summary["gate"]["forward_days_satisfied"] is False
     assert summary["collector"]["age_ms"] == 20 * SECOND
     assert summary["collector"]["state"] == "RECENT"
@@ -271,3 +280,59 @@ def test_source_universe_mismatch_is_reported_not_assumed(tmp_path: Path) -> Non
     write_bars_chunk(unknown_root, FIRST, FIRST, collected_ms=FIRST + 2 * BAR_MS, source_hash="1" * 64)
     assert summarize_prospective_evidence(unknown_root, now_ms=FIRST + 3 * BAR_MS)[
         "source_universe_verified"] is None
+
+
+
+def test_backfilled_bars_never_count_toward_the_forward_gate(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    # Ten bars first collected a day after they closed: later-observed backfill.
+    write_bars_chunk(root, FIRST, FIRST + 9 * BAR_MS, collected_ms=FIRST + 106 * BAR_MS)
+    write_oi_chunk(root, FIRST, FIRST + 9 * BAR_MS, collected_ms=FIRST + 11 * BAR_MS)
+    summary = summarize_prospective_evidence(root, now_ms=FIRST + 107 * BAR_MS)
+    assert summary["candles"]["backfilled_points_per_symbol"] == 10
+    assert summary["candles"]["contemporaneous_points_per_symbol"] == 0
+    assert summary["alignment"]["matched_feature_timestamps"] == 10
+    assert summary["gate"]["covered_days"] == 0.0
+    assert summary["gate"]["run_first_utc"] is None
+
+
+def _genesis(previous_last: int, first: int, previous_name: str, **changes: Any) -> dict[str, Any]:
+    gap = {"first_missing_ms": previous_last + BAR_MS, "last_missing_ms": first - BAR_MS,
+           "missing_points_per_symbol": (first - previous_last) // BAR_MS - 1,
+           "recovery_bound_points": 200, "backfilled": False, "reason": "collector stopped"}
+    gap.update(changes)
+    return {"chain_id": "OI_CHAIN_002", "gap": gap,
+            "predecessor": {"chain_id": "OI_CHAIN_001", "last_chunk": previous_name,
+                            "last_timestamp_ms": previous_last, "oi_sha256": "x" * 64}}
+
+
+def test_a_successor_oi_chain_reports_its_recorded_gap(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    write_bars_chunk(root, FIRST, FIRST + 300 * BAR_MS, collected_ms=FIRST + 301 * BAR_MS)
+    first_chain = write_oi_chunk(root, FIRST, FIRST + BAR_MS, collected_ms=FIRST + 3 * BAR_MS)
+    genesis = FIRST + 298 * BAR_MS
+    write_oi_chunk(root, genesis, genesis + BAR_MS, collected_ms=genesis + 3 * BAR_MS,
+                   chain=2, record=_genesis(FIRST + BAR_MS, genesis, first_chain.name))
+    summary = summarize_prospective_evidence(root, now_ms=genesis + 3 * BAR_MS + SECOND)
+    assert summary["status"] == "WAITING_FOR_DATA"
+    assert [row["chain_id"] for row in summary["oi_chains"]] == ["OI_CHAIN_001", "OI_CHAIN_002"]
+    gap = summary["oi_chains"][1]["gap_before"]
+    assert gap["missing_points_per_symbol"] == 296 and gap["backfilled"] is False
+    assert summary["open_interest"]["chain_id"] == "OI_CHAIN_002"
+    # The gate run is the newest uninterrupted joint run: chain 2 only.
+    assert summary["gate"]["covered_days"] == 0.02
+
+
+@pytest.mark.parametrize("changes", [
+    {"missing_points_per_symbol": 1}, {"backfilled": True}, {"reason": " "},
+    {"first_missing_ms": FIRST}])
+def test_a_misrecorded_oi_gap_fails_closed(tmp_path: Path, changes: dict[str, Any]) -> None:
+    root = _root(tmp_path)
+    first_chain = write_oi_chunk(root, FIRST, FIRST + BAR_MS, collected_ms=FIRST + 3 * BAR_MS)
+    genesis = FIRST + 298 * BAR_MS
+    record = _genesis(FIRST + BAR_MS, genesis, first_chain.name, **changes)
+    write_oi_chunk(root, genesis, genesis + BAR_MS, collected_ms=genesis + 3 * BAR_MS,
+                   chain=2, record=record)
+    summary = summarize_prospective_evidence(root, now_ms=genesis + 4 * BAR_MS)
+    assert summary["status"] == "CHAIN_INTEGRITY_FAILED"
+    assert "genesis" in summary["error"]

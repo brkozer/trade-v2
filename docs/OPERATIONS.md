@@ -83,6 +83,27 @@ gaps beyond its 200-point recovery bound.
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-prospective
 ```
 
+The forward-day gate counts only the newest uninterrupted run of feature timestamps
+with both a candle and an OI point, each first collected within one hour of its
+interval close. Backfilled candles (`observation_mode: BACKFILL_LATER_OBSERVED`) stay
+in the chain as later-observed context but never count.
+
+Restarting after a long stop: the candle supervisor continues its chain with
+`-ResumeExistingChain`; its first round backfills the gap in one labelled chunk. The
+OI chain cannot backfill beyond 200 points, so start its successor once, deliberately:
+
+```powershell
+.\.venv\Scripts\python.exe ops\collect_forward_oi.py --new-chain-reason "<why the chain stopped>"
+```
+
+This writes `prospective_oi<n>_<first>_<last>` whose genesis manifest records the
+predecessor's final point and the exact unobserved gap (`backfilled: false`). The
+command refuses while the current chain can still be extended. The OI supervisor then
+extends only the newest chain. Both supervisors accept `-DataRoot <checkout>` to run
+code from one checkout (for example a pinned collector worktree) while writing
+evidence, status and logs under another; each status file records the code root,
+its Git SHA and the data root.
+
 ## Historical and new research
 
 ```powershell

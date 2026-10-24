@@ -16,6 +16,8 @@ from tradev2.research.datasets import BAR_MS
 from tradev2.venues.bybit_linear.public import PublicBybit
 
 SAFETY_LAG_MS = 120_000
+# A bar first collected more than this after its close is later-observed backfill.
+CONTEMPORANEOUS_LAG_MS = 3_600_000
 AVAILABILITY_BUFFER_MS = 5_000
 
 
@@ -144,6 +146,9 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
         "source": "Bybit public V5 REST /v5/market/kline",
         "source_universe_manifest_sha256": source_hash,
         "selection": "fixed 20-symbol Search 004 universe; no post-outcome reranking",
+        "observation_mode": ("BACKFILL_LATER_OBSERVED"
+                             if collected_ms - (first_open_ms + BAR_MS) > CONTEMPORANEOUS_LAG_MS
+                             else "CONTEMPORANEOUS"),
         "first_open_ms": first_open_ms,
         "last_open_ms": last_open_ms,
         "server_time_ms": server_ms,
@@ -172,8 +177,10 @@ def collect(root: Path, client: PublicBybit, *, first_open_ms: int) -> dict[str,
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--first-open-ms", type=int)
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1],
+                        help="Trade v2 checkout that holds data/public and research/results")
     args = parser.parse_args()
-    root = Path(__file__).resolve().parents[1]
+    root = args.root.resolve()
     first_open_ms = args.first_open_ms if args.first_open_ms is not None else next_open(root)
     client = PublicBybit()
     try:

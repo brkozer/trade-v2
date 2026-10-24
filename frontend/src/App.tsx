@@ -264,6 +264,7 @@ export function ProspectiveGate({ prospective }: { prospective: RecordData | und
   const alignment = prospective?.alignment as RecordData | null | undefined;
   const gate = prospective?.gate as RecordData | undefined;
   const collector = prospective?.collector as RecordData | undefined;
+  const chains = (Array.isArray(prospective?.oi_chains) ? prospective.oi_chains : []) as RecordData[];
   const status = prospective?.status;
   return <section className="panel" aria-label="Next evidence gate">
     <div className="panel-title"><h2>Next evidence gate · prospective public data</h2>
@@ -273,14 +274,25 @@ export function ProspectiveGate({ prospective }: { prospective: RecordData | und
     {status === "NO_PROSPECTIVE_DATA" ? <p>No prospective candle or open-interest chunks are present in
       this installation&apos;s data directory. Coverage and collector state remain Unknown.</p> : null}
     <Metrics values={[["Candle chunks", candles?.chunks], ["Bars per symbol", candles?.points_per_symbol],
+      ["Contemporaneous bars", candles?.contemporaneous_points_per_symbol],
+      ["Backfilled bars", candles?.backfilled_points_per_symbol],
       ["Symbols", candles?.symbols], ["First bar UTC", candles?.first_utc],
-      ["Last close UTC", candles?.last_close_utc], ["OI points per symbol", oi?.points_per_symbol],
+      ["Last close UTC", candles?.last_close_utc], ["Current OI chain", oi?.chain_id],
+      ["OI points in chain", oi?.points_per_symbol],
+      ["Recorded OI gaps", chains.filter((row) => row.gap_before != null).length],
       ["Matched feature timestamps", alignment?.matched_feature_timestamps],
       ["Executable feature timestamps", alignment?.executable_feature_timestamps],
-      ["Covered forward days", gate?.covered_days], ["Required forward days", gate?.required_forward_days],
+      ["Gap-free contemporaneous days", gate?.covered_days],
+      ["Required forward days", gate?.required_forward_days],
       ["Remaining days", gate?.remaining_days], ["Collector", collector?.state],
       ["Last collection UTC", collector?.last_collected_at],
       ["Source universe verified", prospective?.source_universe_verified]]} />
+    {gate?.basis ? <p>Gate basis: {display(gate.basis)}.</p> : null}
+    {chains.filter((row) => row.gap_before != null).map((row) => {
+      const gap = row.gap_before as RecordData;
+      return <p key={String(row.chain_id)}>{display(row.chain_id)} starts after an unobserved gap of{" "}
+        {display(gap.missing_points_per_symbol)} points per symbol ({display(gap.reason)}). The gap is
+        recorded, never backfilled.</p>; })}
     <p>{display(gate?.note ?? "Forward days alone authorize nothing; a new preregistration, "
       + "independently dated training and chronological validation are required.")}</p>
     <Details value={prospective ?? null} />

@@ -8,16 +8,22 @@ param(
     [int]$WaitCampaignPid = 0,
     [switch]$ResumeExistingChain,
     [string]$PriorStatusPath,
-    [ValidateRange(1, 1344)][int]$Rounds = 24,
+    [ValidateRange(1, 2880)][int]$Rounds = 24,
     [ValidateRange(300, 3600)][int]$IntervalSeconds = 1800,
-    [ValidateRange(20, 1000)][int]$MinFreeGB = 100
+    [ValidateRange(20, 1000)][int]$MinFreeGB = 100,
+    # Checkout holding data/public, research/results and .venv; defaults to this one.
+    [string]$DataRoot
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$python = Join-Path $root '.venv\Scripts\python.exe'
+# Code runs from this checkout; evidence is written under the data root.
+$dataRoot = if ($DataRoot) { (Resolve-Path -LiteralPath $DataRoot).Path } else { $root }
+$python = Join-Path $dataRoot '.venv\Scripts\python.exe'
 $collector = Join-Path $root 'ops\collect_forward_bars.py'
+$env:PYTHONPATH = Join-Path $root 'src'
+$codeSha = try { (& git -C $root rev-parse HEAD) } catch { $null }
 if (-not (Test-Path -LiteralPath $python -PathType Leaf) -or
     -not (Test-Path -LiteralPath $collector -PathType Leaf)) {
     throw 'Target-local public candle collector is missing'
@@ -40,7 +46,7 @@ if ($isCampaignHandoff) {
         throw 'Bar-campaign handoff requires PriorStatusPath'
     }
     $resolvedPriorStatus = (Resolve-Path -LiteralPath $PriorStatusPath).Path
-    $recorderRoot = Join-Path $root 'runtime\recorder'
+    $recorderRoot = Join-Path $dataRoot 'runtime\recorder'
     if (-not $resolvedPriorStatus.StartsWith($recorderRoot + '\', [System.StringComparison]::OrdinalIgnoreCase) -or
         (Split-Path -Leaf $resolvedPriorStatus) -ne 'status.json' -or
         (Split-Path -Leaf (Split-Path -Parent $resolvedPriorStatus)) -notlike 'bars-continuation-*') {
@@ -64,6 +70,9 @@ $metadata = [ordered]@{
     prior_pid = $waitTargetPid
     prior_status_path = $resolvedPriorStatus
     resume_existing_chain = $ResumeExistingChain.IsPresent
+    code_root = $root
+    code_git_sha = $codeSha
+    data_root = $dataRoot
     started_utc = [DateTime]::UtcNow.ToString('o')
     requested_rounds = $Rounds
     interval_seconds = $IntervalSeconds
@@ -103,7 +112,7 @@ try {
             $metadata.status = 'STOP_REQUESTED'
             break
         }
-        $drive = [System.IO.DriveInfo]::new([System.IO.Path]::GetPathRoot($root))
+        $drive = [System.IO.DriveInfo]::new([System.IO.Path]::GetPathRoot($dataRoot))
         if ($drive.AvailableFreeSpace -lt $MinFreeGB * 1GB) {
             throw "Free disk below $MinFreeGB GB before round $index"
         }
@@ -113,7 +122,7 @@ try {
             # Windows PowerShell surfaces native stderr as ErrorRecord objects.
             # A normal nonzero collector exit must reach the bounded retry logic.
             $ErrorActionPreference = 'Continue'
-            & $python $collector *> $log
+            & $python $collector --root $dataRoot *> $log
             $collectorExitCode = $LASTEXITCODE
         } finally {
             $ErrorActionPreference = $savedErrorActionPreference

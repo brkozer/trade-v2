@@ -121,3 +121,60 @@ def test_rejects_gap_after_existing_chunk_without_writing(tmp_path: Path) -> Non
         collect(root, _client(server_ms=FIRST + 6 * BAR_MS + 120_000),
                 first_timestamp_ms=FIRST + 3 * BAR_MS)
     assert len(list((root / "data/public").glob("prospective_oi_*"))) == 1
+
+
+
+def test_new_chain_is_refused_while_the_current_chain_can_continue(tmp_path: Path) -> None:
+    root, _ = _root(tmp_path)
+    collect(root, _client(server_ms=FIRST + 2 * BAR_MS + 120_000))
+    with pytest.raises(ValueError, match="can still be extended"):
+        collect(root, _client(server_ms=FIRST + 100 * BAR_MS + 120_000),
+                new_chain_reason="operator restart")
+    with pytest.raises(ValueError, match="needs a reason"):
+        collect(root, _client(server_ms=FIRST + 400 * BAR_MS + 120_000), new_chain_reason="  ")
+    assert len(list((root / "data/public").glob("prospective_oi*"))) == 1
+
+
+def test_new_chain_records_the_unobserved_gap_and_continues_alone(tmp_path: Path) -> None:
+    root, symbols = _root(tmp_path)
+    collect(root, _client(server_ms=FIRST + 2 * BAR_MS + 120_000))
+    chain_one = sorted((root / "data/public").glob("prospective_oi_*"))
+    before = {path.name: hashlib.sha256((path / "oi.json").read_bytes()).hexdigest()
+              for path in chain_one}
+    # The single-page recovery bound cannot reach back over this gap.
+    with pytest.raises(ValueError, match="exceeds bounded"):
+        collect(root, _client(server_ms=FIRST + 400 * BAR_MS + 120_000))
+    genesis = collect(root, _client(server_ms=FIRST + 400 * BAR_MS + 120_000),
+                      new_chain_reason="collector stopped for 30 days")
+    record = genesis["chain"]
+    assert genesis["dataset_id"].startswith("BYBIT_PUBLIC_OI_FORWARD2_")
+    assert record["chain_id"] == "OI_CHAIN_002"
+    assert record["predecessor"]["chain_id"] == "OI_CHAIN_001"
+    assert record["predecessor"]["last_timestamp_ms"] == FIRST + BAR_MS
+    assert record["gap"]["first_missing_ms"] == FIRST + 2 * BAR_MS
+    assert record["gap"]["last_missing_ms"] == genesis["first_timestamp_ms"] - BAR_MS
+    assert record["gap"]["missing_points_per_symbol"] == (
+        genesis["first_timestamp_ms"] - FIRST - 2 * BAR_MS) // BAR_MS
+    assert record["gap"]["backfilled"] is False
+    assert record["gap"]["reason"] == "collector stopped for 30 days"
+    assert genesis["points_per_symbol"] == 2 and genesis["symbols"] == symbols
+    assert {path.name: hashlib.sha256((path / "oi.json").read_bytes()).hexdigest()
+            for path in sorted((root / "data/public").glob("prospective_oi_*"))} == before
+    following = collect(root, _client(server_ms=FIRST + 402 * BAR_MS + 120_000))
+    assert following["chain"] == {"chain_id": "OI_CHAIN_002"}
+    assert following["first_timestamp_ms"] == genesis["last_timestamp_ms"] + BAR_MS
+    assert len(list((root / "data/public").glob("prospective_oi2_*"))) == 2
+    from tradev2.research.prospective_chain import load_oi_chains
+    assert [number for number, _ in load_oi_chains(root)] == [1, 2]
+
+
+def test_a_tampered_genesis_gap_stops_further_collection(tmp_path: Path) -> None:
+    root, _ = _root(tmp_path)
+    collect(root, _client(server_ms=FIRST + 2 * BAR_MS + 120_000))
+    collect(root, _client(server_ms=FIRST + 400 * BAR_MS + 120_000), new_chain_reason="restart")
+    genesis_dir = next((root / "data/public").glob("prospective_oi2_*"))
+    manifest = json.loads((genesis_dir / "manifest.json").read_text(encoding="utf-8"))
+    manifest["chain"]["gap"]["missing_points_per_symbol"] -= 1
+    (genesis_dir / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ValueError, match="genesis does not record its gap"):
+        collect(root, _client(server_ms=FIRST + 402 * BAR_MS + 120_000))

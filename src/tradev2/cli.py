@@ -71,8 +71,11 @@ def main() -> None:
     candidates = commands.add_parser("inspect-candidates", help="summarize immutable search results")
     candidates.add_argument("--search", default="final",
                             help="initial, final, a numeric suffix such as 004 or 009, or a full sealed search id")
-    commands.add_parser("inspect-prospective",
-                        help="verify the target-local prospective candle/OI chains and report the unmet forward gate")
+    prospective = commands.add_parser(
+        "inspect-prospective",
+        help="verify the target-local prospective candle/OI chains and report the unmet forward gate")
+    prospective.add_argument("--data-root", type=Path,
+                             help="another Trade v2 checkout whose data/public to read (read-only)")
     research = commands.add_parser("research", help="run a frozen one-shot research identity")
     research.add_argument("--search", choices=["final", "004"], required=True)
     commands.add_parser("collect-search004", help="collect a new target-local public-only 004 dataset once")
@@ -133,7 +136,8 @@ def main() -> None:
         return
     if args.command == "inspect-prospective":
         from tradev2.research.prospective_chain import summarize_prospective_evidence
-        print(json.dumps(summarize_prospective_evidence(root, now_ms=time.time_ns() // 1_000_000),
+        data_root = args.data_root.resolve() if args.data_root else root
+        print(json.dumps(summarize_prospective_evidence(data_root, now_ms=time.time_ns() // 1_000_000),
                          indent=2))
         return
     if args.command == "collect-search004":

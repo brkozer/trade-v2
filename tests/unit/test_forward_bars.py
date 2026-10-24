@@ -126,3 +126,10 @@ def test_availability_waits_for_the_later_of_receipt_and_exchange_time(
     early = datetime(2026, 9, 23, 10, 16, tzinfo=UTC)
     assert safe_available_ms({**manifest, "collected_at": early.isoformat(),
                               "safe_available_ms": latest + 5_000}) == latest + 5_000
+
+
+
+def test_a_late_first_collection_is_labelled_backfill(tmp_path: Path) -> None:
+    root, _ = _root(tmp_path)
+    late = collect(root, _client(), first_open_ms=FIRST)  # the fixture runs long after 2026-09-23
+    assert late["observation_mode"] == "BACKFILL_LATER_OBSERVED"
