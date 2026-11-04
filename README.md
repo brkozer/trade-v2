@@ -71,14 +71,16 @@ rejected; none earned prospective promotion. The final search recorded 28 config
 public history, 12 configurations and 108 chronological evaluations: **zero promotions**.
 Negative evidence is a product outcome, not permission to trade a historical winner.
 
-Five further discovery-only searches (005 funding carry, 006 UTC-hour seasonality,
+Seven further discovery-only searches (005 funding carry, 006 UTC-hour seasonality,
 007 low idiosyncratic volatility, 008 low-volume dislocation reversal, 009 idiosyncratic
-MAX) reused consumed history and were all **rejected**; none froze a candidate. Through
-009 the [research ledger](research/RESEARCH_LEDGER.md) counts 68 searched configurations
-and 726 replay evaluations, with zero promotions. Reports:
+MAX, 010 downside-beta deleveraging, 011 close-location flow pressure) reused consumed
+history and were all **rejected**; none froze a candidate. Through 011 the
+research totals 72 searched configurations and 774 replay evaluations, with zero
+promotions ([research ledger](research/RESEARCH_LEDGER.md)). Reports:
 [005](research/results/DISCOVERY_SEARCH_005.md), [006](research/results/DISCOVERY_SEARCH_006.md),
 [007](research/results/DISCOVERY_SEARCH_007.md), [008](research/results/DISCOVERY_SEARCH_008.md),
-[009](research/results/DISCOVERY_SEARCH_009.md).
+[009](research/results/DISCOVERY_SEARCH_009.md), [010](research/results/DISCOVERY_SEARCH_010.md),
+[011](research/results/DISCOVERY_SEARCH_011.md).
 
 **There is no profitable strategy in this repository.** Every tested mechanism lost
 money after realistic costs on historical data. The only path to a candidate is new,
