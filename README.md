@@ -1,26 +1,58 @@
 # Trade v2
 
-Trade v2 is an independent, private successor to AegisQuant and the Bybit prototype.
-It joins cost-aware alpha research, public-data paper/shadow simulation, an append-only
-evidence ledger, and a read-only operator workstation. It is **not live-trading software**:
-`LIVE_DISABLED` is enforced, and paper/shadow cannot construct an authenticated exchange
-transport. Testnet requires separate, explicit authorization.
+[![CI](https://github.com/brkozer/trade-v2/actions/workflows/ci.yml/badge.svg)](https://github.com/brkozer/trade-v2/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.11-3776AB)
+![TypeScript](https://img.shields.io/badge/TypeScript-React%2018-3178C6)
+![mypy](https://img.shields.io/badge/mypy-strict-2a6db2)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-The initial six-family and final 14-family historical campaigns are complete. All
-20 family paths were rejected; none earned prospective promotion. The final search
-recorded 28 configurations, 112 inner trials and 336 replays with nested chronological
-selection. Both campaigns reuse previously researched history, **not** a fresh final
-holdout. See the [final report](research/results/FINAL_ALPHA_SEARCH.md), its
+Research-first quantitative trading platform: cost-aware alpha research, public-data
+paper/shadow simulation, an append-only evidence ledger and a read-only operator
+workstation (FastAPI + React/TypeScript). It is **not live-trading software**:
+`LIVE_DISABLED` is enforced in code, and paper/shadow runtimes cannot construct an
+authenticated exchange transport.
+
+## What this project demonstrates
+
+- **Typed, modular backend**: Python 3.11, strict mypy, Pydantic models, separate
+  strategy, risk, execution, accounting, reconciliation and research packages
+  (`src/tradev2/`); Decimal for every money, price, fee and funding calculation.
+- **Safety by construction**: the exchange client exposes a GET-only allowlist of
+  public endpoints with no signer or order methods; unknown or unapproved strategies
+  fail closed; missing data stays *unknown*, never zero.
+- **Reproducible research**: preregistered searches, frozen manifests, nested
+  walk-forward selection, hashed datasets and one-shot holdouts that refuse to be rerun.
+- **Evidence and recovery**: SQLite WAL journal with chained digests, idempotent events,
+  ordered migrations, online backup with integrity checks, resumable runs.
+- **Operator UI**: React 18 + TypeScript workstation over a read-only FastAPI API that
+  labels stale or historical evidence explicitly.
+- **Quality gates**: pytest, Vitest + Testing Library,
+  Ruff, mypy `--strict`, artifact checks and GitHub Actions CI on every push.
+
+```mermaid
+flowchart LR
+  Data[Public market data + hashed history] --> Strategy[Strategy evaluation]
+  Strategy --> Risk[Risk and allocation]
+  Risk --> Sim[Paper / shadow execution]
+  Sim --> Ledger[Ledger, reconciliation, journal]
+  Data --> Search[Alpha search, walk-forward]
+  Ledger --> API[Read-only FastAPI]
+  Search --> API
+  API --> UI[React / TypeScript workstation]
+```
+
+## Research outcome
+
+The honest result is negative, and the platform is built to make that visible. Across
+the initial six-family and final 14-family historical campaigns, all 20 family paths were
+rejected; none earned prospective promotion. The final search recorded 28 configurations,
+112 inner trials and 336 replays with nested chronological selection. See the
+[final report](research/results/FINAL_ALPHA_SEARCH.md), its
 [completion record](research/manifests/final_search_completion_003.json) and the
-[initial report](research/results/INITIAL_ALPHA_CAMPAIGN.md). Negative evidence is
-a product outcome, not permission to trade a historical winner.
-
-[Search 004](research/results/ALPHA_SEARCH_004.md) adds 20-symbol newly acquired
-public history, 12 configurations, 108 chronological evaluations, six tested
-families rejected, 18 unsupported ideas and **zero promotions**. Its short window
-mostly predates the 003 completion even though it was newly downloaded; it is not
-an independent post-search holdout. Its raw hashed dataset is target-local under
-ignored `data/public/alpha_search_004/`.
+[initial report](research/results/INITIAL_ALPHA_CAMPAIGN.md).
+[Search 004](research/results/ALPHA_SEARCH_004.md) added 20 symbols of newly acquired
+public history, 12 configurations and 108 chronological evaluations: **zero promotions**.
+Negative evidence is a product outcome, not permission to trade a historical winner.
 
 ## Local setup
 
@@ -40,8 +72,7 @@ cd ..
 ```
 
 All virtual environments, npm caches, journals and downloaded public datasets belong
-under this target repository and are ignored by Git. Never run installers or tests in
-either read-only source repository.
+under this target repository and are ignored by Git.
 
 ## Operator commands
 
