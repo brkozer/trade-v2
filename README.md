@@ -20,6 +20,15 @@ authenticated exchange transport.
 > own research, and use this code entirely at your own risk; the author accepts no
 > liability for any loss.
 
+![Alpha Lab: a sealed research search with its frozen configurations and rejection gates](docs/images/alpha-lab.png)
+
+<details>
+<summary>System page: read-only authority, verified research seals and the live barrier</summary>
+
+![System page](docs/images/system.png)
+
+</details>
+
 ## What this project demonstrates
 
 - **Typed, modular backend**: Python 3.11, strict mypy, Pydantic models, separate
