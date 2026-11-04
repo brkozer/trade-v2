@@ -12,6 +12,14 @@ workstation (FastAPI + React/TypeScript). It is **not live-trading software**:
 `LIVE_DISABLED` is enforced in code, and paper/shadow runtimes cannot construct an
 authenticated exchange transport.
 
+> **Disclaimer: not investment advice.** This repository is a personal software and
+> research project shared for educational purposes only. Nothing here is financial,
+> investment or trading advice, or a recommendation to buy or sell any asset. No strategy
+> in this repository has been shown to be profitable; every researched strategy family
+> was **rejected**. Trading crypto derivatives carries a high risk of losing money. Do your
+> own research, and use this code entirely at your own risk; the author accepts no
+> liability for any loss.
+
 ## What this project demonstrates
 
 - **Typed, modular backend**: Python 3.11, strict mypy, Pydantic models, separate
