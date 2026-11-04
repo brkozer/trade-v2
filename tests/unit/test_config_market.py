@@ -105,3 +105,12 @@ def test_public_client_cannot_send_private_requests_and_filters_unclosed():
     finally:
         client.close()
 
+
+
+
+def test_live_barrier_is_declared_and_unconditional():
+    from tradev2.config.privilege import LIVE_DISABLED
+
+    assert LIVE_DISABLED is True
+    with pytest.raises(PermissionError, match="LIVE_DISABLED"):
+        require_runtime_mode(Mode.LIVE)

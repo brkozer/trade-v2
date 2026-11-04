@@ -42,6 +42,26 @@ function Get-TradeV2State {
     try {
         return Get-Content -LiteralPath $TradeV2StateFile -Raw | ConvertFrom-Json
     } catch {
-        throw "Operator state is unreadable: $TradeV2StateFile"
+        throw "Operator state is unreadable: $TradeV2StateFile. Run stop_trade_v2.ps1 to clear it."
     }
+}
+
+function Get-TradeV2Listeners {
+    param([Parameter(Mandatory)][int]$Port)
+    return @(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty OwningProcess -Unique)
+}
+
+function Test-TradeV2OwnsPort {
+    <# True only when every listener on the port is the owned process or its direct child.
+       A venv python.exe is a launcher whose child interpreter holds the socket. #>
+    param([Parameter(Mandatory)][int]$Port, [Parameter(Mandatory)][int]$OwnedPid)
+    $listeners = Get-TradeV2Listeners -Port $Port
+    if ($listeners.Count -eq 0) { return $false }
+    foreach ($listener in $listeners) {
+        if ($listener -eq $OwnedPid) { continue }
+        $parent = (Get-CimInstance Win32_Process -Filter "ProcessId=$listener" -ErrorAction SilentlyContinue).ParentProcessId
+        if ($parent -ne $OwnedPid) { return $false }
+    }
+    return $true
 }

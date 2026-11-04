@@ -45,3 +45,11 @@ rejections. Search rank alone has no promotion authority. Fresh prospective
 evidence must be gathered and separately preregistered before any candidate can
 advance. A short public recorder smoke and paired execution-arm study are
 technical acceptance only, not alpha evidence.
+
+A discovery-only track (Searches 005-009) then tested one materially new mechanism per
+identity on consumed history: funding-settlement carry, UTC-hour seasonality, low
+idiosyncratic volatility, low-volume range dislocation and idiosyncratic MAX. Each froze
+two configurations and every evaluation before running, and each was
+`REJECTED_DISCOVERY_ONLY`. A discovery pass could only ever freeze a candidate awaiting
+fresh validation. The workstation and `inspect-candidates` discover every sealed result
+from disk and verify its completion seal before showing it.

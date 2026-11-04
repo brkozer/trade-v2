@@ -87,8 +87,10 @@ class ReferencePolicy:
         for symbol, bars in candles.items():
             closes = [float(bar.close) for bar in bars]
             active = reference_entry(closes, bars[-1].start_ms)
-            result[symbol] = CandidateSignal(float(active), "Buy" if active else None,
-                {"rsi": wilder_rsi(closes, REFERENCE_PARAMS.entry_period)})
+            rsi = wilder_rsi(closes, REFERENCE_PARAMS.entry_period)
+            # Same strength as research rsi_reversion, so concurrent signals rank alike.
+            result[symbol] = CandidateSignal((100 - rsi) / 100 if active else 0.0,
+                                             "Buy" if active else None, {"rsi": rsi})
         return result
 
     def exit_reason(self, closes: list[float], held_bars: int) -> str | None:

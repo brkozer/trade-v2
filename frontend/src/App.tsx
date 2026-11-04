@@ -20,6 +20,8 @@ export type Snapshot = {
     candidate_stage: string | null;
     freshness: string;
     source_freshness: string;
+    pending_halt?: boolean | null;
+    halt_reason?: string | null;
     engine: string;
     safety: string;
     age_ms: number | null;
@@ -31,10 +33,13 @@ export type Snapshot = {
   manifests: RecordData[];
   campaign: RecordData | null;
   searches?: RecordData[];
+  candidates?: RecordData[];
   experiments?: RecordData[];
   symbols?: RecordData[];
   performance?: RecordData;
-  evidence: { integrity: string; errors: string[]; journals: number };
+  prospective?: RecordData;
+  evidence: { integrity: string; errors: string[]; journals: number;
+    research_integrity?: string; research_errors?: string[] };
   system: RecordData;
 };
 const pages = [
@@ -58,30 +63,53 @@ export function display(value: unknown): string {
       ? JSON.stringify(value)
       : String(value);
 }
-function formatted(value: unknown, decimals: number): string {
+const DECIMAL_STRING = /^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/;
+/** Float statistics are rounded for display; exact decimal strings are shown verbatim. */
+export function formatted(value: unknown, decimals: number): string {
   if (value === null || value === undefined || value === "") return "Unknown";
-  const parsed = Number(value);
-  return Number.isFinite(parsed)
-    ? parsed.toLocaleString("en-US", {
+  if (typeof value === "string")
+    return DECIMAL_STRING.test(value.trim()) ? value.trim() : display(value);
+  if (typeof value !== "number") return display(value);
+  return Number.isFinite(value)
+    ? value.toLocaleString("en-US", {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
       })
     : "Unknown";
 }
+const WARNING_TONE = new RegExp([
+  "UNKNOWN", "STALE", "INSUFFICIENT", "REJECT", "FAIL", "DISABLED", "BLOCKED", "STOPPED",
+  "UNVERIFIED", "UNAVAILABLE", "UNSUPPORTED", "NOT_RUNNING", "NOT_COMPLETED", "UNACCEPTED",
+  "STARTING", "NO PROMOTION", "NO_PROSPECTIVE", "WAITING", "DISCOVERY_ONLY", "INTEGRITY",
+  "LATCHED", "INCOMPLETE",
+].join("|"), "i");
+/** Healthy styling is never the fallback for an unrecognised or adverse state. */
+export function badgeTone(text: string): "amber" | "" {
+  return WARNING_TONE.test(text) ? "amber" : "";
+}
 function Badge({ value }: { value: unknown }) {
   const text = display(value);
-  return (
-    <span
-      className={
-        "badge " +
-        (/UNKNOWN|STALE|INSUFFICIENT|REJECT|FAILED|DISABLED|BLOCKED|STOPPED|UNVERIFIED/i.test(text)
-          ? "amber"
-          : "")
-      }
-    >
-      {text}
-    </span>
-  );
+  return <span className={`badge ${badgeTone(text)}`.trim()}>{text}</span>;
+}
+/** Trader wording follows the runtime evidence instead of assuming a current account. */
+export function runtimeContext(status: string | undefined, freshness: string | undefined): string {
+  if (status === "STOPPED" || status === "FAILED") return "last run, not current account";
+  if (status === "NOT_RUNNING") return "no run recorded";
+  if (status === "UNKNOWN" || status === undefined) return "evidence unverified";
+  if (freshness === "FRESH") return "current runtime · fresh record";
+  return "stale record, not current account";
+}
+function forwardOf(family: RecordData): RecordData | undefined {
+  return (family.forward ?? family.oos) as RecordData | undefined;
+}
+/** Count positive folds only when every fold's net PnL is known. */
+export function positiveFolds(family: RecordData): number | null {
+  if (typeof family.positive_folds === "number") return family.positive_folds;
+  if (!Array.isArray(family.folds)) return null;
+  const values = family.folds.map((fold: RecordData) =>
+    ((fold.forward ?? fold.validation) as RecordData | undefined)?.total_net_pnl);
+  if (values.some((value) => typeof value !== "number" || !Number.isFinite(value))) return null;
+  return values.filter((value) => (value as number) > 0).length;
 }
 function Metrics({ values }: { values: [string, unknown][] }) {
   return (
@@ -105,14 +133,20 @@ function Details({ value }: { value: unknown }) {
     </details>
   );
 }
-function Ledger({ title, events }: { title: string; events: Event[] }) {
+function Ledger({ title, events, refused = false }: { title: string; events: Event[]; refused?: boolean }) {
   return (
     <section className="panel">
       <div className="panel-title">
         <h2>{title}</h2>
-        <span>{events.length} records · latest window</span>
+        <span>{refused ? "Unknown" : events.length} records · latest window</span>
       </div>
-      {events.length ? (
+      {refused ? (
+        <div className="empty" role="status">
+          <span>!</span>
+          <p>Evidence refused: journal integrity is not verified.</p>
+          <small>Records may exist but are withheld until the journal verifies; nothing is shown as zero.</small>
+        </div>
+      ) : events.length ? (
         <div className="table-scroll">
           <table>
             <caption className="sr-only">{title}</caption>
@@ -166,10 +200,103 @@ function Ledger({ title, events }: { title: string; events: Event[] }) {
     </section>
   );
 }
-function Campaign({ campaign, searches }: { campaign: RecordData | null; searches: RecordData[] }) {
+const DISCOVERY_ROLE = "DISCOVERY_ONLY_NOT_FRESH_VALIDATION";
+export function isDiscovery(campaign: RecordData | null | undefined): boolean {
+  return campaign?.evidence_role === DISCOVERY_ROLE;
+}
+function Campaign({ campaign, searches, candidates }: {
+  campaign: RecordData | null; searches: RecordData[]; candidates: RecordData[] }) {
+  if (campaign && isDiscovery(campaign))
+    return <DiscoveryCampaign campaign={campaign} searches={searches} candidates={candidates} />;
   if (campaign?.search_id === "TRADEV2_ALPHA_SEARCH_004")
     return <Search004Campaign campaign={campaign} searches={searches} />;
   return <HistoricalCampaign campaign={campaign} searches={searches} />;
+}
+function DiscoveryCampaign({ campaign, searches, candidates }: {
+  campaign: RecordData; searches: RecordData[]; candidates: RecordData[] }) {
+  const [filter, setFilter] = useState("");
+  const dataset = campaign.dataset as RecordData | undefined;
+  const visible = candidates.filter((row) => `${row.label} ${row.status} ${row.family}`
+    .toLowerCase().includes(filter.toLowerCase()));
+  const frozen = "frozen_candidate" in campaign
+    ? (campaign.frozen_candidate === null ? "NONE" : display(campaign.frozen_candidate))
+    : null;
+  return <>
+    <div className="notice"><Badge value="DISCOVERY_ONLY" />
+      <span>Reused, already-consumed history. This search cannot satisfy fresh validation;
+        a passing result would only be a frozen candidate awaiting genuinely new data.</span></div>
+    <Metrics values={[["Completed searches", searches.length], ["Search", campaign.search_id],
+      ["Family", campaign.family], ["Status", campaign.status],
+      ["Dataset", dataset?.id ?? dataset?.dataset_id],
+      ["Dataset role", dataset?.role ?? dataset?.evidence_role],
+      ["Configurations", campaign.trial_count], ["Evaluations", campaign.evaluation_count],
+      ["Frozen candidate", frozen], ["Promotion", campaign.promotion]]} />
+    <section className="panel"><div className="panel-title"><h2>Frozen configurations</h2>
+      <div className="filters"><label>Filter configurations <input value={filter}
+        onChange={(event) => setFilter(event.target.value)} placeholder="Lookback or gate" /></label></div></div>
+      {visible.length ? <div className="table-scroll"><table>
+        <caption className="sr-only">Discovery configurations and forward evidence</caption>
+        <thead><tr>{["Configuration", "Trades", "Gross R", "Net R", "Positive folds", "Base · USDT",
+          "Wide · USDT", "Severe · USDT", "Holm p", "Gate"].map((name) =>
+          <th scope="col" key={name}>{name}</th>)}</tr></thead>
+        <tbody>{visible.map((row) => { const costs = row.costs as RecordData | undefined;
+          return <tr key={String(row.label)}><th scope="row">{display(row.label)}</th>
+            <td>{display(row.forward_trades)}</td><td>{formatted(row.forward_mean_gross_r, 4)}</td>
+            <td>{formatted(row.forward_mean_net_r, 4)}</td><td>{display(row.positive_folds)}</td>
+            <td>{formatted(costs?.base_taker, 2)}</td><td>{formatted(costs?.wide_costs, 2)}</td>
+            <td>{formatted(costs?.severe_plausible, 2)}</td><td>{display(row.holm_pvalue)}</td>
+            <td><Badge value={row.status} /></td></tr>; })}</tbody></table></div>
+        : <p className="empty">{candidates.length ? "No configurations match this filter."
+          : "No configuration rows in this sealed result."}</p>}
+      <p>{display(campaign.mechanism)}</p>
+    </section>
+    <section className="panel"><h2>Evidence boundary</h2>
+      <p>Forward folds reuse consumed history; cost arms are declared sensitivities, not calibrated
+        fills. Smaller severe-arm losses reflect half size and missed fills, not robustness. No live,
+        testnet, paper or prospective-shadow authority follows from this result.</p>
+      <Details value={{ dataset: campaign.dataset, preregistration_sha256: campaign.preregistration_sha256,
+        status: campaign.status, promotion: campaign.promotion, configurations: candidates }} /></section>
+  </>;
+}
+export function ProspectiveGate({ prospective }: { prospective: RecordData | undefined }) {
+  const candles = prospective?.candles as RecordData | null | undefined;
+  const oi = prospective?.open_interest as RecordData | null | undefined;
+  const alignment = prospective?.alignment as RecordData | null | undefined;
+  const gate = prospective?.gate as RecordData | undefined;
+  const collector = prospective?.collector as RecordData | undefined;
+  const chains = (Array.isArray(prospective?.oi_chains) ? prospective.oi_chains : []) as RecordData[];
+  const status = prospective?.status;
+  return <section className="panel" aria-label="Next evidence gate">
+    <div className="panel-title"><h2>Next evidence gate · prospective public data</h2>
+      <Badge value={status} /></div>
+    {status === "CHAIN_INTEGRITY_FAILED" ? <div role="alert" className="notice error">
+      Prospective chain integrity failed: {display(prospective?.error)}. Counts are withheld.</div> : null}
+    {status === "NO_PROSPECTIVE_DATA" ? <p>No prospective candle or open-interest chunks are present in
+      this installation&apos;s data directory. Coverage and collector state remain Unknown.</p> : null}
+    <Metrics values={[["Candle chunks", candles?.chunks], ["Bars per symbol", candles?.points_per_symbol],
+      ["Contemporaneous bars", candles?.contemporaneous_points_per_symbol],
+      ["Backfilled bars", candles?.backfilled_points_per_symbol],
+      ["Symbols", candles?.symbols], ["First bar UTC", candles?.first_utc],
+      ["Last close UTC", candles?.last_close_utc], ["Current OI chain", oi?.chain_id],
+      ["OI points in chain", oi?.points_per_symbol],
+      ["Recorded OI gaps", chains.filter((row) => row.gap_before != null).length],
+      ["Matched feature timestamps", alignment?.matched_feature_timestamps],
+      ["Executable feature timestamps", alignment?.executable_feature_timestamps],
+      ["Gap-free contemporaneous days", gate?.covered_days],
+      ["Required forward days", gate?.required_forward_days],
+      ["Remaining days", gate?.remaining_days], ["Collector", collector?.state],
+      ["Last collection UTC", collector?.last_collected_at],
+      ["Source universe verified", prospective?.source_universe_verified]]} />
+    {gate?.basis ? <p>Gate basis: {display(gate.basis)}.</p> : null}
+    {chains.filter((row) => row.gap_before != null).map((row) => {
+      const gap = row.gap_before as RecordData;
+      return <p key={String(row.chain_id)}>{display(row.chain_id)} starts after an unobserved gap of{" "}
+        {display(gap.missing_points_per_symbol)} points per symbol ({display(gap.reason)}). The gap is
+        recorded, never backfilled.</p>; })}
+    <p>{display(gate?.note ?? "Forward days alone authorize nothing; a new preregistration, "
+      + "independently dated training and chronological validation are required.")}</p>
+    <Details value={prospective ?? null} />
+  </section>;
 }
 function Search004Campaign({ campaign, searches }: { campaign: RecordData; searches: RecordData[] }) {
   const [filter, setFilter] = useState("");
@@ -262,7 +389,7 @@ function HistoricalCampaign({ campaign, searches }: { campaign: RecordData | nul
           ],
           ["Total replays", (campaign?.search_budget as RecordData | undefined)?.total_replays],
           ["Inner trials", (campaign?.search_budget as RecordData | undefined)?.selection_evaluations],
-          ["Final holdout", campaign?.final_holdout_state ? "NOT ACQUIRED" : null],
+          ["Final holdout", campaign?.final_holdout_state],
           [
             "Promoted · HISTORICAL",
             Array.isArray(campaign?.promoted_candidates)
@@ -322,13 +449,12 @@ function HistoricalCampaign({ campaign, searches }: { campaign: RecordData | nul
                       <Details value={f.discovery} />
                     </td>
                     <td>
-                      <strong>{formatted(((f.forward ?? f.oos) as RecordData | undefined)?.mean_net_r, 3)} R</strong>
-                      <small>{display(((f.forward ?? f.oos) as RecordData | undefined)?.trades)} trades · {formatted(((f.forward ?? f.oos) as RecordData | undefined)?.total_net_pnl, 2)} USDT net</small>
-                      <Details value={f.forward ?? f.oos} />
+                      <strong>{formatted(forwardOf(f)?.mean_net_r, 3)} R</strong>
+                      <small>{display(forwardOf(f)?.trades)} trades · {formatted(forwardOf(f)?.total_net_pnl, 2)} USDT net</small>
+                      <Details value={forwardOf(f)} />
                     </td>
                     <td>
-                      {display(f.positive_folds ?? (Array.isArray(f.folds) ?
-                        f.folds.filter((fold: RecordData) => Number(((fold.forward ?? fold.validation) as RecordData | undefined)?.total_net_pnl) > 0).length : null))} positive folds
+                      {display(positiveFolds(f))} positive folds
                       <small>Adjusted p: {display(f.adjusted_pvalue)}</small>
                       <small>Wide costs: {formatted(((f.stress_total_net_pnl ?? f.stress) as RecordData | undefined)?.wide_costs, 2)} USDT</small>
                       <small>Severe: {formatted((f.stress_total_net_pnl as RecordData | undefined)?.severe_plausible, 2)} USDT</small>
@@ -357,8 +483,9 @@ function HistoricalCampaign({ campaign, searches }: { campaign: RecordData | nul
         <div className="panel-title"><h2>{display(detail.family)}</h2>
           <Badge value={detail.status} /></div>
         <p>{display(detail.mechanism)}</p>
-        <Metrics values={[["Forward net R · HISTORICAL", (detail.forward as RecordData | undefined)?.mean_net_r],
-          ["Forward trades", (detail.forward as RecordData | undefined)?.trades],
+        <Metrics values={[[detail.forward ? "Forward net R · HISTORICAL" : "Validation net R · HISTORICAL",
+          forwardOf(detail)?.mean_net_r],
+          [detail.forward ? "Forward trades" : "Validation trades", forwardOf(detail)?.trades],
           ["Adjusted p", detail.adjusted_pvalue],
           ["Positive neighbor folds", (detail.parameter_stability as RecordData | undefined)?.neighbor_positive_folds]]} />
         <p>Decision: {Array.isArray(detail.reasons) ? detail.reasons.join("; ") : "Unknown"}</p>
@@ -393,6 +520,10 @@ function Performance({ data }: { data: Snapshot }) {
   const nums = points.map((p) => Number(p.value));
   const low = Math.min(...nums),
     high = Math.max(...nums);
+  // Plot coordinates are approximate; the caption repeats the exact source strings.
+  const lowLabel = display(points[nums.indexOf(low)]?.value);
+  const highLabel = display(points[nums.indexOf(high)]?.value);
+  const refused = data.evidence.integrity === "FAILED";
   return (
     <>
       <Metrics
@@ -429,7 +560,7 @@ function Performance({ data }: { data: Snapshot }) {
               />
             </svg>
             <figcaption>
-              Snapshot index · {low} to {high} USDT. Source values available
+              Snapshot index · {lowLabel} to {highLabel} USDT. Source values available
               below; no interpolated missing balances.
             </figcaption>
           </figure>
@@ -445,7 +576,8 @@ function Performance({ data }: { data: Snapshot }) {
           </>
         ) : (
           <p className="empty">
-            Insufficient equity observations to draw a curve.
+            {refused ? "Evidence refused: journal integrity is not verified."
+              : "Insufficient equity observations to draw a curve."}
           </p>
         )}
         <Details
@@ -461,7 +593,7 @@ function Performance({ data }: { data: Snapshot }) {
           execution-cost components remain Unknown.</p>
         <Details value={data.performance ?? null} />
       </section>
-      <Ledger title="Closed trade evidence" events={data.events.trade ?? []} />
+      <Ledger title="Closed trade evidence" events={data.events.trade ?? []} refused={refused} />
     </>
   );
 }
@@ -474,14 +606,15 @@ export function App() {
   const [filter, setFilter] = useState("");
   const [experimentFilter, setExperimentFilter] = useState("");
   const [searchId, setSearchId] = useState("");
+  const [knownSearches, setKnownSearches] = useState<RecordData[]>([]);
   const heading = useRef<HTMLHeadingElement>(null);
-  const initialPage = useRef(true);
+  // Compare with the previous page so StrictMode's re-run effect cannot steal initial focus.
+  const previousPage = useRef<(typeof pages)[number]>(page);
   const [tab, setTab] = useState("position");
   useEffect(() => {
     document.title = `${page} | Trade v2`;
-    if (initialPage.current) {
-      initialPage.current = false;
-    } else {
+    if (previousPage.current !== page) {
+      previousPage.current = page;
       heading.current?.focus();
     }
   }, [page]);
@@ -496,7 +629,9 @@ export function App() {
         });
         if (!response.ok)
           throw new Error(`Evidence API returned ${response.status}`);
-        setData((await response.json()) as Snapshot);
+        const snapshot = (await response.json()) as Snapshot;
+        setData(snapshot);
+        setKnownSearches(snapshot.searches ?? []);
         setError(null);
       } catch (e) {
         if (!controller.signal.aborted) {
@@ -516,6 +651,12 @@ export function App() {
   const account = data?.account;
   const events = data?.events ?? {};
   const runtime = data?.runtime;
+  const searches = data?.searches ?? knownSearches;
+  const trialLedger = data?.campaign?.search_id === "TRADEV2_ALPHA_SEARCH_004"
+    || isDiscovery(data?.campaign);
+  const prospective = data?.prospective as RecordData | undefined;
+  const refused = data?.evidence.integrity === "FAILED";
+  const researchErrors = data?.evidence.research_errors ?? [];
   return (
     <div className="shell">
       <a className="skip" href="#content">
@@ -615,6 +756,17 @@ export function App() {
               </small>
             </div>
           </div>
+          {(page === "Alpha Lab" || page === "Experiments") && searches.length ? (
+            <section className="panel">
+              <label>Research search <select value={searchId || String(data?.campaign?.search_id ?? "")}
+                onChange={(event) => setSearchId(event.target.value)}>
+                {searches.map((search) => <option key={String(search.search_id)}
+                  value={String(search.search_id)}>{display(search.search_id)}</option>)}
+              </select></label>
+              <p>Sealed campaigns remain separately inspectable; selecting one does not rerun it.</p>
+              {searchId ? <button onClick={() => setSearchId("")}>Reset research search</button> : null}
+            </section>
+          ) : null}
           {error ? (
             <div role="alert" className="notice error">
               {error}. Cached values have been removed. Check the local API and
@@ -628,18 +780,13 @@ export function App() {
             </section>
           ) : (
             <>
-              {(page === "Alpha Lab" || page === "Experiments") && data.searches?.length ?
-                <section className="panel"><label>Research search <select value={searchId || String(data.campaign?.search_id ?? "")}
-                  onChange={(event) => setSearchId(event.target.value)}>
-                  {data.searches.map((search) => <option key={String(search.search_id)}
-                    value={String(search.search_id)}>{display(search.search_id)}</option>)}
-                </select></label><p>Sealed campaigns remain separately inspectable; selecting one does not rerun it.</p></section> : null}
               {page === "Trader" ? (
                 <>
                   <div className="notice">
                     <Badge value={runtime?.status} />
+                    <Badge value={runtime?.freshness} />
                     <span>
-                      {mode.toUpperCase()} simulation · {runtime?.status === "STOPPED" ? "last run, not current account" : "CURRENT runtime"} · record age{" "}
+                      {mode.toUpperCase()} simulation · {runtimeContext(runtime?.status, runtime?.freshness)} · record age{" "}
                       {runtime?.age_ms === null
                         ? "unknown"
                         : `${Math.round((runtime?.age_ms ?? 0) / 1000)}s`}{" "}
@@ -651,6 +798,8 @@ export function App() {
                     values={[
                       ["Selected candidate", runtime?.candidate_id],
                       ["Candidate stage", runtime?.candidate_stage],
+                      ["Halt latch", runtime?.pending_halt == null ? null
+                        : runtime.pending_halt ? `LATCHED · ${display(runtime.halt_reason)}` : "CLEAR"],
                       ["Public market", data.system.public_market],
                       ["Equity · USDT", account?.equity],
                       ["Start equity", account?.start_equity],
@@ -659,6 +808,7 @@ export function App() {
                       ["Unrealized PnL", account?.unrealized_pnl],
                       ["Known fees", account?.known_fees ?? account?.fees],
                       ["Funding", account?.funding],
+                      ["Funding completeness", account?.funding_completeness],
                       ["Drawdown", account?.drawdown],
                       ["Open risk", account?.open_risk],
                       [
@@ -667,7 +817,7 @@ export function App() {
                       ],
                     ]}
                   />
-                  <div className="section-tabs" aria-label="Execution evidence">
+                  <div className="section-tabs" role="group" aria-label="Execution evidence">
                     {[
                       "position",
                       "order",
@@ -683,18 +833,29 @@ export function App() {
                         onClick={() => setTab(kind)}
                       >
                         {plural(kind)}{" "}
-                        <span>{events[kind]?.length ?? 0}</span>
+                        <span>{refused ? "Unknown" : events[kind]?.length ?? 0}</span>
                       </button>
                     ))}
                   </div>
                   <Ledger
                     title={plural(tab)}
                     events={events[tab] ?? []}
+                    refused={refused}
                   />
                 </>
               ) : null}
+              {(page === "Alpha Lab" || page === "Experiments") && researchErrors.length ? (
+                <div role="alert" className="notice error">
+                  Sealed research integrity failed for {researchErrors.join(", ")}. Those artifacts
+                  are withheld; the search shown below is the latest one that verified.
+                </div>
+              ) : null}
               {page === "Alpha Lab" ? (
-                <Campaign campaign={data.campaign} searches={data.searches ?? []} />
+                <>
+                  <Campaign campaign={data.campaign} searches={data.searches ?? []}
+                    candidates={data.candidates ?? []} />
+                  <ProspectiveGate prospective={prospective} />
+                </>
               ) : null}
               {page === "Symbols" ? (
                 <>
@@ -733,7 +894,8 @@ export function App() {
                             </tr>)}</tbody>
                         </table>
                       </div>
-                    ) : <p className="empty">No per-symbol evidence available.</p>}
+                    ) : <p className="empty">{refused ? "Evidence refused: journal integrity is not verified."
+                      : "No per-symbol evidence available."}</p>}
                   </section>
                   <Ledger
                     title="Market observations"
@@ -742,6 +904,7 @@ export function App() {
                         .toLowerCase()
                         .includes(filter.toLowerCase()),
                     )}
+                    refused={refused}
                   />
                   <Ledger
                     title="Rejection waterfall evidence"
@@ -750,6 +913,7 @@ export function App() {
                         .toLowerCase()
                         .includes(filter.toLowerCase()),
                     )}
+                    refused={refused}
                   />
                 </>
               ) : null}
@@ -760,9 +924,11 @@ export function App() {
                     values={[
                       ["Search ID", data.campaign?.search_id],
                       ["Completed searches", data.searches?.length],
-                      [data.campaign?.search_id === "TRADEV2_ALPHA_SEARCH_004" ? "Recorded evaluations" : "Paired stress records", data.experiments?.length],
+                      [trialLedger ? "Recorded evaluations" : "Paired stress records", data.experiments?.length],
                       ["Complete", data.campaign?.complete],
-                      ["Holdout state", data.campaign?.final_holdout_state ? "NOT ACQUIRED" : data.campaign?.promotion_note],
+                      ["Evidence role", data.campaign?.evidence_role ?? "HISTORICAL_CAMPAIGN"],
+                      ["Holdout state", data.campaign?.final_holdout_state
+                        ?? data.campaign?.promotion_note ?? data.campaign?.promotion],
                     ]}
                   />
                   <section className="panel">
@@ -773,14 +939,15 @@ export function App() {
                     <p>All research periods reuse historical data. No experiment here is fresh final holdout evidence.</p>
                   </section>
                   <section className="panel">
-                    <div className="panel-title"><h2>{data.campaign?.search_id === "TRADEV2_ALPHA_SEARCH_004" ? "Chronological trial ledger" : "Paired execution-cost stress"}</h2>
+                    <div className="panel-title"><h2>{trialLedger ? "Chronological trial ledger" : "Paired execution-cost stress"}</h2>
                       <label>Filter experiments{" "}<input value={experimentFilter}
                         onChange={(e) => setExperimentFilter(e.target.value)}
                         placeholder="Family or treatment" /></label></div>
                     {(data.experiments ?? []).length ? (
                       <div className="table-scroll"><table>
-                        <caption className="sr-only">Common-opportunity paired stress comparisons</caption>
-                        <thead><tr>{["Family", "Fold", "Treatment", "Trade n", data.campaign?.search_id === "TRADEV2_ALPHA_SEARCH_004" ? "Net R" : "Mean paired Δ · USDT", "CI", "Status"].map((name) =>
+                        <caption className="sr-only">{trialLedger ? "Chronological trial ledger"
+                          : "Common-opportunity paired stress comparisons"}</caption>
+                        <thead><tr>{["Family", "Fold", "Treatment", "Trade n", trialLedger ? "Net R" : "Mean paired Δ · USDT", "CI", "Status"].map((name) =>
                           <th scope="col" key={name}>{name}</th>)}</tr></thead>
                         <tbody>{(data.experiments ?? []).filter((row) =>
                           `${row.hypothesis} ${row.treatment}`.toLowerCase().includes(experimentFilter.toLowerCase())).map((row, index) =>
@@ -814,6 +981,7 @@ export function App() {
                       ["API", data.system.api],
                       ["Authority", data.system.authority],
                       ["Journal integrity", data.evidence.integrity],
+                      ["Research integrity", data.evidence.research_integrity],
                       ["Runtime", runtime?.status],
                       ["Candidate", runtime?.candidate_id],
                       ["Candidate stage", runtime?.candidate_stage],
@@ -827,6 +995,8 @@ export function App() {
                       ["Protection", data.system.protection],
                       ["Testnet", data.system.testnet === "DEDICATED_AUTHORIZATION_REQUIRED" ? "AUTHORIZATION REQUIRED" : data.system.testnet],
                       ["Public recorder", (data.system.public_recorder as RecordData | undefined)?.status],
+                      ["Prospective data", prospective?.status],
+                      ["Prospective collector", (prospective?.collector as RecordData | undefined)?.state],
                       ["Live barrier", data.system.live],
                     ]}
                   />

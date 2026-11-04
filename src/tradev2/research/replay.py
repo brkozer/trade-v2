@@ -92,6 +92,11 @@ def replay(panel: Panel, candidate: Candidate, signals: FloatArray, exit_rsi: Fl
         obs = economics[symbol].funding
         if first_ms < obs[0, 0] or last_ms > obs[-1, 0]:
             raise ValueError(f"funding coverage incomplete for {symbol}")
+        # Settlements apply at bar opens; one off the grid would silently never be charged.
+        inside = obs[(obs[:, 0] > first_ms) & (obs[:, 0] <= last_ms), 0]
+        if np.any(inside != np.floor(inside)) or np.any(inside.astype(np.int64) % BAR_MS):
+            raise ValueError(f"funding settlement off the 15m bar grid for {symbol}; "
+                             "unknown must not become zero")
     cash = Decimal('10000')
     positions: dict[int, Position] = {}
     trades: list[Trade] = []
@@ -102,7 +107,12 @@ def replay(panel: Panel, candidate: Candidate, signals: FloatArray, exit_rsi: Fl
     drawdown = Decimal(0)
     turnover = Decimal(0)
     symbol_counts = len(panel.symbols)
-    market = panel.values[:, :, 3].mean(axis=1)  # only direction label; not used for trading
+    # Descriptive regime label only, never used for trading: an equal-weight return index,
+    # so one high-priced symbol cannot dominate the way a mean of price levels would.
+    closes = panel.values[:, :, 3]
+    growth = np.ones(len(closes))
+    growth[1:] = (closes[1:] / closes[:-1]).mean(axis=1)
+    market = np.cumprod(growth)
     # Funding at a bar's opening boundary is applied before existing positions exit.
     settlements: list[dict[int, float]] = []
     for symbol in panel.symbols:
@@ -174,7 +184,8 @@ def replay(panel: Panel, candidate: Candidate, signals: FloatArray, exit_rsi: Fl
                     reason = "PORTFOLIO_SLOTS"
                 elif equity_open <= 0 or used_notional + quantity * price > equity_open * Decimal('.8'):
                     reason = "MARGIN_OR_GROSS_EXPOSURE"
-                elif quantity < money(eco.min_qty) or quantity * price < money(eco.min_notional):
+                elif (quantity <= 0 or quantity < money(eco.min_qty)
+                      or quantity * price < money(eco.min_notional)):
                     reason = "MINIMUM_RISK_REJECT"
                 elif quantity > money(eco.max_qty):
                     reason = "MAX_QUANTITY"
@@ -200,6 +211,12 @@ def replay(panel: Panel, candidate: Candidate, signals: FloatArray, exit_rsi: Fl
                                           "scenario": scenario.name, "outcome": reason})
         for s, position in tuple(positions.items()):
             high, low, opening = (money(float(panel.values[index, s, i])) for i in (1, 2, 0))
+            # An open already beyond the target resolves the intrabar order: the resting
+            # target fills first, at its limit, before any later move to the stop.
+            if (opening >= position.target if position.direction == 1
+                    else opening <= position.target):
+                close_position(s, index, position.target, "TARGET_AT_OPEN")
+                continue
             hit_stop = low <= position.stop if position.direction == 1 else high >= position.stop
             hit_target = high >= position.target if position.direction == 1 else low <= position.target
             if hit_stop:
@@ -269,4 +286,5 @@ def paired_comparison(baseline: ReplayResult, treatment: ReplayResult) -> dict[s
 
 def trade_payload(trade: Trade) -> dict[str, Any]:
     return asdict(trade) | {"net_r": trade.net_r, "fill_timestamp": None,
+                            "funding_convention": "POSITIVE_IS_PAID",
                             "timestamp_note": "exit_bar_ms identifies OHLC bar; intrabar fill time unobserved"}

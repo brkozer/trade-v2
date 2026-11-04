@@ -69,7 +69,13 @@ def main() -> None:
     stop_runtime.add_argument("--mode", choices=["paper", "shadow"], required=True)
     stop_runtime.add_argument("--run-id", required=True)
     candidates = commands.add_parser("inspect-candidates", help="summarize immutable search results")
-    candidates.add_argument("--search", choices=["initial", "final", "004"], default="final")
+    candidates.add_argument("--search", default="final",
+                            help="initial, final, a numeric suffix such as 004 or 009, or a full sealed search id")
+    prospective = commands.add_parser(
+        "inspect-prospective",
+        help="verify the target-local prospective candle/OI chains and report the unmet forward gate")
+    prospective.add_argument("--data-root", type=Path,
+                             help="another Trade v2 checkout whose data/public to read (read-only)")
     research = commands.add_parser("research", help="run a frozen one-shot research identity")
     research.add_argument("--search", choices=["final", "004"], required=True)
     commands.add_parser("collect-search004", help="collect a new target-local public-only 004 dataset once")
@@ -99,26 +105,40 @@ def main() -> None:
         directory = root / "runtime" / args.mode / args.run_id
         if not (directory / "journal.sqlite").is_file():
             parser.error("target-local simulation run not found")
-        with (directory / "stop.request").open("x", encoding="utf-8") as handle:
-            handle.write("operator requested clean stop\n")
-        print(json.dumps({"run_id": args.run_id, "status": "STOP_REQUESTED"}))
+        from tradev2.api.server import snapshot
+        status = snapshot(root, args.mode, args.run_id).runtime.status
+        if status in {"STOPPED", "FAILED"}:
+            parser.error(f"run is already {status}; nothing to stop")
+        try:
+            with (directory / "stop.request").open("x", encoding="utf-8") as handle:
+                handle.write("operator requested clean stop\n")
+        except FileExistsError:
+            parser.error("a stop request is already pending for this run")
+        print(json.dumps({"run_id": args.run_id, "status": "STOP_REQUESTED",
+                          "observed_runtime_status": status}))
         return
     if args.command == "inspect-candidates":
-        from tradev2.api.server import _campaigns
+        from tradev2.evidence.sealed_research import load_sealed_searches, resolve_search_id
         issues: list[str] = []
-        active, searches = _campaigns(root, issues)
-        name = {"initial": "TRADEV2_INITIAL_ALPHA_001", "final": "TRADEV2_FINAL_ALPHA_003",
-                "004": "TRADEV2_ALPHA_SEARCH_004"}[args.search]
-        selected = next((s for s in searches if s["search_id"] == name), None)
+        sealed = load_sealed_searches(root, issues)
+        name = resolve_search_id(args.search, sealed)
+        selected = next((item for item in sealed if item.search_id == name), None)
         if selected is None or issues:
-            raise ValueError(f"search unavailable or integrity failed: {name}; {issues}")
-        path = root / "research/results" / {"initial": "campaign.json",
-            "final": "FINAL_ALPHA_SEARCH_003.json", "004": "ALPHA_SEARCH_004.json"}[args.search]
-        campaign = json.loads(path.read_text(encoding="utf-8"))
-        print(json.dumps({"search": selected, "families": [
-            {"family": row["family"], "status": row["status"],
-             "net_r": row.get("forward_mean_net_r", (row.get("forward") or row.get("oos") or {}).get("mean_net_r")),
-             "reasons": row.get("reasons") or row.get("reason")} for row in campaign["families"]]}, indent=2))
+            raise ValueError(f"search unavailable or integrity failed: {args.search}; {issues}")
+        print(json.dumps({"search": selected.summary(), "candidates": [
+            {"family": row.get("family"), "label": row.get("label"), "status": row.get("status"),
+             "net_r": row.get("forward_mean_net_r",
+                              (row.get("forward") or row.get("oos") or {}).get("mean_net_r")),
+             "trades": row.get("forward_trades", (row.get("forward") or row.get("oos") or {}).get("trades")),
+             "positive_folds": row.get("positive_folds"),
+             "reasons": row.get("reasons") or row.get("reason")}
+            for row in selected.candidate_rows()]}, indent=2))
+        return
+    if args.command == "inspect-prospective":
+        from tradev2.research.prospective_chain import summarize_prospective_evidence
+        data_root = args.data_root.resolve() if args.data_root else root
+        print(json.dumps(summarize_prospective_evidence(data_root, now_ms=time.time_ns() // 1_000_000),
+                         indent=2))
         return
     if args.command == "collect-search004":
         from tradev2.alpha.search004_data import collect
@@ -180,28 +200,37 @@ def main() -> None:
             parser.error("cycles must be 1..10000 and interval 0..3600 seconds")
         config = load_config(args.config, Mode(args.mode) if args.mode else None)
         require_runtime_mode(config.mode)
+        if args.resume and (root / "runtime" / config.mode / args.resume / "stop.request").exists():
+            parser.error("an unconsumed stop request exists for this run; remove it deliberately "
+                         "before resuming")
         runtime = SimulationRuntime(root, config, resume=args.resume)
         client = PublicBybit()
         failed = True
+        failure: dict[str, str] | None = None
+        stop_consumed = False
         try:
             completed = 0
             for index in range(args.cycles):
                 runtime.poll(client)
                 completed += 1
-                if (root / "runtime" / config.mode / runtime.manifest.run_id / "stop.request").exists():
+                stop_path = root / "runtime" / config.mode / runtime.manifest.run_id / "stop.request"
+                if stop_path.exists():
+                    # Consume the sentinel so a later --resume is not stopped by stale intent.
+                    stop_path.unlink()
+                    stop_consumed = True
                     break
                 if index < args.cycles - 1:
                     time.sleep(args.interval_seconds)
             failed = False
         except Exception as exc:
-            runtime.emit("runtime", {"status": "FAILED", "error": type(exc).__name__,
-                                     "detail": str(exc)[:200]})
+            failure = {"error": type(exc).__name__, "detail": str(exc)[:200]}
             raise
         finally:
             client.close()
-            runtime.close(failed=failed)
+            runtime.close(failed=failed, failure=failure, stop_requested=stop_consumed)
         print(json.dumps({"mode": config.mode.value, "run_id": runtime.manifest.run_id,
-                          "cycles": completed, "orders_simulated": len(runtime.broker.orders),
+                          "cycles": completed, "stop_request_consumed": stop_consumed,
+                          "orders_simulated": len(runtime.broker.orders),
                           "live_requests": 0}, indent=2))
         return
     if args.command == "record-public":

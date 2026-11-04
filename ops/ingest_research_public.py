@@ -62,7 +62,11 @@ def main() -> None:
         if instrument["status"] != "Trading" or instrument["contractType"] != "LinearPerpetual":
             raise ValueError(f"unsupported instrument {symbol}")
         lot = instrument["lotSizeFilter"]
-        tier = fees["tiers"].get(symbol, {"maker": .0004, "taker": .0011})
+        measured = symbol in fees["tiers"]
+        # An unmeasured fee tier is an explicit assumption, never silently "measured".
+        tier = fees["tiers"][symbol] if measured else {"maker": .0004, "taker": .0011}
+        if not measured:
+            result["limitations"].append(f"{symbol}: fee tier not measured; assumed 4/11 bps")
         spread = spreads["spreads"].get(symbol, {}).get("median_bps")
         result["symbols"][symbol] = {
             "maker_rate": tier["maker"], "taker_rate": tier["taker"],
@@ -71,7 +75,9 @@ def main() -> None:
             "qty_step": lot["qtyStep"], "min_qty": lot["minOrderQty"],
             "min_notional": lot["minNotionalValue"], "max_qty": lot["maxMktOrderQty"],
             "funding": funding[symbol], "instrument": instrument,
-            "provenance": "dated measured fee schedule; assumed spread floor; public current rules; settled funding"}
+            "fee_source": "MEASURED" if measured else "ASSUMED_DEFAULT",
+            "provenance": ("dated measured fee schedule" if measured else "ASSUMED default fee")
+                          + "; assumed spread floor; public current rules; settled funding"}
     json_write(target / "economics.json", result)
     print(json.dumps({"dataset": manifest["dataset_id"], "symbols": len(manifest["symbols"]),
                       "bars_per_symbol": manifest["bars_per_symbol"], "data_sha256": manifest["sha256"],

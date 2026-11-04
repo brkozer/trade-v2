@@ -64,3 +64,44 @@ def test_sealed_promoted_family_and_parameter_selection_required(tmp_path: Path)
     frozen.write_text(json.dumps(selection), encoding="utf-8")
     with pytest.raises(PermissionError, match="disagrees"):
         approved_factor(tmp_path, spec.candidate_id)
+
+
+
+def test_paper_acceptance_content_must_accept_this_candidate(tmp_path: Path) -> None:
+    spec = registry()[0]
+    result_dir = tmp_path / "research/results"
+    manifest_dir = tmp_path / "research/manifests"
+    result_dir.mkdir(parents=True)
+    manifest_dir.mkdir(parents=True)
+    result = {"complete": True, "search_id": "synthetic_004",
+              "promoted_candidates": [spec.family], "families": [
+                  {"family": spec.family, "status": "PROSPECTIVE_SHADOW",
+                   "historical_gates_passed": True,
+                   "selected_candidates": [spec.candidate_id]}]}
+    path = result_dir / "FINAL_ALPHA_SEARCH_004.json"
+    path.write_text(json.dumps(result), encoding="utf-8")
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    (manifest_dir / "final_search_completion_004.json").write_text(
+        json.dumps({"result_sha256": digest}), encoding="utf-8")
+    acceptance_path = manifest_dir / f"paper_acceptance_{spec.candidate_id}.json"
+
+    def select(acceptance: dict) -> None:
+        acceptance_path.write_text(json.dumps(acceptance), encoding="utf-8")
+        selection = {"candidate_id": spec.candidate_id, "stage": "PAPER_EXECUTION_VALIDATED",
+                     "parameters": spec.payload(), "result_sha256": digest,
+                     "search_id": "synthetic_004",
+                     "paper_acceptance_sha256": hashlib.sha256(
+                         acceptance_path.read_bytes()).hexdigest()}
+        (manifest_dir / f"prospective_{spec.candidate_id}.json").write_text(
+            json.dumps(selection), encoding="utf-8")
+
+    valid = {"candidate_id": spec.candidate_id, "status": "PAPER_EXECUTION_ACCEPTED",
+             "run_id": "0" * 32, "journal_sha256": "a" * 64}
+    select(valid)
+    assert approved_factor(tmp_path, spec.candidate_id, Mode.PAPER) == (
+        spec, "PAPER_EXECUTION_VALIDATED")
+    for wrong in ({**valid, "candidate_id": "OTHER"}, {**valid, "status": "REJECTED"},
+                  {**valid, "run_id": ""}, {**valid, "journal_sha256": "XYZ"}, {}):
+        select(wrong)
+        with pytest.raises(PermissionError, match="does not accept"):
+            approved_factor(tmp_path, spec.candidate_id, Mode.PAPER)

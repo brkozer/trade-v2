@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -212,3 +213,34 @@ def test_websocket_close_is_recorded_and_retry_bounded(
     assert journal.connection.execute(
         "SELECT count(*) FROM events WHERE kind='source_failure'").fetchone()[0] == 3
     journal.close()
+
+
+
+@pytest.mark.parametrize("frame", ["not json", "42", "[1, 2]"])
+def test_malformed_frame_is_one_failure_inside_the_retry_budget(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, frame: str,
+) -> None:
+    class Socket:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def send(self, _payload):
+            return None
+
+        def recv(self, timeout):
+            return frame
+
+    monkeypatch.setattr(recorder, "connect", lambda *_args, **_kwargs: Socket())
+    journal = Journal(tmp_path / "malformed.sqlite")
+    journal.register(_manifest())
+    with pytest.raises(RuntimeError, match="retry budget exhausted"):
+        recorder.record_public(journal, "recorder-test", ("BTCUSDT",), 5)
+    rows = [json.loads(row[0])["payload"] for row in journal.connection.execute(
+        "SELECT body FROM events WHERE kind='source_failure'")]
+    journal.close()
+    # One journaled failure per malformed frame, each counted once against the budget.
+    assert len(rows) == 3
+    assert all(row["status"] == "RESEED_REQUIRED" for row in rows)

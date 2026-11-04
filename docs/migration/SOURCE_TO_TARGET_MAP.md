@@ -14,7 +14,7 @@ requirement. `REJECT` means absent from Trade v2.
 | Bybit `v4bot/accounting.py` fee/funding provenance | ADAPT | `src/tradev2/accounting/`: known/estimated/unknown money, fee and funding evidence; missing is never zero |
 | Bybit `v4bot/reconciliation.py` and unresolved-late-fill regression | REWRITE | `src/tradev2/reconciliation/`, `src/tradev2/execution/`: exact owned order/fill identities, uncertainty reduction and fail-closed authority |
 | Bybit historical OHLCV/funding and measured fee snapshot | PORT as evidence | `research/manifests/`, `research/results/`: hashed, previously consumed public history; explicit economics and no fresh-OOS claim |
-| Bybit live transport and monolithic engine | REJECT | `src/tradev2/venues/` exposes only public GET; `src/tradev2/testnet/` is a closed preflight boundary; `LIVE_DISABLED` remains final |
+| Bybit live transport and monolithic engine | REJECT | `src/tradev2/venues/` exposes only public GET; `src/tradev2/testnet/` is a dedicated preflight plus host-pinned, separately authorized signed testnet boundary; `LIVE_DISABLED` remains final |
 
 No direct source-history success claim, strategy literal, credential, account record or
 runtime database becomes target authority. Research and runtime share explicit signal

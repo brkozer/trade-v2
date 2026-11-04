@@ -12,6 +12,11 @@ SECRET_PATTERNS = [
     re.compile(rb"gh[pousr]_[A-Za-z0-9]{30,}"),
     re.compile(rb"github_pat_[A-Za-z0-9_]{50,}"),
     re.compile(rb"AKIA[0-9A-Z]{16}"),
+    # The project's own testnet credential variables assigned a literal value.
+    re.compile(rb"TRADEV2_TESTNET_API_(?:KEY|SECRET)\s*[=:]\s*[\"']?[A-Za-z0-9]{8,}"),
+    # Bybit request headers or key/secret fields carrying a literal value.
+    re.compile(rb"(?i)X-BAPI-(?:API-KEY|SIGN)\s*[=:]\s*[\"']?[A-Za-z0-9]{10,}"),
+    re.compile(rb"(?i)[\"']?api[_-]?(?:key|secret)[\"']?\s*[=:]\s*[\"'][A-Za-z0-9+/=_-]{16,}[\"']"),
 ]
 
 

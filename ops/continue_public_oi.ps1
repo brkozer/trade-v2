@@ -4,32 +4,41 @@ prior chunk and writes only the exact next timestamps. A failed collection is
 never silently replaced with zeros or an overlapping backfill.
 #>
 param(
-    [ValidateRange(1, 1344)][int]$Rounds = 1344,
+    [ValidateRange(1, 2880)][int]$Rounds = 1344,
     [ValidateRange(300, 3600)][int]$IntervalSeconds = 1800,
-    [ValidateRange(20, 1000)][int]$MinFreeGB = 100
+    [ValidateRange(20, 1000)][int]$MinFreeGB = 100,
+    # Checkout holding data/public, research/results and .venv; defaults to this one.
+    [string]$DataRoot
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$python = Join-Path $root '.venv\Scripts\python.exe'
+# Code runs from this checkout; evidence is written under the data root.
+$dataRoot = if ($DataRoot) { (Resolve-Path -LiteralPath $DataRoot).Path } else { $root }
+$python = Join-Path $dataRoot '.venv\Scripts\python.exe'
 $collector = Join-Path $root 'ops\collect_forward_oi.py'
+$env:PYTHONPATH = Join-Path $root 'src'
+$codeSha = try { (& git -C $root rev-parse HEAD) } catch { $null }
 if (-not (Test-Path -LiteralPath $python -PathType Leaf) -or
     -not (Test-Path -LiteralPath $collector -PathType Leaf)) {
     throw 'Target-local public OI collector is missing'
 }
-$firstChunk = Get-ChildItem -LiteralPath (Join-Path $root 'data\public') -Directory |
-    Where-Object { $_.Name -like 'prospective_oi_*' } |
+$firstChunk = Get-ChildItem -LiteralPath (Join-Path $dataRoot 'data\public') -Directory |
+    Where-Object { $_.Name -like 'prospective_oi*_*' } |
     Sort-Object Name |
     Select-Object -First 1
 if ($null -eq $firstChunk) { throw 'A verified first OI chunk is required' }
 
-$campaign = Join-Path $root ('runtime\recorder\oi-continuation-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))
+$campaign = Join-Path $dataRoot ('runtime\recorder\oi-continuation-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))
 New-Item -ItemType Directory -Path $campaign -ErrorAction Stop | Out-Null
 $statusPath = Join-Path $campaign 'status.json'
 $metadata = [ordered]@{
     started_utc = [DateTime]::UtcNow.ToString('o')
     first_chunk = $firstChunk.Name
+    code_root = $root
+    code_git_sha = $codeSha
+    data_root = $dataRoot
     requested_rounds = $Rounds
     interval_seconds = $IntervalSeconds
     min_free_gb = $MinFreeGB
@@ -48,7 +57,7 @@ try {
             $metadata.status = 'STOP_REQUESTED'
             break
         }
-        $drive = [System.IO.DriveInfo]::new([System.IO.Path]::GetPathRoot($root))
+        $drive = [System.IO.DriveInfo]::new([System.IO.Path]::GetPathRoot($dataRoot))
         if ($drive.AvailableFreeSpace -lt $MinFreeGB * 1GB) {
             throw "Free disk below $MinFreeGB GB before OI round $index"
         }
@@ -57,7 +66,7 @@ try {
         $previousErrorActionPreference = $ErrorActionPreference
         try {
             $ErrorActionPreference = 'Continue'
-            & $python $collector *> $log
+            & $python $collector --root $dataRoot *> $log
             $collectorExitCode = $LASTEXITCODE
         } finally {
             $ErrorActionPreference = $previousErrorActionPreference

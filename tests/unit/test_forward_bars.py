@@ -95,3 +95,41 @@ def test_rejects_consumed_or_incomplete_evidence_before_writing(tmp_path: Path) 
     with pytest.raises(ValueError, match="unconfirmed"):
         collect(root, _client(confirmed=False), first_open_ms=FIRST)
     assert not list((root / "data/public").glob("prospective_bars_*"))
+
+
+
+def test_availability_waits_for_the_later_of_receipt_and_exchange_time(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import ops.collect_forward_bars as bars_module
+
+    root, _ = _root(tmp_path)
+    frozen = datetime(2026, 9, 23, 10, 17, tzinfo=UTC)
+
+    class FrozenClock(datetime):
+        @classmethod
+        def now(cls, tz=None):  # type: ignore[override]
+            return frozen
+
+    monkeypatch.setattr(bars_module, "datetime", FrozenClock)
+    client = _client()
+    manifest = collect(root, client, first_open_ms=FIRST)
+    frozen_ms = int(frozen.timestamp() * 1000)
+    latest = manifest["latest_response_server_ms"]
+    assert manifest["schema_version"] == 2
+    assert latest == FIRST + BAR_MS + 120_000
+    assert manifest["safe_available_ms"] == max(frozen_ms, latest) + 5_000
+    assert safe_available_ms(manifest) == manifest["safe_available_ms"]
+    with pytest.raises(ValueError, match="mismatch"):
+        safe_available_ms({**manifest, "safe_available_ms": manifest["safe_available_ms"] - 1})
+    # A host clock behind the exchange cannot make the chunk available early.
+    early = datetime(2026, 9, 23, 10, 16, tzinfo=UTC)
+    assert safe_available_ms({**manifest, "collected_at": early.isoformat(),
+                              "safe_available_ms": latest + 5_000}) == latest + 5_000
+
+
+
+def test_a_late_first_collection_is_labelled_backfill(tmp_path: Path) -> None:
+    root, _ = _root(tmp_path)
+    late = collect(root, _client(), first_open_ms=FIRST)  # the fixture runs long after 2026-09-23
+    assert late["observation_mode"] == "BACKFILL_LATER_OBSERVED"

@@ -23,5 +23,6 @@ def require_runtime_mode(mode: Mode) -> None:
     if mode == Mode.LIVE:
         raise PermissionError("LIVE_DISABLED: live transport is unavailable")
     if mode == Mode.TESTNET:
-        raise PermissionError("TESTNET_NOT_ENABLED: preflight only; no authenticated transport")
+        raise PermissionError("TESTNET_NOT_ENABLED: the simulation runtime never runs testnet; "
+                              "the signed testnet transport needs separate dedicated authorization")
 

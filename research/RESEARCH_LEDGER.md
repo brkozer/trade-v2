@@ -1,7 +1,9 @@
 # Trade v2 research ledger
 
-Snapshot: 2026-09-23 20:43 UTC. This ledger tracks search consumption and the next
-evidence gate; sealed per-search artifacts remain authoritative for exact results.
+Snapshot: 2026-10-24 UTC (read-only prospective chain audit, below). The newest
+research section is 2026-09-24 09:47 UTC. This ledger tracks search consumption and
+the next evidence gate; sealed per-search artifacts remain authoritative for exact
+results. Bounded research-cycle reports are in [cycles/](cycles/).
 
 | Identity | Mechanisms and search budget | Result | Evidence role |
 | --- | --- | --- | --- |
@@ -45,7 +47,11 @@ Formal BTC/ETH/general-market beta attribution and defensible multiple-test
 inference were unavailable at that independent-day count. These are unresolved
 research-evidence requirements, never assumed to pass.
 
-## Prospective collection in progress
+## Prospective collection log (historical; liveness is observed, never assumed)
+
+The entries below record collection as it was observed at each dated check. Current
+chain coverage and collector recency come only from `tradev2.cli inspect-prospective`
+or `/api/v1/prospective-evidence`, which re-verify every chunk on each call.
 
 The existing public-only WebSocket recorder began a bounded 30-minute BTCUSDT/
 ETHUSDT session on 2026-09-23 about 10:02 UTC. Target-local run ID:
@@ -882,6 +888,129 @@ the momentum-overlap, BTC-attribution and concentration safeguards; the failure
 is therefore cost fragility and temporal non-replication rather than a rejected
 momentum relabel. No parameter retuning, candidate freeze or promotion is
 authorized.
+
+### Read-only prospective chain audit — 2026-10-24 UTC
+
+No search identity was consumed and nothing was scored. The new read-only
+`inspect-prospective` summary re-verified the primary checkout's ignored
+`data/public/prospective_*` chunks (paths, dataset identities, payload hashes,
+per-symbol timestamp coverage, contiguity, `safe_available_ms` rule and the fixed
+Search 004 source-universe hash):
+
+| Chain | Chunks | Points per symbol | Coverage | Last collection |
+| --- | ---: | ---: | --- | --- |
+| 20-symbol 15m candles | 34 | 105 | 2026-09-23 10:00 to 2026-09-24 12:15 UTC (26.25 h) | 2026-09-24 12:27 UTC |
+| 20-symbol open interest | 13 | 66 | 2026-09-23 19:45 to 2026-09-24 12:15 UTC (16.5 h) | 2026-09-24 12:27 UTC |
+
+Sixty-six feature timestamps have both a candle and an OI point; 64 have a
+completed execution bar strictly after both availability bounds. Covered forward
+time is **1.09 of the 28 required days**. No collector process was running and the
+newest chunk was about 29 days old, so the collector state is `STALE`. The
+supervisors that were relaunched on 2026-09-24 09:26 UTC therefore stopped after
+their 12:27 UTC rounds; their exit cause was not inspected.
+
+Consequences, stated before any restart: the candle chain can only continue by
+REST backfill, and every backfilled bar would carry the backfill time as its
+`safe_available_ms`, making it later-observed context rather than contemporaneous
+evidence. The OI chain cannot continue under its current collector because the
+gap (about 2,880 points per symbol) exceeds its deliberate 200-point single-page
+recovery bound. Resuming OI requires either a new, explicitly disclosed chain
+identity or a separately reviewed bounded-recovery change. Neither was done here.
+The forward-day gate remains `WAITING_FOR_DATA`. LIVE remains disabled.
+
+### Engine corrections and disclosed limitations — 2026-10-24 UTC
+
+A read-only code audit (eleven review dimensions, adversarially verified where the
+budget allowed) found no defect that changes any sealed search conclusion: every
+consumed search remains rejected, and no result artifact or manifest was edited.
+Consumed runners refuse a rerun, and each sealed result records the Git SHA that
+reproduces it. The following corrections therefore apply only to future searches:
+
+- Replay now fails closed on a funding settlement off the 15-minute bar grid. All
+  126,298 settlements in the three existing economics files are on the grid, so
+  past replays were unaffected.
+- A bar that opens beyond the target exits at the target (`TARGET_AT_OPEN`) before
+  the stop-first rule applies; a zero-quantity sizing result is rejected.
+- The descriptive regime label now uses an equal-weight return index; before, a mean
+  of price levels made it effectively BTC's 24-hour return. Sealed `regime_net_pnl`
+  values use the old label and are descriptive only.
+- Simulation time stops now count from the entry bar like the replay; before they
+  fired one bar late. Reference signal strength now matches the research ranking.
+
+Disclosed limitations of consumed searches (not rerun, not relabelled):
+
+- Search 005's frozen 0.30 day-share gate was unsatisfiable: each two-day forward fold
+  spans at most three UTC days, so its day share is at least one third. The search was
+  rejected on gross economics in every fold, so the gate did not decide the outcome.
+- The final 003 descriptive `pnl_slope_per_unit_market_return` mixes a sample
+  covariance with a population variance, overstating the slope by n/(n-1), about 0.8%.
+  It was never a gate.
+- The merged 39-symbol economics file uses the limit-order cap (`maxOrderQty`) for
+  BTC/ETH and the market-order cap for the other 37 symbols as `max_qty`.
+- The testnet transport's 36-character `tv2_` order-link identity cannot match the
+  32-character `tv2-` journal client identity, so journal-based ownership recovery
+  cannot succeed yet. This is one more unmet item of authenticated testnet
+  acceptance, not a reachable trading path.
+
+### Public-only collection restarted — 2026-10-24 UTC
+
+On operator instruction, public-only collection resumed. Code runs from a detached
+collector checkout pinned at `98aa9ca` (ignored `runtime/collector-checkout-98aa9ca`);
+evidence, status and logs are written under this checkout. The supervisors were
+started as independent processes so they do not end with an interactive session.
+They do not survive a reboot. No search identity was consumed and nothing was scored.
+
+- **Candles.** One labelled backfill chunk, `BYBIT_PUBLIC_FORWARD_1790252100000_1792842300000`,
+  closed the gap: 2,879 bars per symbol, `BACKFILL_LATER_OBSERVED`, schema-2
+  availability. These bars are later-observed context and never count toward the gate.
+  The chain stays contiguous and continues every 30 minutes.
+- **Open interest.** `OI_CHAIN_001` is closed at its 2026-09-24 12:00 UTC point.
+  `OI_CHAIN_002` began with `BYBIT_PUBLIC_OI_FORWARD2_1792841400000_1792842300000`. Its
+  genesis manifest names the predecessor's last chunk and payload hash and records an
+  unobserved gap of 2,877 points per symbol (2026-09-24 12:15 to 2026-10-24 11:15 UTC),
+  `backfilled: false`, with the stop reason. A plain continuation of chain 1 was refused
+  first, as designed.
+- **Supervisors.** Candle `bars-continuation-20261024T120845Z` and OI
+  `oi-continuation-20261024T120845Z`: up to 2,880 rounds of 30 minutes, a 100 GiB disk
+  floor, and a stop after three consecutive failures. The first candle round after the
+  backfill was a benign "no new closed bar yet" refusal. The first steady-state rounds at
+  12:38 UTC both succeeded: candle chunk `BYBIT_PUBLIC_FORWARD_1792843200000_1792844100000`
+  and OI chunk `BYBIT_PUBLIC_OI_FORWARD2_1792843200000_1792844100000`, after which the
+  independent read-back verified both chains and the gate stood at 0.04 days.
+- **Superseded launch.** A first launch from `f70d45d` wrote status under the code
+  checkout. It was stopped between rounds, with no round interrupted, and its records
+  were moved here as `SUPERSEDED_BY_RELAUNCH`.
+- **Gate.** Directly after the restart: 0.02 of 28 gap-free contemporaneous joint days
+  (newest run 11:30 to 12:00 UTC). Under the same stricter rule the pre-restart chain
+  held 0.15 days, because 36 of its bars were themselves backfilled. If every round
+  succeeds, the forward-day requirement can first be met around 2026-11-21. Meeting it
+  authorizes nothing by itself.
+- **Compatibility.** Collectors on `research/prospective-evidence-005` predate chain
+  succession and schema-2 candle availability. They cannot extend these chains and fail
+  closed if run; do not start them against this data.
+
+### Collection moved to an always-on host — 2026-10-24 UTC
+
+The workstation sleeps and restarts, and every interruption resets the gap-free run,
+so collection moved to an always-on Ubuntu 20.04 host on the local network (clock
+NTP-synchronized). Nothing needed root access.
+
+- **Local stop.** Both workstation supervisors were stopped between rounds at 12:45 UTC.
+  No round was interrupted, and their status records read `STOPPED_FOR_SERVER_MIGRATION`.
+- **Host runtime.** User-space CPython 3.12.11 installed with `uv`; a dedicated virtual
+  environment holds numpy 2.2.6, pydantic 2.14.1, httpx 0.28.1 and portalocker 3.2.0.
+  The code is an archive of commit `d45db6b` with a `COLLECTOR_COMMIT` marker.
+- **Chain hand-over.** All 51 chain directories, the Search 004 universe manifest and
+  the 004 result were copied unchanged. The host's own read-back reproduced the
+  workstation summary before any new round ran.
+- **Rounds.** A user crontab runs `ops/collection_round.py` at minutes 7 and 37 of every
+  hour; it survives reboots and opens no window. A manual round at 12:50 UTC and the
+  first cron round at 13:07 UTC both collected a candle and an `OI_CHAIN_002` chunk
+  (`..._1792845000000_...` and `..._1792845900000_...`) with no failure.
+- **Source of truth.** The host's data root now holds the authoritative chains. This
+  checkout's copy changes only through `ops/pull_prospective.py`, which adds absent
+  chunks, refuses divergent ones and re-verifies. A first pull added two chunks, found
+  51 identical, and reported 0.05 of 28 gap-free contemporaneous days.
 
 ## New hypothesis queue — not a frozen search
 

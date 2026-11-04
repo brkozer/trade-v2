@@ -1,8 +1,17 @@
 # Safety model
 
 Live is hard disabled. There is no production authenticated transport. Paper/shadow
-objects have public market-data capability and simulation capability only. Testnet has
-preflight checks but no executable authenticated transport in this release.
+objects have public market-data capability and simulation capability only; no paper,
+shadow, runtime or API module imports the testnet package (regression-tested).
+
+A signed testnet transport (`tradev2.testnet.transport.TestnetLinear`) does exist. It is
+pinned to `api-testnet.bybit.com`, allowlists four write and seven read endpoints, and
+can be constructed only from a testnet-mode config with `testnet_authorized=true`,
+`TRADEV2_TESTNET_ENABLE=1` and testnet-only credential environment variables. Entry
+additionally requires every startup proof. No CLI command constructs it: the
+`run` command refuses testnet mode, and `testnet-preflight` makes zero network
+requests. Testnet operation still needs separate, explicit, dedicated authorization;
+nothing in research, paper, shadow or the UI infers it.
 
 - Strict configuration rejects unknown keys, including misspelled risk keys and arbitrary
   authenticated host URLs. CLI overrides can only reduce capabilities.
@@ -19,7 +28,10 @@ preflight checks but no executable authenticated transport in this release.
   canonical settled amounts. Funding payment times determine attribution.
 - Engine liveness, heartbeat freshness and source freshness are separate observations.
   A frozen journal, dead engine or unreadable source cannot establish CURRENT_SAFE.
-  A pending halt is latched; failed reads cannot clear it.
+  A pending halt is latched; failed reads cannot clear it. An account-level risk HALT
+  (unknown equity, equity floor, or a loss beyond the daily limit measured from the
+  first observation of the UTC day) latches, cancels resting entries and persists
+  across resume; only a new run starts without it.
 - Runtime databases and state are separated by mode and immutable run ID. Account
   authority is shared across configurations for the same resolved profile in this installation.
 

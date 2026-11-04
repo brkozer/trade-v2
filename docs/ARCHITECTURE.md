@@ -32,15 +32,22 @@ and semantics with runtime evaluation. Replay prices occur after signal availabi
 
 PublicBybit exposes a GET-only allowlist of built-in public endpoints. It has no credentials,
 signer, private endpoints, order, cancel or position mutation methods. Simulation runtimes
-receive this public client and a simulator only. Live is disabled at the runtime boundary;
-testnet is a preflight boundary and cannot construct an authenticated transport.
+receive this public client and a simulator only. Live is disabled at the runtime boundary.
+The simulation runtime refuses testnet mode; the separate signed testnet transport is
+host-pinned, import-isolated from simulation and requires dedicated config, environment
+and startup-proof authorization (see the safety model).
 
 ## Evidence and recovery
 
 Immutable run manifests carry Git SHA/dirty state, normalized config/hash, parameter hash,
 universe/hash, versions, economics provenance and data identity. Journal events use unique
 IDs and a chained digest; duplicate identical events are idempotent and conflicting IDs
-are rejected. This is local integrity detection, not a externally notarized audit trail.
+are rejected. Verification also requires the immutability triggers, checks that indexed
+columns match each hashed body, anchors the chain tail to SQLite's sequence counter, and
+checks the chained hashes that bind each run manifest and checkpoint to its row.
+Resume uses only the newest chain-bound checkpoint and refuses when any evidence other
+than the terminal runtime record follows it. This is local integrity detection, not an
+externally notarized audit trail.
 SQLite migrations are ordered and transactional. Backup uses SQLite's online backup API,
 refuses pending transactions, checks integrity and returns a checksum. Restore refuses
 overwriting an existing destination. Readers use `mode=ro`, never `immutable=1`.

@@ -25,6 +25,12 @@ if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
 if (-not $node -or -not (Test-Path -LiteralPath $vite -PathType Leaf)) {
     throw 'Missing Node or target-local frontend dependencies. Run npm ci in frontend first.'
 }
+foreach ($port in 8000, 5173) {
+    $busy = Get-TradeV2Listeners -Port $port
+    if ($busy.Count -gt 0) {
+        throw "Port $port is already served by PID $($busy -join ', '). Another Trade v2 instance or program is running; nothing was started or stopped."
+    }
+}
 New-Item -ItemType Directory -Path $TradeV2StateDir -Force | Out-Null
 $apiProcess = $null
 $uiProcess = $null
@@ -44,6 +50,12 @@ try {
         Start-Sleep -Milliseconds 500
     }
     if (-not $ready) { throw "Startup failed. See logs under $TradeV2StateDir" }
+    # Health can come from any process on these ports; require that ours is serving.
+    if ($apiProcess.HasExited -or $uiProcess.HasExited -or
+        -not (Test-TradeV2OwnsPort -Port 8000 -OwnedPid $apiProcess.Id) -or
+        -not (Test-TradeV2OwnsPort -Port 5173 -OwnedPid $uiProcess.Id)) {
+        throw "Health answered, but not from the processes this launcher started. See logs under $TradeV2StateDir"
+    }
     $state = @{
         schema_version = 1
         root = $TradeV2Root

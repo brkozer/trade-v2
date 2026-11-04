@@ -30,7 +30,10 @@ After the README setup, from the Trade v2 directory:
 .\scripts\stop_trade_v2.ps1
 ```
 
-`start_trade_v2.ps1 -OpenBrowser` also opens the browser. The UI is at
+`start_trade_v2.ps1 -OpenBrowser` also opens the browser. Start refuses when ports 8000
+or 5173 are already served, and only reports ready when the listening processes are
+the ones it started (or their interpreter child). Stop removes an unreadable state
+file without stopping any process it cannot prove it owns. The UI is at
 `http://127.0.0.1:5173/`; API documentation is at `http://127.0.0.1:8000/docs`.
 Both services bind to loopback. The launcher stores owned PID/start-time pairs and
 logs under ignored `runtime/operator/`. A repeat start or stop is safe. A partial
@@ -59,13 +62,68 @@ sealed paper acceptance record. Unknown/rejected candidates fail closed. Shadow
 consumes public Bybit data and simulates execution without an
 authenticated transport. `run --cycles` is finite. Request a clean stop with
 `stop-runtime --mode paper --run-id <id>`; the loop checks the sentinel after a
-poll and checkpoints before closing. The venue/profile authority lock is local,
+poll, consumes it and checkpoints before closing. `stop-runtime` refuses a run that is
+already STOPPED or FAILED and a second pending request; `run --resume` refuses while an
+unconsumed request exists. Resume also refuses a checkpoint that is not chain-bound or
+that evidence was journaled after (a hard kill mid-cycle), and records the resuming
+software identity in its STARTING event. A latched risk HALT survives resume; start a
+new run to clear it. The terminal runtime event carries the failure reason. The venue/profile authority lock is local,
 not distributed cross-host locking.
 
 The public recorder preserves raw and normalized L2/trade events in the journal.
 The read-back audit checks sequence and timing after reopening. A short acceptance
-session proves the pipeline, not stable economics or queue fills. Long-horizon
-microstructure evidence is `PROSPECTIVE_DATA_COLLECTION_ACTIVE`.
+session proves the pipeline, not stable economics or queue fills. Collection is never
+assumed active: `inspect-prospective` (and `/api/v1/prospective-evidence`) re-verifies
+the candle and OI chunk chains on each call and reports coverage, the unmet forward-day
+gate and collector recency as `RECENT`, `STALE` or `UNKNOWN`. A stale chain cannot be
+silently resumed: candle backfill is later-observed context, and the OI collector refuses
+gaps beyond its 200-point recovery bound.
+
+```powershell
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-prospective
+```
+
+The forward-day gate counts only the newest uninterrupted run of feature timestamps
+with both a candle and an OI point, each first collected within one hour of its
+interval close. Backfilled candles (`observation_mode: BACKFILL_LATER_OBSERVED`) stay
+in the chain as later-observed context but never count.
+
+Restarting after a long stop: the candle supervisor continues its chain with
+`-ResumeExistingChain`; its first round backfills the gap in one labelled chunk. The
+OI chain cannot backfill beyond 200 points, so start its successor once, deliberately:
+
+```powershell
+.\.venv\Scripts\python.exe ops\collect_forward_oi.py --new-chain-reason "<why the chain stopped>"
+```
+
+This writes `prospective_oi<n>_<first>_<last>` whose genesis manifest records the
+predecessor's final point and the exact unobserved gap (`backfilled: false`). The
+command refuses while the current chain can still be extended. The OI supervisor then
+extends only the newest chain. Both supervisors accept `-DataRoot <checkout>` to run
+code from one checkout (for example a pinned collector worktree) while writing
+evidence, status and logs under another; each status file records the code root,
+its Git SHA and the data root.
+
+### Collecting on an always-on host
+
+A home PC sleeps and restarts, and any interruption resets the gap-free run. Prefer an
+always-on host and a scheduler instead of long-lived supervisors. `ops/collection_round.py`
+runs one locked round of both collectors and exits; a user crontab such as
+`7,37 * * * *` needs no root and survives reboots. It records `OK`, `NOT_DUE` (nothing
+newly closed), `FAILED`, `SKIPPED_ROUND_IN_PROGRESS` or `STOPPED_BY_REQUEST` under
+`<data root>/runtime/collector/` (`status.json`, `rounds.jsonl`) and never starts an OI
+successor chain itself; an unrecoverable OI gap is reported as `action_required`.
+Create `runtime/collector/stop.request` under the data root to pause it.
+
+Copy new chunks back to a workstation whenever needed; existing chunks are never
+overwritten, any divergent chunk aborts the copy, and the chains are re-verified:
+
+```powershell
+.\.venv\Scripts\python.exe ops\pull_prospective.py --host <user>@<host> --remote-root "~/trade-v2-collector/data" --identity <private key>
+```
+
+Only one collector may extend a chain. After moving collection to another host,
+stop every local supervisor first and treat the host's data root as the source.
 
 ## Historical and new research
 
@@ -73,8 +131,15 @@ microstructure evidence is `PROSPECTIVE_DATA_COLLECTION_ACTIVE`.
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search initial
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search final
 .\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search 004
+.\.venv\Scripts\python.exe -m tradev2.cli inspect-candidates --search 009
 .\.venv\Scripts\python.exe -m tradev2.cli replay-parity
 ```
+
+`inspect-candidates --search` accepts `initial`, `final`, a numeric suffix such as `004`
+or `009`, or a full identity. Every sealed result is discovered from disk and served only
+when its SHA-256 matches its completion manifest; any seal failure stops the command.
+Discovery searches 005-009 are consumed `DISCOVERY_ONLY_NOT_FRESH_VALIDATION` identities.
+Their runners refuse to start once a result exists; do not rerun or relabel them.
 
 `research --search final` and `research --search 004` are one-shot commands, but
 both identities and completion records are consumed in this checkout. Search 004
